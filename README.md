@@ -1,3 +1,3 @@
-# Py Keyer
+# Bandmap
 
-CW contest keyer and logger in Python.
+Band mapdx cluster gui written in Python.
