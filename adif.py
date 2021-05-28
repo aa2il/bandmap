@@ -1,14 +1,26 @@
-###############################################################################
-
-# ADIF.py - J.B.Attili - 2018
-
+############################################################################################
+#
+# adif.py - Copyright (C) 2021 by Joseph B. Attili, aa2il AT arrl DOT net
+#
 # Functions related to parsing ADIF files
-
-###############################################################################
+#
+############################################################################################
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+############################################################################################
 
 import re
 
-###############################################################################
+############################################################################################
 
 # Function to parse an ADIF logbook
 def parse_adif(fn):

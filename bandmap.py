@@ -1,18 +1,35 @@
 #!/usr/bin/python3 -u
 #########################################################################################
-
-# Bandmap.py - J.B.Attili - 2018
-
-#  This code needs some libs, e.g. pytz, that may not already be installed.
-#  Use the package manager to install pip and then from the command line type
-#  sudo pip install pytz         (or pip3 for python3)
-
+#
+# bandmap.py - Rev. 1.0
+# Copyright (C) 2021 by Joseph B. Attili, aa2il AT arrl DOT net
+#
+# Simple gui to sort & display dx cluster spots.  Indications as to the age of a spot and
+# the "need" status of a spot's DXCC are also given.  The rig can be tuned to a spot by
+# clicking on it.
+#
+# This code needs some libs, e.g. pytz, that may not already be installed.
+# Use the package manager to install pip and then from the command line type
+# sudo pip install pytz         (or pip3 for python3)
+#
 # The -u forces unubffered output on stdout making debug easier
-
+#
 # TO DO:
 #   - During big contests, it seems to take some time for the gui to react - matching is slow?
 #   - REALLY NEED TO CLEAN UP THIS RAT'S NEST!!!!
-
+#
+############################################################################################
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
 #########################################################################################
 
 import sys
@@ -47,10 +64,10 @@ import webbrowser
 
 # Sometimes when these don't work, its bx the login handshaking needs some work
 NODES=OrderedDict()
-NODES['W8AEF'] = 'paul.w8aef.com:7373'             # AZ - no FT8 - can turn it on
+NODES['PY3NZ'] = 'dxc.baependi.com.br:8000'        # DXWATCH.COM!!!
 NODES['NK7Z']  = 'nk7z-cluster.ddns.net:7373'      # Lots of spots!  RBN?
 NODES['NC7J']  = 'dxc.nc7j.com'                    # Lots of spots, no FT8
-NODES['PY3NZ'] = 'dxc.baependi.com.br:8000'        # DXWATCH.COM!!!
+NODES['W8AEF'] = 'paul.w8aef.com:7373'             # AZ - no FT8 - can turn it on
 NODES['W3LPL'] = 'w3lpl.net:7373'                  # Ok - lots of spots, no FT8 dxc.w3lpl.net
 NODES['N6WS']  = 'n6ws.no-ip.org:7300'             # Ok
 NODES['K1TTT'] = 'k1ttt.net:7373'                  # (Peru, MA); Skimmer capable
