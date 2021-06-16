@@ -20,9 +20,12 @@
 #########################################################################################
 
 import sys
+import re
 import pytz
 from datetime import datetime
 from dx.spot_processing import Spot
+from pprint import pprint
+from fileio import parse_adif
 
 #########################################################################################
 
@@ -65,7 +68,7 @@ def cluster_feed(self):
         spot = tn.get_spot2(None,0)
         line = tn.convert_spot(spot)
         if line:
-            print(line)
+            print('Cluster Feed: line=',line)
 
         # Check for band changes
         if tn.nsleep>=1 and True:
@@ -114,7 +117,7 @@ def cluster_feed(self):
     # Process the spot
     if len(line)>5:
         if self.P.ECHO_ON:
-            print('>>>',line.rstrip())
+            print('>>> Cluster Feed:',line.rstrip())
         if not self.P.TEST_MODE and False:
             fp.write(line+'\n')
             fp.flush()
@@ -122,9 +125,19 @@ def cluster_feed(self):
         # Some clusters ask additional questions
         if line.find("Is this correct?")>=0:
             tn.write(b"Y\n")              # send "Y"
-            return True  
+            return True
+
+    # Check for logged contact
+    if "<adif_ver" in line:
+        print('\nCluster Feed: LOGGED Contact Detected ...')
+        qso=parse_adif(-1,line)
+        print('qso=',qso)
+        self.qsos.append( qso[0] )
+        print('self.qsos=',self.qsos)
+        self.lb_update()
             
     obj = Spot(line)
+    #pprint(vars(obj))
     sys.stdout.flush()
 
     # Check if we got a new spot
@@ -154,7 +167,21 @@ def cluster_feed(self):
         if keep:
             if dx_call==self.P.MY_CALL:
                 print(line.strip())
-            
+
+            # Highlighting in WSJT-X window
+            if True:
+                b = str(self.band.get())+'m'
+                for qso in self.qsos:
+                    if self.P.CW_SS:
+                        # Can only work each station once regardless of band in this contest
+                        match = dx_call==qso['call']
+                    else:
+                        match = (dx_call==qso['call']) and (b==qso['band'])
+                    if match:
+                        break
+                else:
+                    tn.highlight_spot(dx_call)                
+
             freq=float( getattr(obj, "frequency") )
             mode=getattr(obj, "mode")
             band=getattr(obj, "band")

@@ -1,0 +1,261 @@
+----------------------------------
+bandmap.py
+ 
+19d18
+< #   - REALLY NEED TO CLEAN UP THIS RAT'S NEST!!!!
+90a90
+>                               #default="")    #,nargs='+')
+99a100
+>         
+100a102,105
+>         self.PARSE_LOG    = True
+>         #self.PARSE_LOG    = self.CONTEST_MODE or len(args.log)>0
+>         #print(self.PARSE_LOG)
+>         #sys,exit(0)
+133c138
+<         if args.server=='WA9PIE' or True:
+---
+>         if args.server=='WA9PIE' or False:
+145,146d149
+<         self.RCFILE=os.path.expanduser("~/.bandmaprc")
+<         self.SETTINGS=None
+148a152,153
+>         self.RCFILE=os.path.expanduser("~/.bandmaprc")
+>         self.SETTINGS=None
+154c159
+<             s=SETTINGS(None,P)
+---
+>             s=SETTINGS(None,self)
+ 
+----------------------------------
+bm_gui.py
+ 
+48a49
+> from settings import *
+171a173
+>         self.SelectBands(True)
+289,290c291,293
+<             self.qsos = parse_adif(self.LOG_NAME)
+<             print('################################# QSOs in log=',len(self.qsos))
+---
+>             self.qsos = parse_adif(self.P.LOG_NAME)
+>             print('################################# QSOs in log=',
+>                   len(self.qsos))
+292c295
+<             print('qsos[0]=',self.qsos[0])
+---
+>             #print('qsos[0]=',self.qsos[0])
+294,295c297,298
+<         else:
+<             self.qsos = {}
+---
+>         #else:
+>         #    self.qsos = {}
+316a320,372
+>     def match_qsos(self,qso,x,b,now):
+>         if self.P.CW_SS:
+>             # Can only work each station once regardless of band in this contest
+>             match = x.dx_call==qso['call']
+>         else:
+>             try:
+>                 match = (x.dx_call==qso['call']) and (b==qso['band'])
+>             except:
+>                 match=False
+>                 print('\n!@#$%^!&&*#^#^ MATCH ERROR',dx_call)
+>                 print('qso=',qso)
+>                 print('!@#$%^!&&*#^#^ MATCH ERROR\n')
+>                 
+>         #print('\n------MATCH_QSOS: qso=',qso,x.dx_call,match)
+>         if match:
+>             delta = datetime.strptime(now.strftime("%Y%m%d"), "%Y%m%d") - \
+>                 datetime.strptime(qso['qso_date_off']   , "%Y%m%d")
+>             print('--- MATCH_QSOS: Possible dupe for',x.dx_call,'\tdelta=',delta,delta.days)
+>             match = delta.days < 2
+> 
+>         return match
+>     
+> 
+>     def lb_update(self):
+>         b = str(self.band.get())+'m'
+>         now = datetime.utcnow().replace(tzinfo=UTC)
+>         idx=-1
+>         for x in self.current:
+>             idx+=1
+>             for qso in self.qsos:
+>                 match = self.match_qsos(qso,x,b,now)
+>                 call=qso['call']
+>                 print('LB_UPDATE:',call,x.dx_call,match)
+>                 if match:
+>                     break
+> 
+>         if match:
+>             print('*** Dupe ***',qso['call'],qso['band'])
+>             c="red"
+>         elif x.needed:
+>             c="magenta"
+>         elif x.need_this_year:
+>             c="violet"
+>         else:
+>             age = (now - x.time).total_seconds()/60      # In minutes
+>             if age<2:
+>                 c="yellow"
+>             else:
+>                 c="lightgreen"
+>         self.lb.itemconfigure(idx, background=c)
+>                 
+>                 
+> 
+321c377,378
+<         if self.P.PARSE_LOG:
+---
+>         #if self.P.PARSE_LOG:
+>         if len(self.qsos)>0:
+324c381
+<                 if self.CW_SS:
+---
+>                 if self.P.CW_SS:
+334a392
+>                 #print('\n------LB_COLORS: qso=',qso,x.dx_call,match)
+338c396,397
+<                     print('--- Possible dupe ',tag,' for',x.dx_call,'\tdelta=',delta,delta.days)
+---
+>                     print('--- Possible dupe ',tag,' for',x.dx_call,'\tdelta=',
+>                           delta,delta.days,delta.days<2)
+340a400
+>                         print('MATCHED!!!')
+363a424
+>         print("")
+522a584,591
+>     # Print out log
+>     def ShowLog(self):
+>         print('\nLOG::::::::::',self.P.PARSE_LOG)
+>         for qso in self.qsos:
+>             print(qso)
+>         print('')
+>         return
+> 
+553a623,624
+>         Menu1.add_command(label="Show Log ...", command=self.ShowLog)
+>         Menu1.add_separator()
+578,617d648
+< 
+< class SETTINGS():
+<     def __init__(self,root,P):
+<         self.P = P
+<         
+<         if root:
+<             self.win=Toplevel(root)
+<         else:
+<             self.win = Tk()
+<         self.win.title("Settings")
+< 
+<         row=0
+<         Label(self.win, text='My Call:').grid(row=row, column=0)
+<         self.call = Entry(self.win)
+<         self.call.grid(row=row,column=1,sticky=E+W)
+<         #self.call.delete(0, END)
+<         try:
+<             self.call.insert(0,P.MY_CALL)
+<         except:
+<             pass
+< 
+<         row+=1
+<         button = Button(self.win, text="Dismiss",command=self.Dismiss)
+<         button.grid(row=row,column=1,sticky=E+W)
+< 
+<         self.win.update()
+<         self.win.deiconify()
+<         print('Hey2')
+< 
+<     def Dismiss(self):
+<         self.P.SETTINGS = {'MY_CALL' : self.call.get().upper()}
+<         
+<         with open(self.P.RCFILE, "w") as outfile:
+<             json.dump(self.P.SETTINGS, outfile)
+<         
+<         print('Hey3')
+<         self.win.destroy()
+<         print('Hey4')
+< 
+<         
+ 
+----------------------------------
+cluster_feed.py
+ 
+22a23
+> import re
+25a27,28
+> from pprint import pprint
+> from fileio import parse_adif
+68c71
+<             print(line)
+---
+>             print('Cluster Feed: line=',line)
+117c120
+<             print('>>>',line.rstrip())
+---
+>             print('>>> Cluster Feed:',line.rstrip())
+126a130,138
+>     # Check for logged contact
+>     if "<adif_ver" in line:
+>         print('\nCluster Feed: LOGGED Contact Detected ...')
+>         qso=parse_adif(-1,line)
+>         print('qso=',qso)
+>         self.qsos.append( qso[0] )
+>         print('self.qsos=',self.qsos)
+>         self.lb_update()
+>             
+127a140
+>     #pprint(vars(obj))
+157a171,184
+>             # Highlighting in WSJT-X window
+>             if True:
+>                 b = str(self.band.get())+'m'
+>                 for qso in self.qsos:
+>                     if self.P.CW_SS:
+>                         # Can only work each station once regardless of band in this contest
+>                         match = dx_call==qso['call']
+>                     else:
+>                         match = (dx_call==qso['call']) and (b==qso['band'])
+>                     if match:
+>                         break
+>                 else:
+>                     tn.highlight_spot(dx_call)                
+> 
+257a285,286
+> 
+>     
+ 
+----------------------------------
+playpen.py
+ 
+1c1
+< #!/usr/bin/python
+---
+> #!/usr/bin/python3
+8,9d7
+< # To Do - test if this works under python3
+< #
+26a25
+> from dx.cluster_connections import get_logger
+28c27,28
+< from adif import *
+---
+> from fileio import parse_adif
+> #from fileio import *
+36a37,45
+> 
+> if True:
+>     logger = get_logger("dxcsucker")
+>     dx_station = Station("AA2IL")
+>     print(dx_station)
+>     pprint(vars(dx_station))
+>     sys.exit(0)
+>     
+> 
+85,88d93
+<         dx_station = Station("AA2IL")
+<         print(dx_station)
+<         pprint(vars(dx_station))
+< 
+ 

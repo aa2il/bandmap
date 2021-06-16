@@ -1,11 +1,9 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 ############################################################################################
 #
 # playpen.py - Copyright (C) 2021 by Joseph B. Attili, aa2il AT arrl DOT net
 #
 # Work area to get various components up and running.
-#
-# To Do - test if this works under python3
 #
 ############################################################################################
 #
@@ -24,8 +22,10 @@
 import sys
 from datetime import datetime, date, tzinfo  
 import pytz
+from dx.cluster_connections import get_logger
 from dx.spot_processing import Station, Spot, WWV, Comment, ChallengeData
-from adif import *
+from fileio import parse_adif
+#from fileio import *
 from pprint import pprint
 from dx.cty import load_cty
 
@@ -33,6 +33,15 @@ UTC = pytz.utc
 LOG_NAME='~/.fldigi/logs/aa2il_2018.adif'
 
 print('HEY')
+
+
+if True:
+    logger = get_logger("dxcsucker")
+    dx_station = Station("AA2IL")
+    print(dx_station)
+    pprint(vars(dx_station))
+    sys.exit(0)
+    
 
 if True:
     from pyhamtools.locator import calculate_heading, calculate_heading_longpath
@@ -82,10 +91,6 @@ if True:
         print(dx_station)
         pprint(vars(dx_station))
 
-        dx_station = Station("AA2IL")
-        print(dx_station)
-        pprint(vars(dx_station))
-
         dx_station = Station("DH1TW")
         print(dx_station)
         pprint(vars(dx_station))
@@ -104,7 +109,7 @@ if True:
     if True:
         print('Hey 1')
         cty_dir = '~/Python/data/'
-	cty = load_cty(cty_dir+"cty.plist")              #Load Country File
+        cty = load_cty(cty_dir+"cty.plist")              #Load Country File
         print('Hey 2')
 
         print(cty)

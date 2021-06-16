@@ -46,6 +46,7 @@ else:
 
 from rig_io.ft_tables import bands
 from cluster_feed import *
+from settings import *
 
 #########################################################################################
 
@@ -169,6 +170,7 @@ class BandMapGUI:
         self.lb.bind('<Button-3>',self.LBRightClick)
 
         # And away we go
+        self.SelectBands(True)
         self.Scheduler()
         self.WatchDog()
 
@@ -286,13 +288,14 @@ class BandMapGUI:
         # Get latest logbook
         now = datetime.utcnow().replace(tzinfo=UTC)
         if self.P.PARSE_LOG:
-            self.qsos = parse_adif(self.LOG_NAME)
-            print('################################# QSOs in log=',len(self.qsos))
+            self.qsos = parse_adif(self.P.LOG_NAME)
+            print('################################# QSOs in log=',
+                  len(self.qsos))
             #print('qsos=',self.qsos)
-            print('qsos[0]=',self.qsos[0])
+            #print('qsos[0]=',self.qsos[0])
             #sys.exit(0)
-        else:
-            self.qsos = {}
+        #else:
+        #    self.qsos = {}
 
         # Re-populate list box with spots from this band
         # This seems to be the slow part
@@ -314,14 +317,68 @@ class BandMapGUI:
             self.lb_colors('A',END,now,band,x)
 
 
+    def match_qsos(self,qso,x,b,now):
+        if self.P.CW_SS:
+            # Can only work each station once regardless of band in this contest
+            match = x.dx_call==qso['call']
+        else:
+            try:
+                match = (x.dx_call==qso['call']) and (b==qso['band'])
+            except:
+                match=False
+                print('\n!@#$%^!&&*#^#^ MATCH ERROR',dx_call)
+                print('qso=',qso)
+                print('!@#$%^!&&*#^#^ MATCH ERROR\n')
+                
+        #print('\n------MATCH_QSOS: qso=',qso,x.dx_call,match)
+        if match:
+            delta = datetime.strptime(now.strftime("%Y%m%d"), "%Y%m%d") - \
+                datetime.strptime(qso['qso_date_off']   , "%Y%m%d")
+            print('--- MATCH_QSOS: Possible dupe for',x.dx_call,'\tdelta=',delta,delta.days)
+            match = delta.days < 2
+
+        return match
+    
+
+    def lb_update(self):
+        b = str(self.band.get())+'m'
+        now = datetime.utcnow().replace(tzinfo=UTC)
+        idx=-1
+        for x in self.current:
+            idx+=1
+            for qso in self.qsos:
+                match = self.match_qsos(qso,x,b,now)
+                call=qso['call']
+                print('LB_UPDATE:',call,x.dx_call,match)
+                if match:
+                    break
+
+        if match:
+            print('*** Dupe ***',qso['call'],qso['band'])
+            c="red"
+        elif x.needed:
+            c="magenta"
+        elif x.need_this_year:
+            c="violet"
+        else:
+            age = (now - x.time).total_seconds()/60      # In minutes
+            if age<2:
+                c="yellow"
+            else:
+                c="lightgreen"
+        self.lb.itemconfigure(idx, background=c)
+                
+                
+
     # Change background colors on each list entry
     def lb_colors(self,tag,idx,now,band,x):
             
         match=False
-        if self.P.PARSE_LOG:
+        #if self.P.PARSE_LOG:
+        if len(self.qsos)>0:
             b=str(band)+'m'
             for qso in self.qsos:
-                if self.CW_SS:
+                if self.P.CW_SS:
                     # Can only work each station once regardless of band in this contest
                     match = x.dx_call==qso['call']
                 else:
@@ -332,12 +389,15 @@ class BandMapGUI:
                         print('\n!@#$%^!&&*#^#^ MATCH ERROR',dx_call)
                         print('qso=',qso)
                         print('!@#$%^!&&*#^#^ MATCH ERROR\n')
+                #print('\n------LB_COLORS: qso=',qso,x.dx_call,match)
                 if match:
                     delta = datetime.strptime(now.strftime("%Y%m%d"), "%Y%m%d") - \
                             datetime.strptime(qso['qso_date_off']   , "%Y%m%d")
-                    print('--- Possible dupe ',tag,' for',x.dx_call,'\tdelta=',delta,delta.days)
+                    print('--- Possible dupe ',tag,' for',x.dx_call,'\tdelta=',
+                          delta,delta.days,delta.days<2)
                     match = delta.days < 2
                     if match:
+                        print('MATCHED!!!')
                         break
 
         age=None
@@ -361,6 +421,7 @@ class BandMapGUI:
         # Make sure the entry closest to the rig freq is visible
         #print '... Repopulated'
         self.LBsanity()
+        print("")
 
             
     # Make sure the entry closest to the rig freq is visible
@@ -520,6 +581,14 @@ class BandMapGUI:
         self.SettingsWin = SETTINGS(self.root,self.P)
         return
 
+    # Print out log
+    def ShowLog(self):
+        print('\nLOG::::::::::',self.P.PARSE_LOG)
+        for qso in self.qsos:
+            print(qso)
+        print('')
+        return
+
     # Select a new cluster
     def SelectNode(self):
         SERVER = self.node.get()
@@ -551,6 +620,8 @@ class BandMapGUI:
         Menu1.add_separator()
         Menu1.add_command(label="Settings ...", command=self.Settings)
         Menu1.add_separator()
+        Menu1.add_command(label="Show Log ...", command=self.ShowLog)
+        Menu1.add_separator()
         Menu1.add_command(label="Exit", command=self.root.quit)
         menubar.add_cascade(label="Cluster", menu=Menu1)
 
@@ -575,43 +646,3 @@ class BandMapGUI:
 
         self.root.config(menu=menubar)
 
-
-class SETTINGS():
-    def __init__(self,root,P):
-        self.P = P
-        
-        if root:
-            self.win=Toplevel(root)
-        else:
-            self.win = Tk()
-        self.win.title("Settings")
-
-        row=0
-        Label(self.win, text='My Call:').grid(row=row, column=0)
-        self.call = Entry(self.win)
-        self.call.grid(row=row,column=1,sticky=E+W)
-        #self.call.delete(0, END)
-        try:
-            self.call.insert(0,P.MY_CALL)
-        except:
-            pass
-
-        row+=1
-        button = Button(self.win, text="Dismiss",command=self.Dismiss)
-        button.grid(row=row,column=1,sticky=E+W)
-
-        self.win.update()
-        self.win.deiconify()
-        print('Hey2')
-
-    def Dismiss(self):
-        self.P.SETTINGS = {'MY_CALL' : self.call.get().upper()}
-        
-        with open(self.P.RCFILE, "w") as outfile:
-            json.dump(self.P.SETTINGS, outfile)
-        
-        print('Hey3')
-        self.win.destroy()
-        print('Hey4')
-
-        

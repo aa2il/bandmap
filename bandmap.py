@@ -87,7 +87,10 @@ class PARAMS:
                               type=str,default=None)
         arg_proc.add_argument("-log", help="Log file (keep track of dupes)",
                               type=str,
-                              default="~/logs/[MYCALL].adif")
+                              default=None)
+                              #default=None,nargs='*')
+                              #default="~/logs/[MYCALL].adif")
+                              #default="")    #,nargs='+')
         arg_proc.add_argument('-dx', action='store_true',help='Show only DX spots')
         #arg_proc.add_argument('-noft8', action='store_true',help='Filter out FT8 spots')
         arg_proc.add_argument('-test', action='store_true',help='Test Mode')
@@ -97,8 +100,11 @@ class PARAMS:
         self.PORT         = args.port
 
         self.CONTEST_MODE = args.contest
+        
         self.PARSE_LOG    = self.CONTEST_MODE and True
-
+        self.PARSE_LOG    = True
+        #self.PARSE_LOG    = self.CONTEST_MODE or len(args.log)>0
+        
         self.TEST_MODE    = args.test
         self.CW_SS        = args.ss
         self.DX_ONLY      = args.dx
@@ -130,7 +136,24 @@ class PARAMS:
             self.CLUSTER=NODES[self.SERVER]
         #print('CLUSTER=',CLUSTER)
 
-        if args.server=='WA9PIE' or True:
+        if args.log==None:
+            if args.wsjt==None:
+                self.LOG_NAME = "~/logs/[MYCALL].adif"
+            else:
+                self.LOG_NAME = "~/.local/share/WSJT-X/wsjtx_log.adi"
+        else:
+            self.LOG_NAME = args.log
+
+        if False:
+            #print(len(args.log))
+            print(args.log)
+            print(WSJT2)
+            print(self.SERVER)
+            print(self.LOG_NAME)
+            sys,exit(0)
+
+        
+        if args.server=='WA9PIE' or False:
             self.ECHO_ON=True
         else:
             self.ECHO_ON=False
@@ -142,10 +165,10 @@ class PARAMS:
     
         self.rootlogger = "dxcsucker"
         self.TIME_OUT=.01
-        self.RCFILE=os.path.expanduser("~/.bandmaprc")
-        self.SETTINGS=None
 
         # Read config file
+        self.RCFILE=os.path.expanduser("~/.bandmaprc")
+        self.SETTINGS=None
         try:
             with open(self.RCFILE) as json_data_file:
                 self.SETTINGS = json.load(json_data_file)
@@ -161,7 +184,7 @@ class PARAMS:
             print('Settings:',self.SETTINGS)
 
         self.MY_CALL      = self.SETTINGS['MY_CALL']
-        self.LOG_NAME     = os.path.expanduser( args.log.replace('[MYCALL]',self.MY_CALL ) )
+        self.LOG_NAME     = os.path.expanduser( self.LOG_NAME.replace('[MYCALL]',self.MY_CALL ) )
         self.NODES        = NODES
         
 #########################################################################################
