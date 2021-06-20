@@ -174,7 +174,7 @@ class PARAMS:
                 self.SETTINGS = json.load(json_data_file)
         except:
             print(self.RCFILE,' not found - need call!\n')
-            s=SETTINGS(None,P)
+            s=SETTINGS(None,self)
             while not self.SETTINGS:
                 try:
                     s.win.update()
@@ -225,14 +225,17 @@ if __name__ == "__main__":
 
         P.tn=None
         inode=0
-        while not P.tn:
+        while not P.tn and inode<len(KEYS):
             key = KEYS[inode]
             P.tn = connection(P.TEST_MODE,NODES[key],P.MY_CALL,P.WSJT_FNAME, \
                                  ip_addr=P.WSJT_IP_ADDRESS,port=P.WSJT_PORT)
             inode += 1
-        P.CLUSTER=NODES[key]
-        #self.root.title("Band Map by AA2IL - Server " + key )
-        P.SERVER = key
+        if P.tn:
+            P.CLUSTER=NODES[key]
+            P.SERVER = key
+        else:
+            print('\n*** Unable to connect to any node - no internet? - giving up! ***\n')
+            sys.exit(0)
                 
     else:
         P.tn = connection(P.TEST_MODE,P.CLUSTER,P.MY_CALL,P.WSJT_FNAME, \

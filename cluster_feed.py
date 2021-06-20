@@ -169,7 +169,7 @@ def cluster_feed(self):
                 print(line.strip())
 
             # Highlighting in WSJT-X window
-            if True:
+            if self.P.CLUSTER=='WSJT':
                 b = str(self.band.get())+'m'
                 for qso in self.qsos:
                     if self.P.CW_SS:

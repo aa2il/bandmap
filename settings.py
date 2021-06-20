@@ -56,7 +56,6 @@ class SETTINGS():
 
         self.win.update()
         self.win.deiconify()
-        print('Hey2')
 
     def Dismiss(self):
         self.P.SETTINGS = {'MY_CALL' : self.call.get().upper()}
@@ -64,8 +63,6 @@ class SETTINGS():
         with open(self.P.RCFILE, "w") as outfile:
             json.dump(self.P.SETTINGS, outfile)
         
-        print('Hey3')
         self.win.destroy()
-        print('Hey4')
 
         
