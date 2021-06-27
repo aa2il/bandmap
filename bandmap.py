@@ -140,9 +140,15 @@ class PARAMS:
             if args.wsjt==None:
                 self.LOG_NAME = "~/logs/[MYCALL].adif"
             else:
-                self.LOG_NAME = "~/.local/share/WSJT-X/wsjtx_log.adi"
+                self.LOG_NAME = "~/.local/share/WSJT-X"
+                if WSJT2!=None:
+                    self.LOG_NAME+=" - "+WSJT2[0]
+                self.LOG_NAME += "/wsjtx_log.adi"
         else:
             self.LOG_NAME = args.log
+        print('LOG_NAME=',self.LOG_NAME)
+        #sys.exit(0)
+        
 
         if False:
             #print(len(args.log))
