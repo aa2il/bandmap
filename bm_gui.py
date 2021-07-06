@@ -48,6 +48,8 @@ from rig_io.ft_tables import bands
 from cluster_feed import *
 from settings import *
 
+MAX_DAYS_DUPE = 7    # Was 2
+
 #########################################################################################
 
 # The GUI
@@ -68,8 +70,10 @@ class BandMapGUI:
         self.root = Tk()
         if P.SERVER=="WSJT":
             self.root.title("Band Map by AA2IL - " + P.SERVER)
+            self.P.ALLOW_CHANGES=True
         else:
             self.root.title("Band Map by AA2IL - Server " + P.SERVER)
+            self.P.ALLOW_CHANGES=False
         sz="400x1200"
         self.root.geometry(sz)
 
@@ -102,7 +106,7 @@ class BandMapGUI:
                             text=bb,
                             indicatoron = 0,
                             variable=self.band, 
-                            command=lambda: self.SelectBands(True),
+                            command=lambda: self.SelectBands(self.P.ALLOW_CHANGES),
                             value=b).pack(side=LEFT,anchor=W)
 
         # Another row of buttons to select mode & antenna
@@ -254,16 +258,31 @@ class BandMapGUI:
         #    return
         band2 = self.sock.get_band()
         
-        print("You've selected ",band,'m - Current rig band=',band2,"m",' - allow_change=',allow_change,flush=True)
+        print("You've selected ",band,'m - Current rig band=',band2,"m",\
+              ' - allow_change=',allow_change,flush=True)
 
         # Check for band change
-        if allow_change and self.P.CLUSTER=='WSJT':
+        if allow_change:
             b=str(band)+'m'
-            if band != band2 and False:
-                self.sock.set_band(b)
-            new_frq = bands[b]['FT8'] + 1
-            self.sock.set_freq(new_frq)
-            self.sock.set_mode('FT8')
+            if self.P.CLUSTER=='WSJT':
+                self.P.tn.configure_wsjt(NewMode='FT8')
+                time.sleep(.1)
+                new_frq = bands[b]['FT8'] + 1
+                self.sock.set_freq(new_frq)
+                self.sock.set_mode('FT8')
+            else:
+                if band != band2:
+                    self.sock.set_band(b)
+
+            # Make sure antenna selection is correct also
+            if self.P.sock.rig_type2=='FTdx3000':
+                if b in ['40m','20m','15m','10m']:
+                    ant=1
+                elif b in ['30m','17m','12m','6m']:
+                    ant=2
+                else:
+                    ant=3
+                self.P.sock.set_ant(ant)
 
         # Extract a list of spots that are in the desired band
         if self.P.CONTEST_MODE:
@@ -278,7 +297,8 @@ class BandMapGUI:
             if self.P.DX_ONLY:
                 # Retain only stations outside US or SESs
                 idx = [i for i,x in enumerate(self.SpotList) if x.band == band and \
-                       (x.dx_station.country!='United States' or len(x.dx_call)==3) ] 
+                       (x.dx_station.country!='United States' or len(x.dx_call)==3 or \
+                        x.dx_call=='WM3PEN')] 
             else:
                 idx = [i for i,x in enumerate(self.SpotList) if x.band == band]
             
@@ -335,7 +355,7 @@ class BandMapGUI:
             delta = datetime.strptime(now.strftime("%Y%m%d"), "%Y%m%d") - \
                 datetime.strptime(qso['qso_date_off']   , "%Y%m%d")
             print('--- MATCH_QSOS: Possible dupe for',x.dx_call,'\tdelta=',delta,delta.days)
-            match = delta.days < 2
+            match = delta.days < MAX_DAYS_DUPE
 
         return match
     
@@ -394,8 +414,8 @@ class BandMapGUI:
                     delta = datetime.strptime(now.strftime("%Y%m%d"), "%Y%m%d") - \
                             datetime.strptime(qso['qso_date_off']   , "%Y%m%d")
                     print('--- Possible dupe ',tag,' for',x.dx_call,'\tdelta=',
-                          delta,delta.days,delta.days<2)
-                    match = delta.days < 2
+                          delta,delta.days,delta.days<MAX_DAYS_DUPE)
+                    match = delta.days < MAX_DAYS_DUPE
                     if match:
                         print('MATCHED!!!')
                         break
@@ -507,7 +527,7 @@ class BandMapGUI:
         print('LBSelect: Left Click - tune rig to a spot')
 
         # Dont do it if we're running WSJT
-        if self.P.CLUSTER=='WSJT':
+        if self.P.CLUSTER=='WSJT' and False:
             return
     
         # Note here that Tkinter passes an event object to onselect()
@@ -520,6 +540,14 @@ class BandMapGUI:
             b=value.strip().split()
             if b[2]=='FT8' or b[2]=='FT4':
                 b[0] = float(b[0])+1
+
+            # If we're running WSJT, tune to a particular spot
+            if self.P.CLUSTER=='WSJT' and True:
+                df = b[0]
+                dx_call = b[1]
+                #print('\n========================= LBSelect:',b,'\n')
+                self.P.tn.configure_wsjt(RxDF=df,DxCall=dx_call)
+                return
 
             # Note - need to set freq first so get on right band, then set the mode
             print("LBSelect: Setting freq ",b[0])
