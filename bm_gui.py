@@ -583,7 +583,7 @@ class BandMapGUI:
         value = event.widget.get(index)
         b=value.strip().split()
         call=b[1]
-        print('You selected item %d: "%s"' % (index, value,call))
+        print('You selected item %d: %s - %s' % (index,value,call))
 
         del self.current[index]
         self.lb.delete(index)
@@ -591,10 +591,12 @@ class BandMapGUI:
         idx=[]
         i=0
         for x in self.SpotList:
-            if x.call==call:
-                SpotList[i]=None
-            else:
-                i+=1
+            if hasattr(x, 'dx_call'):
+                dx_call=getattr(x, "dx_call")
+                if dx_call==call:
+                    self.SpotList[i]=None
+                else:
+                    i+=1
             
     #########################################################################################
 
