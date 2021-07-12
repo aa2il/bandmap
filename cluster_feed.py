@@ -26,6 +26,7 @@ from datetime import datetime
 from dx.spot_processing import Spot
 from pprint import pprint
 from fileio import parse_adif
+import logging               
 
 #########################################################################################
 
@@ -33,6 +34,11 @@ UTC = pytz.utc
 OLD_WAY=True
 
 #########################################################################################
+
+# Setup basic logging
+logging.basicConfig(
+    format="%(asctime)-15s [%(levelname)s] %(funcName)s: %(message)s",
+    level=logging.INFO)
 
 # Function to fudge dxcc for display
 def cleanup(dxcc):
@@ -73,7 +79,8 @@ def cluster_feed(self):
         # Check for band changes
         if tn.nsleep>=1 and True:
             band  = self.band.get()
-            band2 = self.sock.get_band()
+            logging.info("Calling Get band ...")
+            band2 = self.sock.get_band(VFO=self.VFO)
             #print('CLUSTER_FEED: band/band2=',band,band2)
             if band2==0 or not band2:
                 print('CLUSTER_FEED: Current band=',band,'\t-\tRig band=',band2)
@@ -107,7 +114,7 @@ def cluster_feed(self):
             # Dont let timeout happen before we get entire line
             #print 'CLUSTER FEED: Partial line read'
             try:
-                line2 = tn.read_until("\n")
+                line2 = tn.read_until(b"\n")
                 line = line+line2
             except Exception as e:
                 print('*** TIME_OUT2 or other issue on CLUSTER_FEED ***')
@@ -296,7 +303,8 @@ def cluster_feed(self):
 
 # Function to cull aged spots
 def cull_old_spots(self):
-    frq = self.sock.get_freq()
+    logging.info("Calling Get_Freq ...")
+    frq = self.sock.get_freq(VFO=self.VFO)
     print("Culling old spots ... Rig freq=",frq,flush=True)
 
     now = datetime.utcnow().replace(tzinfo=UTC)
