@@ -666,6 +666,10 @@ class BandMapGUI:
             self.P.CLUSTER = self.P.NODES[SERVER]
             self.Reset()
 
+    def toggle_dx_only(self):
+        self.P.DX_ONLY=self.dx_only.get()
+        print('TOGGLE BOGGLE',self.P.DX_ONLY)
+
     def create_menu_bar(self):
         print('Creating Menubar ...')
                    
@@ -674,6 +678,14 @@ class BandMapGUI:
         Menu1.add_command(label="Clear", command=self.Clear_Spot_List)
         Menu1.add_command(label="Reset", command=self.Reset)
 
+        self.dx_only = BooleanVar(value=self.P.DX_ONLY)
+        Menu1.add_checkbutton(
+            label="DX Only",
+            underline=0,
+            variable=self.dx_only,
+            command=self.toggle_dx_only
+        )
+        
         nodemenu = Menu(self.root, tearoff=0)
         self.node = StringVar(self.root)
         self.node.set(self.P.SERVER)
@@ -692,25 +704,6 @@ class BandMapGUI:
         Menu1.add_separator()
         Menu1.add_command(label="Exit", command=self.root.quit)
         menubar.add_cascade(label="Cluster", menu=Menu1)
-
-        """
-        editmenu = Menu(menubar, tearoff=0)
-        editmenu.add_command(label="Undo", command=self.donothing)
-
-        editmenu.add_separator()
-
-        editmenu.add_command(label="Cut", command=self.donothing)
-        editmenu.add_command(label="Copy", command=self.donothing)
-        editmenu.add_command(label="Paste", command=self.donothing)
-        editmenu.add_command(label="Delete", command=self.donothing)
-        editmenu.add_command(label="Select All", command=self.donothing)
-
-        menubar.add_cascade(label="Edit", menu=editmenu)
-        helpmenu = Menu(menubar, tearoff=0)
-        helpmenu.add_command(label="Help Index", command=self.donothing)
-        helpmenu.add_command(label="About...", command=self.donothing)
-        menubar.add_cascade(label="Help", menu=helpmenu)
-        """
 
         self.root.config(menu=menubar)
 
