@@ -53,6 +53,7 @@ import logging
 
 MAX_DAYS_DUPE = 7    # Was 2
 DEFAULT_BAND = 20
+VERBOSITY=0
 
 #########################################################################################
 
@@ -99,7 +100,8 @@ class BandMapGUI:
         self.mode   = StringVar(self.root)
         self.mode.set('')
         if self.sock.active:
-            logging.info("Calling Get band ...")
+            if VERBOSITY>0:
+                logging.info("Calling Get band ...")
             b = self.sock.get_band(VFO=self.VFO)     # Query rig at startup
         else:
             b = DEFAULT_BAND              # No conenction so just default
@@ -195,16 +197,19 @@ class BandMapGUI:
 
     # Adjust rig freq 
     def FreqAdjust(self,df):
-        logging.info("Calling Get Freq ...")
+        if VERBOSITY>0:
+            logging.info("Calling Get Freq ...")
         self.rig_freq = self.sock.get_freq(VFO=self.VFO) / 1000.
-        logging.info("Calling Set Freq ...")
+        if VERBOSITY>0:
+            logging.info("Calling Set Freq ...")
         self.sock.set_freq(self.rig_freq+df,VFO=self.VFO)
 
     # Set rig freq to lo or hi end of mode subband
     def SetSubBand(self,iopt):
 
         b = str( self.band.get() )+'m'
-        logging.info("Calling Get Mode ...")
+        if VERBOSITY>0:
+            logging.info("Calling Get Mode ...")
         m = self.sock.get_mode(VFO=self.VFO)
         if m=='AM':
             m='SSB'
@@ -218,7 +223,8 @@ class BandMapGUI:
         elif iopt==3:
             frq = bands[b][m+'2'] * 1000
         print("\nSetSubBand:",iopt,b,m,frq)
-        logging.info("Calling Set Freq ...")
+        if VERBOSITY>0:
+            logging.info("Calling Set Freq ...")
         self.sock.set_freq(float(frq/1000.),VFO=self.VFO)
 
     # Callback to select antenna
@@ -226,13 +232,15 @@ class BandMapGUI:
         if not a:
             a  = self.ant.get()
         if a==-1:
-            logging.info("Calling Get Ant ...")
+            if VERBOSITY>0:
+                logging.info("Calling Get Ant ...")
             a = self.sock.get_ant()
             self.ant.set(a)
             #print "\n%%%%%%%%%% Select Antenna: Got Antenna =",a,"%%%%%%%%"
         else:
             print("\n%%%%%%%%%% Select Antenna: Setting Antenna =",a,"%%%%%%%%")
-            logging.info("Calling Set Ant  ...")
+            if VERBOSITY>0:
+                logging.info("Calling Set Ant  ...")
             self.sock.set_ant(a)
 
     # Callback to handle mode changes
@@ -243,7 +251,8 @@ class BandMapGUI:
             print('SelectMode-a:',m)
 
         if m=='':
-            logging.info("Calling Get Mode ...")
+            if VERBOSITY>0:
+                logging.info("Calling Get Mode ...")
             m = self.sock.get_mode(VFO=self.VFO)
             #print('SelectMode-b:',m)
             if m=='RTTY' or m=='FT8' or m=='FT4' or m[0:3]=='PKT' or m=='DIGITIAL':
@@ -255,7 +264,8 @@ class BandMapGUI:
         #print('SelectMode-c:',m)
         if m=='SSB':
             #        buf=get_response(s,'w BY;EX1030\n');            # Audio from MIC (front)
-            logging.info("Calling Get Freq ...")
+            if VERBOSITY>0:
+                logging.info("Calling Get Freq ...")
             self.rig_freq = self.sock.get_freq(VFO=self.VFO) / 1000.
             if self.rig_freq<10000:
                 m='LSB'
@@ -264,19 +274,17 @@ class BandMapGUI:
         elif m=='Data' or m=='DIGITA':
             m='RTTY'
         #print("SelecteMode-d:",m)
-        logging.info("Calling Set Mode ...")
+        if VERBOSITY>0:
+            logging.info("Calling Set Mode ...")
         self.sock.set_mode(m,VFO=self.VFO)
 
     # Callback to handle band changes
     def SelectBands(self,allow_change=False):
 
         print('SELECT BANDS:')
-        #try:
         band  = self.band.get()
-        #except:
-        #    print('SelectBands - Woops!')
-        #    return
-        logging.info("Calling Get Band ...")
+        if VERBOSITY>0:
+            logging.info("Calling Get Band ...")
         band2 = self.sock.get_band(VFO=self.VFO)
         
         print("You've selected ",band,'m - Current rig band=',band2,"m",\
@@ -289,12 +297,14 @@ class BandMapGUI:
                 self.P.tn.configure_wsjt(NewMode='FT8')
                 time.sleep(.1)
                 new_frq = bands[b]['FT8'] + 1
-                logging.info("Calling Set Freq and Mode ...")
+                if VERBOSITY>0:
+                    logging.info("Calling Set Freq and Mode ...")
                 self.sock.set_freq(new_frq,VFO=self.VFO)
                 self.sock.set_mode(self.FT_MODE,VFO=self.VFO)
             else:
                 if band != band2:
-                    logging.info("Calling Set Mode ...")
+                    if VERBOSITY>0:
+                        logging.info("Calling Set Mode ...")
                     self.sock.set_band(b,VFO=self.VFO)
 
             # Make sure antenna selection is correct also
@@ -334,6 +344,8 @@ class BandMapGUI:
             self.qsos = parse_adif(self.P.LOG_NAME)
             print('################################# QSOs in log=',
                   len(self.qsos))
+            if len(self.qsos)==0:
+                self.P.PARSE_LOG=False
             #print('qsos=',self.qsos)
             #print('qsos[0]=',self.qsos[0])
             #sys.exit(0)
@@ -477,22 +489,14 @@ class BandMapGUI:
             return
 
         # Dont bother if not on same band as the rig
-        if False:
-            logging.info("Calling Get Band ...")
-            b1 = self.sock.get_band(VFO=self.VFO)      # Rig band
-        else:
-            b1 = self.rig_band
+        b1 = self.rig_band
         b2 = self.band.get()
         #print 'LBSANITY:',b1,b2
         if b1!=b2:
             return
 
         # Get rig freq
-        if False:
-            logging.info("Calling Get Freq ...")
-            frq = self.sock.get_freq(VFO=self.VFO) / 1000.
-        else:
-            frq = self.rig_freq
+        frq = self.rig_freq
         dfbest=1e9
         ibest=-1
         idx=0
@@ -546,7 +550,8 @@ class BandMapGUI:
         
         # Check for antenna or mode or band changes
         # Should combine these two
-        logging.info("Calling Get Band & Freq ...")
+        if VERBOSITY>0:
+            logging.info("Calling Get Band & Freq ...")
         self.rig_band = self.sock.get_band(VFO=self.VFO)
         self.rig_freq = self.sock.get_freq(VFO=self.VFO) / 1000.
 
@@ -588,7 +593,8 @@ class BandMapGUI:
 
             # Note - need to set freq first so get on right band, then set the mode
             #rint("LBSelect: Setting freq ",b[0])
-            logging.info("Calling Set Freq ...")
+            if VERBOSITY>0:
+                logging.info("Calling Set Freq ...")
             self.sock.set_freq(float(b[0]),VFO=self.VFO)
             if not self.P.CONTEST_MODE:
                 print("LBSelect: Setting mode ",b[2])
