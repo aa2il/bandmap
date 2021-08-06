@@ -35,6 +35,7 @@
 from rig_io.socket_io import *
 from bm_gui import *
 import json
+from tcp_client import *
 
 #########################################################################################
 
@@ -92,6 +93,7 @@ class PARAMS:
                               #default="~/logs/[MYCALL].adif")
                               #default="")    #,nargs='+')
         arg_proc.add_argument('-dx', action='store_true',help='Show only DX spots')
+        arg_proc.add_argument('-udp', action='store_true',help='Start UDP client')
         #arg_proc.add_argument('-noft8', action='store_true',help='Filter out FT8 spots')
         arg_proc.add_argument('-test', action='store_true',help='Test Mode')
         args = arg_proc.parse_args()
@@ -108,6 +110,7 @@ class PARAMS:
         self.TEST_MODE    = args.test
         self.CW_SS        = args.ss
         self.DX_ONLY      = args.dx
+        self.UDP_CLIENT   = args.udp
 
         self.CHALLENGE_FNAME = os.path.expanduser('~/Python/data/states.xls')
 
@@ -192,6 +195,7 @@ class PARAMS:
         self.MY_CALL      = self.SETTINGS['MY_CALL']
         self.LOG_NAME     = os.path.expanduser( self.LOG_NAME.replace('[MYCALL]',self.MY_CALL ) )
         self.NODES        = NODES
+        self.THREADS      = []
         
 #########################################################################################
 
@@ -253,6 +257,14 @@ if __name__ == "__main__":
     
     # Read challenge data
     P.data = ChallengeData(P.CHALLENGE_FNAME)
+
+    # Open UDP client
+    if P.UDP_CLIENT:
+        P.udp_client = TCP_Client(None,7474)
+        worker = Thread(target=P.udp_client.Listener, args=(), name='UDP Server' )
+        worker.setDaemon(True)
+        worker.start()
+        P.THREADS.append(worker)
     
     # Create GUI 
     bm = BandMapGUI(P)

@@ -552,8 +552,13 @@ class BandMapGUI:
         # Should combine these two
         if VERBOSITY>0:
             logging.info("Calling Get Band & Freq ...")
-        self.rig_band = self.sock.get_band(VFO=self.VFO)
-        self.rig_freq = self.sock.get_freq(VFO=self.VFO) / 1000.
+        if self.P.SERVER=="WSJT":
+            tmp = self.tn.wsjt_status()
+            self.rig_band = tmp[1]
+            self.rig_freq = tmp[0]
+        else:
+            self.rig_band = self.sock.get_band(VFO=self.VFO)
+            self.rig_freq = self.sock.get_freq(VFO=self.VFO) / 1000.
 
         self.SelectAnt(-1)
         self.SelectMode('')
@@ -568,10 +573,6 @@ class BandMapGUI:
     def LBSelect(self,evt):
         print('LBSelect: Left Click - tune rig to a spot')
 
-        # Dont do it if we're running WSJT
-        if self.P.CLUSTER=='WSJT' and False:
-            return
-    
         # Note here that Tkinter passes an event object to onselect()
         w = evt.widget
         if len( w.curselection() ) > 0:
@@ -603,6 +604,9 @@ class BandMapGUI:
             
             print("LBSelect: Setting call ",b[1])
             self.sock.set_call(b[1])
+            if self.P.UDP_CLIENT:
+                self.P.udp_client.Send('Call:'+b[1])
+                
 
             
     def LBRightClick(self,event):
