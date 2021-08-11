@@ -93,6 +93,7 @@ class PARAMS:
                               #default="~/logs/[MYCALL].adif")
                               #default="")    #,nargs='+')
         arg_proc.add_argument('-dx', action='store_true',help='Show only DX spots')
+        arg_proc.add_argument('-buttons', action='store_true',help='Enable band buttons')
         arg_proc.add_argument('-udp', action='store_true',help='Start UDP client')
         #arg_proc.add_argument('-noft8', action='store_true',help='Filter out FT8 spots')
         arg_proc.add_argument('-test', action='store_true',help='Test Mode')
@@ -196,6 +197,12 @@ class PARAMS:
         self.LOG_NAME     = os.path.expanduser( self.LOG_NAME.replace('[MYCALL]',self.MY_CALL ) )
         self.NODES        = NODES
         self.THREADS      = []
+
+        if self.SERVER=="WSJT" or args.buttons:
+            self.ALLOW_CHANGES=True
+        else:
+            self.ALLOW_CHANGES=False
+        
         
 #########################################################################################
 

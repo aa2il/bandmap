@@ -51,7 +51,7 @@ import logging
 
 #########################################################################################
 
-MAX_DAYS_DUPE = 7    # Was 2
+MAX_DAYS_DUPE = 2   # 7    # Was 2
 DEFAULT_BAND = 20
 VERBOSITY=0
 
@@ -82,10 +82,8 @@ class BandMapGUI:
         self.root = Tk()
         if P.SERVER=="WSJT":
             self.root.title("Band Map by AA2IL - " + P.SERVER)
-            self.P.ALLOW_CHANGES=True
         else:
             self.root.title("Band Map by AA2IL - Server " + P.SERVER)
-            self.P.ALLOW_CHANGES=False
         sz="400x1200"
         self.root.geometry(sz)
 
@@ -309,12 +307,14 @@ class BandMapGUI:
 
             # Make sure antenna selection is correct also
             if self.P.sock.rig_type2=='FTdx3000':
-                if b in ['40m','20m','15m','10m']:
+                if b in ['80m']:
+                    ant=3
+                elif b in ['40m','20m','15m']:
                     ant=1
-                elif b in ['30m','17m','12m','6m']:
+                elif b in ['30m','17m','12m','10m','6m']:
                     ant=2
                 else:
-                    ant=3
+                    ant=1
                 self.P.sock.set_ant(ant)
 
         # Extract a list of spots that are in the desired band
