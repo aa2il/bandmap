@@ -75,7 +75,7 @@ class BandMapGUI:
         self.qsos=[]
         self.sock=P.sock
         self.tn = P.tn
-        self.VFO = 'A'
+        self.VFO = P.RIG_VFO
         self.FT_MODE = 'FT8'
 
         # Create the GUI - need to be able to distinguish between multiple copies of bandmap 

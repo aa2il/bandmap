@@ -95,6 +95,9 @@ class PARAMS:
         arg_proc.add_argument('-dx', action='store_true',help='Show only DX spots')
         arg_proc.add_argument('-buttons', action='store_true',help='Enable band buttons')
         arg_proc.add_argument('-udp', action='store_true',help='Start UDP client')
+        arg_proc.add_argument("-vfo", help="VFO to follow",
+                              type=str,default="A",
+                              choices=['A','B'] )
         #arg_proc.add_argument('-noft8', action='store_true',help='Filter out FT8 spots')
         arg_proc.add_argument('-test', action='store_true',help='Test Mode')
         args = arg_proc.parse_args()
@@ -112,6 +115,7 @@ class PARAMS:
         self.CW_SS        = args.ss
         self.DX_ONLY      = args.dx
         self.UDP_CLIENT   = args.udp
+        self.RIG_VFO      = args.vfo
 
         self.CHALLENGE_FNAME = os.path.expanduser('~/Python/data/states.xls')
 

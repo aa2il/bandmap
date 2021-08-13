@@ -79,7 +79,7 @@ def cluster_feed(self):
         # Check for band changes
         if tn.nsleep>=1 and True:
             band  = self.band.get()
-            logging.info("Calling Get band ...")
+            #logging.info("Calling Get band ...")
             band2 = self.sock.get_band(VFO=self.VFO)
             #print('CLUSTER_FEED: band/band2=',band,band2)
             if band2==0 or not band2:
@@ -187,7 +187,20 @@ def cluster_feed(self):
                     if match:
                         break
                 else:
-                    tn.highlight_spot(dx_call)                
+                    # Set background according to SNR to call attention to stronger sigs
+                    fg=1                       # 1=Red
+                    try:
+                        snr=int(obj.snr)
+                        if snr>=0:
+                            bg=2              # 13=Light magenta, 2=Light Green
+                        elif snr>=-15:
+                            bg=10              # 18=Light purple, 10=light Green
+                        else:
+                            bg=0
+                    except:
+                        bg=0
+                    tn.highlight_spot(dx_call,fg,bg)
+                    #print('CLUSTER FEED: call=',obj.dx_call,'\tsnr=',obj.snr,'\tfg/bg=',fg,bg,'\t',obj.snr.isnumeric(),int(obj.snr),len(obj.snr))
 
             freq=float( getattr(obj, "frequency") )
             mode=getattr(obj, "mode")
@@ -212,7 +225,8 @@ def cluster_feed(self):
                 b = self.band.get()
             except:
                 b = 0
-                
+
+            
             idx1 = [i for i,x in enumerate(self.SpotList) if x.dx_call==dx_call and x.band==band]  # indices of all matches
 
             if len(idx1)>0:
@@ -303,7 +317,7 @@ def cluster_feed(self):
 
 # Function to cull aged spots
 def cull_old_spots(self):
-    logging.info("Calling Get_Freq ...")
+    #logging.info("Calling Get_Freq ...")
     frq = self.sock.get_freq(VFO=self.VFO)
     print("Culling old spots ... Rig freq=",frq,flush=True)
 
@@ -321,7 +335,7 @@ def cull_old_spots(self):
             print(x.time)
             
 #        print x.time,now,age
-        if age<self.P.MAX_AGE:
+        if age<self.P.MAX_AGE and x!=None:
             NewList.append(x)
         else:
             print("Removed spot ",x.dx_call,x.frequency,x.band," age=",age)
