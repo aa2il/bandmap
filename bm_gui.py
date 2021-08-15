@@ -76,7 +76,10 @@ class BandMapGUI:
         self.sock=P.sock
         self.tn = P.tn
         self.VFO = P.RIG_VFO
-        self.FT_MODE = 'FT8'
+        if self.P.FT4:
+            self.FT_MODE='FT4'
+        else:
+            self.FT_MODE='FT8'
 
         # Create the GUI - need to be able to distinguish between multiple copies of bandmap 
         self.root = Tk()
@@ -239,7 +242,7 @@ class BandMapGUI:
             print("\n%%%%%%%%%% Select Antenna: Setting Antenna =",a,"%%%%%%%%")
             if VERBOSITY>0:
                 logging.info("Calling Set Ant  ...")
-            self.sock.set_ant(a)
+            self.sock.set_ant(a,VFO=self.VFO)
 
     # Callback to handle mode changes
     def SelectMode(self,m=None):
@@ -269,7 +272,7 @@ class BandMapGUI:
                 m='LSB'
             else:
                 m='USB'
-        elif m=='Data' or m=='DIGITA':
+        elif m=='Data' or m=='DIGITAL':
             m='RTTY'
         #print("SelecteMode-d:",m)
         if VERBOSITY>0:
@@ -292,9 +295,9 @@ class BandMapGUI:
         if allow_change:
             b=str(band)+'m'
             if self.P.CLUSTER=='WSJT':
-                self.P.tn.configure_wsjt(NewMode='FT8')
+                self.P.tn.configure_wsjt(NewMode=self.FT_MODE)
                 time.sleep(.1)
-                new_frq = bands[b]['FT8'] + 1
+                new_frq = bands[b][self.FT_MODE] + 1
                 if VERBOSITY>0:
                     logging.info("Calling Set Freq and Mode ...")
                 self.sock.set_freq(new_frq,VFO=self.VFO)
@@ -315,7 +318,7 @@ class BandMapGUI:
                     ant=2
                 else:
                     ant=1
-                self.P.sock.set_ant(ant)
+                self.P.sock.set_ant(ant,VFO=self.VFO)
 
         # Extract a list of spots that are in the desired band
         if self.P.CONTEST_MODE:
@@ -323,9 +326,9 @@ class BandMapGUI:
             #    print '-',x.mode,'-',x.mode!='FT8'
             if self.P.DX_ONLY:
                 idx = [i for i,x in enumerate(self.SpotList) if x.band == band and \
-                       x.dx_station.country!='United States' and x.mode!='FT8'] 
+                       x.dx_station.country!='United States' and x.mode not in ['FT8','FT4'] ] 
             else:
-                idx = [i for i,x in enumerate(self.SpotList) if x.band == band and x.mode!='FT8'] 
+                idx = [i for i,x in enumerate(self.SpotList) if x.band == band and x.mode not in ['FT8','FT4'] ] 
         else:
             if self.P.DX_ONLY:
                 # Retain only stations outside US or SESs
@@ -554,8 +557,9 @@ class BandMapGUI:
             logging.info("Calling Get Band & Freq ...")
         if self.P.SERVER=="WSJT":
             tmp = self.tn.wsjt_status()
-            self.rig_band = tmp[1]
             self.rig_freq = tmp[0]
+            self.rig_band = tmp[1]
+            self.FT_MODE  = tmp[2]
         else:
             self.rig_band = self.sock.get_band(VFO=self.VFO)
             self.rig_freq = self.sock.get_freq(VFO=self.VFO) / 1000.
@@ -585,7 +589,7 @@ class BandMapGUI:
                 b[0] = float(b[0])+1
 
             # If we're running WSJT, tune to a particular spot
-            if self.P.CLUSTER=='WSJT' and True:
+            if self.P.CLUSTER=='WSJT':
                 df = b[0]
                 dx_call = b[1]
                 #print('\n========================= LBSelect:',b,'\n')

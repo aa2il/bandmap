@@ -152,11 +152,11 @@ def cluster_feed(self):
 
         dx_call=getattr(obj, "dx_call")
 
-        # Reject FT8 spots if we're in a contest
+        # Reject FT8/4 spots if we're in a contest
         keep=True
         if self.P.CONTEST_MODE:
             mode = getattr(obj, "mode")
-            if mode=='FT8':
+            if mode=='FT4' or mode=='FT8':
                 keep=False
 
         # Reject calls that really aren't calls
