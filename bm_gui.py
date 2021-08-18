@@ -80,6 +80,7 @@ class BandMapGUI:
             self.FT_MODE='FT4'
         else:
             self.FT_MODE='FT8'
+        self.Ready=False
 
         # Create the GUI - need to be able to distinguish between multiple copies of bandmap 
         self.root = Tk()
@@ -289,7 +290,8 @@ class BandMapGUI:
         band2 = self.sock.get_band(VFO=self.VFO)
         
         print("You've selected ",band,'m - Current rig band=',band2,"m",\
-              ' - allow_change=',allow_change,flush=True)
+              ' - allow_change=',allow_change,' - mode=',self.FT_MODE, \
+              flush=True)
 
         # Check for band change
         if allow_change:
@@ -557,9 +559,17 @@ class BandMapGUI:
             logging.info("Calling Get Band & Freq ...")
         if self.P.SERVER=="WSJT":
             tmp = self.tn.wsjt_status()
-            self.rig_freq = tmp[0]
-            self.rig_band = tmp[1]
-            self.FT_MODE  = tmp[2]
+            #print('WatchDog:',tmp)
+            if all(tmp):
+                if not self.Ready:
+                    print('WatchDog - Ready to go ....')
+                    self.P.tn.configure_wsjt(NewMode=self.FT_MODE)
+                    self.Ready=True
+
+                self.rig_freq = tmp[0]
+                self.rig_band = tmp[1]
+                self.FT_MODE  = tmp[2]
+            
         else:
             self.rig_band = self.sock.get_band(VFO=self.VFO)
             self.rig_freq = self.sock.get_freq(VFO=self.VFO) / 1000.
@@ -684,6 +694,17 @@ class BandMapGUI:
         self.P.DX_ONLY=self.dx_only.get()
         print('TOGGLE BOGGLE',self.P.DX_ONLY)
 
+    """
+    # Not quite done with this yet
+    def toggle_ft4(self):
+        self.P.FT4=self.ft4.get()
+        if self.P.FT4:
+            self.FT_MODE='FT4'
+        else:
+            self.FT_MODE='FT8'
+        print('TOGGLE BOGGLE',self.P.FT4,self.FT_MODE)
+    """
+
     def create_menu_bar(self):
         print('Creating Menubar ...')
                    
@@ -699,6 +720,17 @@ class BandMapGUI:
             variable=self.dx_only,
             command=self.toggle_dx_only
         )
+        
+        """
+        # Not quite done with this yet
+        self.ft4 = BooleanVar(value=self.P.FT4)
+        Menu1.add_checkbutton(
+            label="FT4",
+            underline=0,
+            variable=self.ft4,
+            command=self.toggle_ft4
+        )
+        """
         
         nodemenu = Menu(self.root, tearoff=0)
         self.node = StringVar(self.root)
