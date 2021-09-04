@@ -273,12 +273,16 @@ if __name__ == "__main__":
 
     # Open UDP client
     if P.UDP_CLIENT:
-        P.udp_client = TCP_Client(None,7474)
-        worker = Thread(target=P.udp_client.Listener, args=(), name='UDP Server' )
-        worker.setDaemon(True)
-        worker.start()
-        P.THREADS.append(worker)
-    
+        try:
+            P.udp_client = TCP_Client(None,7474)
+            worker = Thread(target=P.udp_client.Listener, args=(), name='UDP Server' )
+            worker.setDaemon(True)
+            worker.start()
+            P.THREADS.append(worker)
+        except Exception as e: 
+            print(e)
+            print('--- Unable to connect to UDP socket ---')
+                
     # Create GUI 
     bm = BandMapGUI(P)
 

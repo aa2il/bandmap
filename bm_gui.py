@@ -386,7 +386,7 @@ class BandMapGUI:
                 match = (x.dx_call==qso['call']) and (b==qso['band'])
             except:
                 match=False
-                print('\n!@#$%^!&&*#^#^ MATCH ERROR',dx_call)
+                print('\n!@#$%^!&&*#^#^ MATCH ERROR',x.dx_call)
                 print('qso=',qso)
                 print('!@#$%^!&&*#^#^ MATCH ERROR\n')
                 
@@ -438,15 +438,17 @@ class BandMapGUI:
         if len(self.qsos)>0:
             b=str(band)+'m'
             for qso in self.qsos:
+                #print('QSO=',qso)
                 if self.P.CW_SS:
                     # Can only work each station once regardless of band in this contest
                     match = x.dx_call==qso['call']
                 else:
                     try:
                         match = (x.dx_call==qso['call']) and (b==qso['band'])
-                    except:
+                    except Exception as e: 
+                        print(e)
                         match=False
-                        print('\n!@#$%^!&&*#^#^ MATCH ERROR',dx_call)
+                        print('\n!@#$%^!&&*#^#^ MATCH ERROR',x.dx_call)
                         print('qso=',qso)
                         print('!@#$%^!&&*#^#^ MATCH ERROR\n')
                 #print('\n------LB_COLORS: qso=',qso,x.dx_call,match)
