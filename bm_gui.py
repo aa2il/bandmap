@@ -51,7 +51,6 @@ import logging
 
 #########################################################################################
 
-MAX_DAYS_DUPE = 2   # 7    # Was 2
 DEFAULT_BAND = 20
 VERBOSITY=0
 
@@ -392,10 +391,11 @@ class BandMapGUI:
                 
         #print('\n------MATCH_QSOS: qso=',qso,x.dx_call,match)
         if match:
-            delta = datetime.strptime(now.strftime("%Y%m%d"), "%Y%m%d") - \
-                datetime.strptime(qso['qso_date_off']   , "%Y%m%d")
-            print('--- MATCH_QSOS: Possible dupe for',x.dx_call,'\tdelta=',delta,delta.days)
-            match = delta.days < MAX_DAYS_DUPE
+            t1 = datetime.strptime(now.strftime("%Y%m%d %H%M%S"), "%Y%m%d %H%M%S") 
+            t2 = datetime.strptime( qso['qso_date_off']+" "+qso["time_off"] , "%Y%m%d %H%M%S")
+            delta=(t1-t2).total_seconds() / 3600
+            match = delta< self.P.MAX_HOURS_DUPE
+            print('--- MATCH_QSOS: Possible dupe for',x.dx_call,'\tt12',t1,t2,'\tdelta=',delta,match)
 
         return match
     
@@ -453,11 +453,12 @@ class BandMapGUI:
                         print('!@#$%^!&&*#^#^ MATCH ERROR\n')
                 #print('\n------LB_COLORS: qso=',qso,x.dx_call,match)
                 if match:
-                    delta = datetime.strptime(now.strftime("%Y%m%d"), "%Y%m%d") - \
-                            datetime.strptime(qso['qso_date_off']   , "%Y%m%d")
-                    print('--- Possible dupe ',tag,' for',x.dx_call,'\tdelta=',
-                          delta,delta.days,delta.days<MAX_DAYS_DUPE)
-                    match = delta.days < MAX_DAYS_DUPE
+                    t1 = datetime.strptime(now.strftime("%Y%m%d %H%M%S"), "%Y%m%d %H%M%S") 
+                    t2 = datetime.strptime( qso['qso_date_off']+" "+qso["time_off"] , "%Y%m%d %H%M%S")
+                    delta=(t1-t2).total_seconds() / 3600
+                    match = delta < self.P.MAX_HOURS_DUPE
+                    print('--- Possible dupe ',tag,' for',x.dx_call,'\tt12=',t1,t2,'\tdelta=',
+                          delta,match)
                     if match:
                         print('MATCHED!!!')
                         break

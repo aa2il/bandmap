@@ -101,10 +101,14 @@ class PARAMS:
                               choices=['A','B'] )
         #arg_proc.add_argument('-noft8', action='store_true',help='Filter out FT8 spots')
         arg_proc.add_argument('-test', action='store_true',help='Test Mode')
+        arg_proc.add_argument("-hours", help="Max no. hours for a dupe",
+                              type=float,default=2*24)
         args = arg_proc.parse_args()
 
         self.RIG          = args.rig
         self.PORT         = args.port
+
+        self.MAX_HOURS_DUPE = args.hours
 
         self.CONTEST_MODE = args.contest
         
