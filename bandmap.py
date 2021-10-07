@@ -204,7 +204,8 @@ class PARAMS:
             print('Settings:',self.SETTINGS)
 
         self.MY_CALL      = self.SETTINGS['MY_CALL']
-        self.LOG_NAME     = os.path.expanduser( self.LOG_NAME.replace('[MYCALL]',self.MY_CALL ) )
+        MY_CALL2          = self.MY_CALL.replace('/','_')
+        self.LOG_NAME     = os.path.expanduser( self.LOG_NAME.replace('[MYCALL]',MY_CALL2 ) )
         self.NODES        = NODES
         self.THREADS      = []
 
