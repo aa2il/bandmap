@@ -54,6 +54,10 @@ def cluster_feed(self):
     tn=self.tn
     lb=self.lb
 
+    if self.nerrors>10:
+        print('CLUSTER_FEED: Too many errors - giving up!')
+        return False
+
     if self.P.TEST_MODE:
 
         # Read a line from the recorded spots file
@@ -102,9 +106,10 @@ def cluster_feed(self):
             try:
                 line = self.tn.read_until(b"\n",self.P.TIME_OUT).decode("utf-8") 
             except Exception as e:
-                print('*** TIME_OUT1 or other issue on CLUSTER_FEED ***')
+                print('*** Error in CLUSTER_FEED ***')
                 print('Error msg:\t',getattr(e, 'message', repr(e)))
                 line = ''
+                self.nerrors+=1
         else:
             return True
         if line=='': 

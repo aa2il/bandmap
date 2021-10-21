@@ -80,6 +80,8 @@ class BandMapGUI:
         else:
             self.FT_MODE='FT8'
         self.Ready=False
+        self.nerrors=0
+        self.enable_scheduler=True
 
         # Create the GUI - need to be able to distinguish between multiple copies of bandmap 
         self.root = Tk()
@@ -536,6 +538,10 @@ class BandMapGUI:
             self.tn.close()
         self.tn = connection(self.P.TEST_MODE,self.P.CLUSTER, \
                              self.P.MY_CALL,self.P.WSJT_FNAME)
+        if not self.enable_scheduler:
+            self.enable_scheduler=True
+            self.nerrors=0
+            self.Scheduler()
 
     # Callback to clear all spots
     def Clear_Spot_List(self):
@@ -550,7 +556,10 @@ class BandMapGUI:
     # Wrapper to schedule events to read the spots
     def Scheduler(self):
         OK = cluster_feed(self)
-        self.root.after(100, self.Scheduler)
+        if OK:
+            self.root.after(100, self.Scheduler)
+        else:
+            self.enable_scheduler=False
 
     # Watch Dog 
     def WatchDog(self):

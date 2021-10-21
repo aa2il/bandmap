@@ -36,20 +36,21 @@ from rig_io.socket_io import *
 from bm_gui import *
 import json
 from tcp_client import *
+from settings import *
 
 #########################################################################################
 
 # Sometimes when these don't work, its bx the login handshaking needs some work
 NODES=OrderedDict()
-NODES['PY3NZ']  = 'dxc.baependi.com.br:8000'        # dxwatch.com
-NODES['NK7Z']   = 'nk7z-cluster.ddns.net:7373'      # Lots of spots!  RBN?
+#NODES['PY3NZ']  = 'dxc.baependi.com.br:8000'        # dxwatch.com - down?
+#NODES['NK7Z']   = 'nk7z-cluster.ddns.net:7373'      # Lots of spots! - down?
 NODES['NC7J']   = 'dxc.nc7j.com'                    # Lots of spots, no FT8
 NODES['W8AEF']  = 'paul.w8aef.com:7373'             # AZ - no FT8 - can turn it on
 NODES['W3LPL']  = 'w3lpl.net:7373'                  # Ok - lots of spots, no FT8 dxc.w3lpl.net
 NODES['N6WS']   = 'n6ws.no-ip.org:7300'             # Ok
 NODES['K1TTT']  = 'k1ttt.net:7373'                  # (Peru, MA); Skimmer capable
 NODES['W6RFU']  = 'ucsbdx.ece.ucsb.edu:7300'        # Ok - CQ Zones 1-5 spots only (i.e. US & Canada)
-NODES['K3LR']   = 'dx.k3lr.com'                     # Doesnt work
+NODES['K3LR']   = 'dx.k3lr.com'                     # 
 NODES['AE5E']   = 'dxspots.com'                     # Ok - not many spots
 NODES['N4DEN']  = 'dxc.n4den.us:7373'               # Ok
 NODES['W6KK']   = 'w6kk.zapto.org:7300'             # Ok - USA and VE spots only, not many spots
@@ -160,7 +161,6 @@ class PARAMS:
                 self.LOG_NAME += "/wsjtx_log.adi"
         else:
             self.LOG_NAME = args.log
-        print('LOG_NAME=',self.LOG_NAME)
         #sys.exit(0)
         
 
@@ -187,27 +187,14 @@ class PARAMS:
         self.TIME_OUT=.01
 
         # Read config file
-        self.RCFILE=os.path.expanduser("~/.bandmaprc")
-        self.SETTINGS=None
-        try:
-            with open(self.RCFILE) as json_data_file:
-                self.SETTINGS = json.load(json_data_file)
-        except:
-            print(self.RCFILE,' not found - need call!\n')
-            s=SETTINGS(None,self)
-            while not self.SETTINGS:
-                try:
-                    s.win.update()
-                except:
-                    pass
-                time.sleep(.01)
-            print('Settings:',self.SETTINGS)
+        self.SETTINGS = read_settings('.keyerrc')
 
         self.MY_CALL      = self.SETTINGS['MY_CALL']
         MY_CALL2          = self.MY_CALL.replace('/','_')
         self.LOG_NAME     = os.path.expanduser( self.LOG_NAME.replace('[MYCALL]',MY_CALL2 ) )
         self.NODES        = NODES
         self.THREADS      = []
+        print('LOG_NAME=',self.LOG_NAME,'\tPARGE_LOG=',self.PARSE_LOG)
 
         if self.SERVER=="WSJT" or args.buttons:
             self.ALLOW_CHANGES=True
