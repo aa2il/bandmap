@@ -187,7 +187,7 @@ class PARAMS:
         self.TIME_OUT=.01
 
         # Read config file
-        self.SETTINGS = read_settings('.keyerrc')
+        self.SETTINGS,self.RCFILE = read_settings('.keyerrc')
 
         self.MY_CALL      = self.SETTINGS['MY_CALL']
         MY_CALL2          = self.MY_CALL.replace('/','_')

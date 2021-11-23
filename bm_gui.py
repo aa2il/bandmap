@@ -93,8 +93,7 @@ class BandMapGUI:
         self.root.geometry(sz)
 
         # Add menu bar
-        if True:
-            self.create_menu_bar()
+        self.create_menu_bar()
 
         # Set band according to rig freq
         self.band   = IntVar(self.root)
@@ -335,11 +334,12 @@ class BandMapGUI:
         else:
             if self.P.DX_ONLY:
                 # Retain only stations outside US or SESs
-                idx = [i for i,x in enumerate(self.SpotList) if x.band == band and \
+                idx = [i for i,x in enumerate(self.SpotList) if x and \
+                       x.band == band and \
                        (x.dx_station.country!='United States' or len(x.dx_call)==3 or \
                         x.dx_call=='WM3PEN')] 
             else:
-                idx = [i for i,x in enumerate(self.SpotList) if x.band == band]
+                idx = [i for i,x in enumerate(self.SpotList) if x and x.band == band]
             
         self.current = [self.SpotList[i] for i in idx]
         self.current.sort(key=lambda x: x.frequency, reverse=False)
@@ -682,7 +682,7 @@ class BandMapGUI:
 
     # Open dialog window for basic settings
     def Settings(self):
-        self.SettingsWin = SETTINGS(self.root,self.P)
+        self.SettingsWin = SETTINGS_GUI(self.root,self.P)
         return
 
     # Print out log
@@ -717,6 +717,7 @@ class BandMapGUI:
         print('TOGGLE BOGGLE',self.P.FT4,self.FT_MODE)
     """
 
+    # Function to create menu bar
     def create_menu_bar(self):
         print('Creating Menubar ...')
                    
