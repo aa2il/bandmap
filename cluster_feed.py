@@ -143,9 +143,9 @@ def cluster_feed(self):
     if "<adif_ver" in line:
         print('\nCluster Feed: LOGGED Contact Detected ...')
         qso=parse_adif(-1,line)
-        print('qso=',qso)
+        #print('qso=',qso)
         self.qsos.append( qso[0] )
-        print('self.qsos=',self.qsos)
+        #print('self.qsos=',self.qsos)
         self.lb_update()
             
     obj = Spot(line)

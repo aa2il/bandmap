@@ -411,11 +411,13 @@ class BandMapGUI:
             for qso in self.qsos:
                 match = self.match_qsos(qso,x,b,now)
                 call=qso['call']
-                print('LB_UPDATE:',call,x.dx_call,match)
+                #print('LB_UPDATE:',call,x.dx_call,match)
                 if match:
                     break
 
-        if match:
+        if idx<0:
+            return
+        elif match:
             print('*** Dupe ***',qso['call'],qso['band'])
             c="red"
         elif x.needed:
