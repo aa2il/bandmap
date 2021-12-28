@@ -77,8 +77,8 @@ class PARAMS:
         arg_proc.add_argument('-contest', action='store_true',help='Conest Mode')
         arg_proc.add_argument('-ss', action='store_true',help='ARRL Sweepstakes')
         arg_proc.add_argument("-rig", help="Connection Type to Rig",
-                              type=str,default="ANY",
-                              choices=['FLDIGI','FLRIG','DIRECT','HAMLIB','ANY','NONE'])
+                              type=str,default=["ANY"],nargs='+',
+                              choices=CONNECTIONS+['NONE']+RIGS)
         arg_proc.add_argument("-port", help="TCPIP port",
                               type=int,default=0)
         arg_proc.add_argument("-server", help="Server",
@@ -106,7 +106,11 @@ class PARAMS:
                               type=float,default=2*24)
         args = arg_proc.parse_args()
 
-        self.RIG          = args.rig
+        self.CONNECTION   = args.rig[0]
+        if len(args.rig)>=2:
+            self.RIG       = args.rig[1]
+        else:
+            self.RIG       = None
         self.PORT         = args.port
 
         self.MAX_HOURS_DUPE = args.hours
@@ -224,7 +228,7 @@ if __name__ == "__main__":
         fp=-1
 
     # Open xlmrpc connection to fldigi
-    P.sock = open_rig_connection(P.RIG,0,P.PORT,0,'BANDMAP')
+    P.sock = open_rig_connection(P.CONNECTION,0,P.PORT,0,'BANDMAP',rig=P.RIG)
     if not P.sock.active:
         print('*** No connection to rig ***')
         #sys,exit(0)
