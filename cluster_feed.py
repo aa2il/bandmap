@@ -232,7 +232,11 @@ def cluster_feed(self):
                 b = 0
 
             
-            idx1 = [i for i,x in enumerate(self.SpotList) if x.dx_call==dx_call and x.band==band]  # indices of all matches
+            try:
+                idx1 = [i for i,x in enumerate(self.SpotList)
+                        if x.dx_call==dx_call and x.band==band]  # indices of all matches
+            except:
+                idx1 = []
 
             if len(idx1)>0:
 
