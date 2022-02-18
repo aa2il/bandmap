@@ -76,6 +76,7 @@ class PARAMS:
         arg_proc = argparse.ArgumentParser()
         arg_proc.add_argument('-contest', action='store_true',help='Conest Mode')
         arg_proc.add_argument('-ss', action='store_true',help='ARRL Sweepstakes')
+        arg_proc.add_argument('-echo', action='store_true',help='Echo lines from server')
         arg_proc.add_argument("-rig", help="Connection Type to Rig",
                               type=str,default=["ANY"],nargs='+',
                               choices=CONNECTIONS+['NONE']+RIGS)
@@ -175,13 +176,8 @@ class PARAMS:
             print(self.SERVER)
             print(self.LOG_NAME)
             sys,exit(0)
-
         
-        if args.server=='WA9PIE' or False:
-            self.ECHO_ON=True
-        else:
-            self.ECHO_ON=False
-
+        self.ECHO_ON=args.echo
         if self.CLUSTER=='WSJT':
             self.MAX_AGE=5
         else:

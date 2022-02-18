@@ -104,14 +104,16 @@ def cluster_feed(self):
         #print 'CLUSTER FEED: Reading tn...'
         if self.tn:
             try:
-                line = self.tn.read_until(b"\n",self.P.TIME_OUT).decode("utf-8") 
+                line = self.tn.read_until(b"\n",self.P.TIME_OUT).decode("utf-8")
             except Exception as e:
                 print('*** Error in CLUSTER_FEED ***')
                 print('Error msg:\t',getattr(e, 'message', repr(e)))
                 line = ''
                 self.nerrors+=1
+            #print('Line:',line)
         else:
             return True
+        
         if line=='': 
             #print 'CLUSTER FEED: Time out ',TIME_OUT
             return True                # Time out
@@ -149,7 +151,8 @@ def cluster_feed(self):
         self.lb_update()
             
     obj = Spot(line)
-    #pprint(vars(obj))
+    if self.P.ECHO_ON:
+        pprint(vars(obj))
     sys.stdout.flush()
 
     # Check if we got a new spot
@@ -177,8 +180,8 @@ def cluster_feed(self):
                 keep=False        
         
         if keep:
-            if dx_call==self.P.MY_CALL:
-                print(line.strip())
+            if dx_call==self.P.MY_CALL or self.P.ECHO_ON:
+                print('Line=',line.strip())
 
             # Highlighting in WSJT-X window
             if self.P.CLUSTER=='WSJT':
