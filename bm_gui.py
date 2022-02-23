@@ -23,10 +23,8 @@ import sys
 import os
 import time
 import socket
-import argparse
 import json
 
-#from pytz import timezone
 from datetime import datetime
 from dx.spot_processing import ChallengeData
 
@@ -116,17 +114,21 @@ class BandMapGUI:
         BUTframe.pack()
 
         # Buttons to select HF bands
-        for bb in list(bands.keys()):
+        self.Band_Buttons=[]
+        for bb in bands.keys():
             if bb=='2m':
                 break
             b = int( bb.split("m")[0] )
-            if not P.CONTEST_MODE or bands[bb]["CONTEST"]:
-                Radiobutton(BUTframe, 
+            but=Radiobutton(BUTframe, 
                             text=bb,
                             indicatoron = 0,
                             variable=self.band, 
                             command=lambda: self.SelectBands(self.P.ALLOW_CHANGES),
-                            value=b).pack(side=LEFT,anchor=W)
+                            value=b)
+            self.Band_Buttons.append( but )
+                
+            if not P.CONTEST_MODE or bands[bb]["CONTEST"]:
+                but.pack(side=LEFT,anchor=W)
 
         # Another row of buttons to select mode & antenna
         ModeFrame = Frame(self.root)
@@ -704,9 +706,22 @@ class BandMapGUI:
             self.P.CLUSTER = self.P.NODES[SERVER]
             self.Reset()
 
+    # Toggle DX ONLY mode
     def toggle_dx_only(self):
         self.P.DX_ONLY=self.dx_only.get()
         print('TOGGLE BOGGLE',self.P.DX_ONLY)
+
+    # Toggle contest mode
+    def toggle_contest_mode(self):
+        self.P.CONTEST_MODE=self.contest_mode.get()
+        print('TOGGLE BOGGLE',self.P.CONTEST_MODE)
+
+        for but,bb in zip( self.Band_Buttons , bands.keys()):
+            #print('bb=',bb)
+            but.pack_forget()
+            if not self.P.CONTEST_MODE or bands[bb]["CONTEST"]:
+                but.pack(side=LEFT,anchor=W)
+            
 
     """
     # Not quite done with this yet
@@ -734,6 +749,14 @@ class BandMapGUI:
             underline=0,
             variable=self.dx_only,
             command=self.toggle_dx_only
+        )
+        
+        self.contest_mode = BooleanVar(value=self.P.CONTEST_MODE)
+        Menu1.add_checkbutton(
+            label="Contest Mode",
+            underline=0,
+            variable=self.contest_mode,
+            command=self.toggle_contest_mode
         )
         
         """
