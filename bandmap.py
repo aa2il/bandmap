@@ -111,6 +111,8 @@ if __name__ == "__main__":
         except Exception as e: 
             print(e)
             print('--- Unable to connect to UDP socket ---')
+            P.UDP_CLIENT = False
+            P.udp_client = None
                 
     # Create GUI 
     bm = BandMapGUI(P)

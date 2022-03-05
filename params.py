@@ -34,8 +34,13 @@ NODES=OrderedDict()
 #NODES['PY3NZ']  = 'dxc.baependi.com.br:8000'        # dxwatch.com - down?
 #NODES['NK7Z']   = 'nk7z-cluster.ddns.net:7373'      # Lots of spots! - down?
 NODES['NC7J']   = 'dxc.nc7j.com'                    # Lots of spots, no FT8
-NODES['W8AEF']  = 'paul.w8aef.com:7373'             # AZ - no FT8 - can turn it on
 NODES['W3LPL']  = 'w3lpl.net:7373'                  # Ok - lots of spots, no FT8 dxc.w3lpl.net
+
+#telnet telnet.reversebeacon.net 7000
+#telnet telnet.reversebeacon.net 7001
+NODES['RBN']    = 'telnet.reversebeacon.net:7000'   # RBN - 7000 for CW & RTTY, 7001 for ft8
+
+NODES['W8AEF']  = 'paul.w8aef.com:7373'             # AZ - no FT8 - can turn it on
 NODES['N6WS']   = 'n6ws.no-ip.org:7300'             # Ok
 NODES['K1TTT']  = 'k1ttt.net:7373'                  # (Peru, MA); Skimmer capable
 NODES['W6RFU']  = 'ucsbdx.ece.ucsb.edu:7300'        # Ok - CQ Zones 1-5 spots only (i.e. US & Canada)
@@ -94,6 +99,10 @@ class PARAMS:
         arg_proc.add_argument('-test', action='store_true',help='Test Mode')
         arg_proc.add_argument("-hours", help="Max no. hours for a dupe",
                               type=float,default=2*24)
+        arg_proc.add_argument("-age", help="Max no. minutes to keep a spot around",
+                              type=int,default=None)
+        arg_proc.add_argument("-debug", help="Debug Level",
+                              type=int,default=0)
         args = arg_proc.parse_args()
 
         self.CONNECTION   = args.rig[0]
@@ -117,6 +126,7 @@ class PARAMS:
         self.UDP_CLIENT   = args.udp
         self.RIG_VFO      = args.vfo
         self.FT4          = args.ft4
+        self.DEBUG        = args.debug
 
         self.CHALLENGE_FNAME = os.path.expanduser('~/Python/data/states.xls')
 
@@ -167,7 +177,9 @@ class PARAMS:
             sys,exit(0)
         
         self.ECHO_ON=args.echo
-        if self.CLUSTER=='WSJT':
+        if args.age:
+            self.MAX_AGE=args.age
+        elif self.CLUSTER=='WSJT':
             self.MAX_AGE=5
         else:
             self.MAX_AGE=15

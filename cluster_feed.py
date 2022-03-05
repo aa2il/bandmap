@@ -53,6 +53,7 @@ def cluster_feed(self):
     #    print 'Cluster Feed ....'
     tn=self.tn
     lb=self.lb
+    VERBOSITY = self.P.DEBUG
 
     if self.nerrors>10:
         print('CLUSTER_FEED: Too many errors - giving up!')
@@ -101,7 +102,8 @@ def cluster_feed(self):
     else:
 
         # Read a line from the telnet connection
-        #print 'CLUSTER FEED: Reading tn...'
+        if VERBOSITY>=2:
+            print('CLUSTER FEED: Reading tn ...')
         if self.tn:
             try:
                 line = self.tn.read_until(b"\n",self.P.TIME_OUT).decode("utf-8")
@@ -110,7 +112,8 @@ def cluster_feed(self):
                 print('Error msg:\t',getattr(e, 'message', repr(e)))
                 line = ''
                 self.nerrors+=1
-            #print('Line:',line)
+            if VERBOSITY>=2:
+                print('Line:',line)
         else:
             return True
         
@@ -121,7 +124,8 @@ def cluster_feed(self):
             # Dont let timeout happen before we get entire line
             #print 'CLUSTER FEED: Partial line read'
             try:
-                line2 = tn.read_until(b"\n")
+                #line2 = tn.read_until(b"\n")
+                line2 = tn.read_until(b"\n",timeout=2)
                 line = line+line2
             except Exception as e:
                 print('*** TIME_OUT2 or other issue on CLUSTER_FEED ***')
@@ -130,8 +134,9 @@ def cluster_feed(self):
 
     # Process the spot
     if len(line)>5:
-        if self.P.ECHO_ON:
-            print('>>> Cluster Feed:',line.rstrip())
+        if self.P.ECHO_ON or VERBOSITY>=1:
+            #print('>>> Cluster Feed:',line.rstrip())
+            print(line.rstrip())
         if not self.P.TEST_MODE and False:
             fp.write(line+'\n')
             fp.flush()
@@ -244,7 +249,8 @@ def cluster_feed(self):
             if len(idx1)>0:
 
                 # Call already in list - Update spot time
-                print("Found call:",idx1,dx_call)
+                if VERBOSITY>=2:
+                    print("Found call:",idx1,dx_call)
                 for i in idx1:
                     #print self.SpotList[i].dx_call,self.SpotList[i].time,obj.time
                     self.SpotList[i].time=obj.time
@@ -342,9 +348,11 @@ def cull_old_spots(self):
         except:
             print("ERROR in CULL_OLD_SPOTS:")
             age=0
-            pprint(vars(x))
-            print(now)
-            print(x.time)
+            print('x=',x)
+            #pprint(vars(x))
+            print('now=',now)
+            #print('x.time=',x.time)
+            continue
             
 #        print x.time,now,age
         if age<self.P.MAX_AGE and x!=None:
@@ -354,7 +362,7 @@ def cull_old_spots(self):
             if (not OLD_WAY) and x.band==BAND:
                 idx2 = [i for i,y in enumerate(self.current) 
                         if y.frequency == x.frequency and y.dx_call == x.dx_call]
-                print("Delete",idx2,idx2[0])
+                #print("Delete",idx2,idx2[0])
                 del self.current[idx2[0]]
                 self.lb.delete(idx2[0])
 

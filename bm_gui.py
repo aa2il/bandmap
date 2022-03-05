@@ -399,7 +399,8 @@ class BandMapGUI:
             t2 = datetime.strptime( qso['qso_date_off']+" "+qso["time_off"] , "%Y%m%d %H%M%S")
             delta=(t1-t2).total_seconds() / 3600
             match = delta< self.P.MAX_HOURS_DUPE
-            print('--- MATCH_QSOS: Possible dupe for',x.dx_call,'\tt12',t1,t2,'\tdelta=',delta,match)
+            if VERBOSITY>=2:
+                print('--- MATCH_QSOS: Possible dupe for',x.dx_call,'\tt12',t1,t2,'\tdelta=',delta,match)
 
         return match
     
@@ -414,6 +415,7 @@ class BandMapGUI:
                 match = self.match_qsos(qso,x,b,now)
                 call=qso['call']
                 #print('LB_UPDATE:',call,x.dx_call,match)
+                #match |= call==self.P.MY_CALL
                 if match:
                     break
 
@@ -463,10 +465,12 @@ class BandMapGUI:
                     t2 = datetime.strptime( qso['qso_date_off']+" "+qso["time_off"] , "%Y%m%d %H%M%S")
                     delta=(t1-t2).total_seconds() / 3600
                     match = delta < self.P.MAX_HOURS_DUPE
-                    print('--- Possible dupe ',tag,' for',x.dx_call,'\tt12=',t1,t2,'\tdelta=',
-                          delta,match)
+                    if VERBOSITY>=2:
+                        print('--- Possible dupe ',tag,' for',x.dx_call,'\tt12=',t1,t2,'\tdelta=',
+                              delta,match)
                     if match:
-                        print('MATCHED!!!')
+                        if VERBOSITY>=2:
+                            print('MATCHED!!!')
                         break
 
         age=None
@@ -491,7 +495,7 @@ class BandMapGUI:
         #print '... Repopulated'
         #logging.info("Calling LBsanity - band="+str(band)+" ...")
         self.LBsanity()
-        print("")
+        #print(" ")
 
             
     # Make sure the entry closest to the rig freq is visible
@@ -694,7 +698,7 @@ class BandMapGUI:
         print('\nLOG::::::::::',self.P.PARSE_LOG)
         for qso in self.qsos:
             print(qso)
-        print('')
+        print(' ')
         return
 
     # Select a new cluster
