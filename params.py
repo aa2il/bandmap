@@ -88,10 +88,18 @@ class PARAMS:
                               #default=None,nargs='*')
                               #default="~/logs/[MYCALL].adif")
                               #default="")    #,nargs='+')
-        arg_proc.add_argument('-dx', action='store_true',help='Show only DX spots')
-        arg_proc.add_argument('-buttons', action='store_true',help='Enable band buttons')
-        arg_proc.add_argument('-udp', action='store_true',help='Start UDP client')
-        arg_proc.add_argument('-ft4', action='store_true',help='Use FT4 freqs instead of FT8')
+        arg_proc.add_argument('-dx', action='store_true',
+                              help='Show only DX spots')
+        arg_proc.add_argument('-buttons', action='store_true',
+                              help='Enable band buttons')
+        arg_proc.add_argument('-udp', action='store_true',
+                              help='Start UDP client')
+        arg_proc.add_argument('-no_mode', action='store_true',
+                              help='Dont indicate mode needs')
+        arg_proc.add_argument('-no_year', action='store_true',
+                              help='Dont indicate needs for this year')
+        arg_proc.add_argument('-ft4', action='store_true',
+                              help='Use FT4 freqs instead of FT8')
         arg_proc.add_argument("-vfo", help="VFO to follow",
                               type=str,default="A",
                               choices=['A','B'] )
@@ -127,6 +135,8 @@ class PARAMS:
         self.RIG_VFO      = args.vfo
         self.FT4          = args.ft4
         self.DEBUG        = args.debug
+        self.SHOW_NEED_MODE = not args.no_mode
+        self.SHOW_NEED_YEAR = not args.no_year
 
         self.CHALLENGE_FNAME = os.path.expanduser('~/Python/data/states.xls')
 

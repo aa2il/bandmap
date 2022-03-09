@@ -109,7 +109,8 @@ def cluster_feed(self):
                 line = self.tn.read_until(b"\n",self.P.TIME_OUT).decode("utf-8")
             except Exception as e:
                 print('*** Error in CLUSTER_FEED ***')
-                print('Error msg:\t',getattr(e, 'message', repr(e)))
+                #print('Error msg:\t',getattr(e, 'message', repr(e)))
+                print(e)
                 line = ''
                 self.nerrors+=1
             if VERBOSITY>=2:
@@ -125,11 +126,14 @@ def cluster_feed(self):
             #print 'CLUSTER FEED: Partial line read'
             try:
                 #line2 = tn.read_until(b"\n")
-                line2 = tn.read_until(b"\n",timeout=2)
+                line2 = tn.read_until(b"\n",timeout=10).decode("utf-8") 
                 line = line+line2
             except Exception as e:
+                print(e)
                 print('*** TIME_OUT2 or other issue on CLUSTER_FEED ***')
                 print(getattr(e, 'message', repr(e)))
+                print('line  =',line,type(line))
+                print('line2 =',line2,type(line2))
                 return True                # Time out
 
     # Process the spot
@@ -225,8 +229,20 @@ def cluster_feed(self):
                 print('\nDXCC=NONE!!!!')
                 pprint(vars(obj.dx_station))
                 sys.exit(0)
+            year=2021
             obj.needed = self.P.data.needed_challenge(dxcc,str(band)+'M',0)
-            obj.need_this_year = self.P.data.needed_challenge(dxcc,2021,0) and True
+            obj.need_this_year = self.P.data.needed_challenge(dxcc,year,0) and self.P.SHOW_NEED_YEAR
+
+            if mode in ['CW']:
+                mode2='CW'
+            elif mode in ['SSB','LSB','USB','FM','PH']:
+                mode2='Phone'
+            elif mode in ['DIGITAL','FT8','FT4','JT65','PSK']:
+                mode2='Data'
+            else:
+                mode2='Unknown'
+            #print('BURP: call=',dx_call,'\tmode=',mode,mode2)
+            obj.need_mode = self.P.data.needed_challenge(dxcc,mode2,0) and self.P.SHOW_NEED_MODE
                 
             # Check if this call is already there
             #print [x for x in SpotList if x.dx_call == dx_call]               # list of all matches

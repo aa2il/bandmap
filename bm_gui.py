@@ -249,10 +249,11 @@ class BandMapGUI:
 
     # Callback to handle mode changes
     def SelectMode(self,m=None):
-        #print('\nSelectMode:',m)
+        if VERBOSITY>0:
+            print('\nSelectMode: mode=',m)
         if m==None:
             m = self.mode.get()
-            print('SelectMode-a:',m)
+            print('SelectMode-a: mode2=',m)
 
         if m=='':
             if VERBOSITY>0:
@@ -264,9 +265,9 @@ class BandMapGUI:
             self.mode.set(m)
             return
 
-        # Translate mode request into somthing FLDIGI understands
+        # Translate mode request into something that FLDIGI understands
         #print('SelectMode-c:',m)
-        if m=='SSB':
+        if m in ['SSB','LSB','USB']:
             #        buf=get_response(s,'w BY;EX1030\n');            # Audio from MIC (front)
             if VERBOSITY>0:
                 logging.info("Calling Get Freq ...")
@@ -280,7 +281,8 @@ class BandMapGUI:
         #print("SelecteMode-d:",m)
         if VERBOSITY>0:
             logging.info("Calling Set Mode ...")
-        self.sock.set_mode(m,VFO=self.VFO)
+        if not self.P.CONTEST_MODE:
+            self.sock.set_mode(m,VFO=self.VFO,Filter='Auto')
 
     # Callback to handle band changes
     def SelectBands(self,allow_change=False):
@@ -428,6 +430,8 @@ class BandMapGUI:
             c="magenta"
         elif x.need_this_year:
             c="violet"
+        elif x.need_mode:
+            c="pink"
         else:
             age = (now - x.time).total_seconds()/60      # In minutes
             if age<2:
@@ -481,6 +485,8 @@ class BandMapGUI:
             c="magenta"
         elif x.need_this_year:
             c="violet"
+        elif x.need_mode:
+            c="pink"
         else:
             age = (now - x.time).total_seconds()/60      # In minutes
             if age<2:
@@ -627,7 +633,9 @@ class BandMapGUI:
                 return
 
             # Note - need to set freq first so get on right band, then set the mode
-            #rint("LBSelect: Setting freq ",b[0])
+            # We do a second set freq since rig may offset by 700 Hz if we are in CW mode
+            # There must be a better way to do this but this is what we do for now
+            #print("LBSelect: Setting freq ",b[0])
             if VERBOSITY>0:
                 logging.info("Calling Set Freq ...")
             self.sock.set_freq(float(b[0]),VFO=self.VFO)
@@ -635,6 +643,7 @@ class BandMapGUI:
                 print("LBSelect: Setting mode ",b[2])
                 #self.sock.mode.set(b[2],VFO=self.VFO)
                 self.SelectMode(b[2])
+                self.sock.set_freq(float(b[0]),VFO=self.VFO)
             
             print("LBSelect: Setting call ",b[1])
             self.sock.set_call(b[1])
@@ -708,12 +717,23 @@ class BandMapGUI:
         if SERVER != self.P.SERVER:
             self.P.SERVER  = SERVER
             self.P.CLUSTER = self.P.NODES[SERVER]
+            self.root.title("Band Map by AA2IL - Server " + SERVER)
             self.Reset()
 
     # Toggle DX ONLY mode
     def toggle_dx_only(self):
         self.P.DX_ONLY=self.dx_only.get()
         print('TOGGLE BOGGLE',self.P.DX_ONLY)
+
+    # Toggle showing of needs for mode
+    def toggle_need_mode(self):
+        self.P.SHOW_NEED_MODE=self.show_need_mode.get()
+        print('TOGGLE BOGGLE',self.P.SHOW_NEED_MODE)
+
+    # Toggle showing of needs for this year
+    def toggle_need_year(self):
+        self.P.SHOW_NEED_YEAR=self.show_need_year.get()
+        print('TOGGLE BOGGLE',self.P.SHOW_NEED_YEAR)
 
     # Toggle contest mode
     def toggle_contest_mode(self):
@@ -761,6 +781,22 @@ class BandMapGUI:
             underline=0,
             variable=self.contest_mode,
             command=self.toggle_contest_mode
+        )
+        
+        self.show_need_year = BooleanVar(value=self.P.SHOW_NEED_YEAR)
+        Menu1.add_checkbutton(
+            label="Show This Year",
+            underline=0,
+            variable=self.show_need_year,
+            command=self.toggle_need_year
+        )
+        
+        self.show_need_mode = BooleanVar(value=self.P.SHOW_NEED_MODE)
+        Menu1.add_checkbutton(
+            label="Show Mode Needs",
+            underline=0,
+            variable=self.show_need_mode,
+            command=self.toggle_need_mode
         )
         
         """
