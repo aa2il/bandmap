@@ -30,7 +30,6 @@ from dx.spot_processing import ChallengeData
 
 from pprint import pprint
 from dx.cluster_connections import *
-#from adif import *
 from fileio import parse_adif
 from collections import OrderedDict 
 import webbrowser
@@ -80,6 +79,7 @@ class BandMapGUI:
         self.Ready=False
         self.nerrors=0
         self.enable_scheduler=True
+        self.last_error=''
 
         # Create the GUI - need to be able to distinguish between multiple copies of bandmap 
         self.root = Tk()
@@ -550,9 +550,15 @@ class BandMapGUI:
         self.Clear_Spot_List()
         if self.tn:
             self.tn.close()
+            self.enable_scheduler=False
+            time.sleep(.1)
         self.tn = connection(self.P.TEST_MODE,self.P.CLUSTER, \
                              self.P.MY_CALL,self.P.WSJT_FNAME)
-        if not self.enable_scheduler:
+        print("--- Reset --- Connected to",self.P.CLUSTER, self.enable_scheduler)
+        OK=test_telnet_connection(self.tn)
+        if not OK:
+            print('--- Reset --- Now what Sherlock?!')
+        if not self.enable_scheduler or True:
             self.enable_scheduler=True
             self.nerrors=0
             self.Scheduler()
@@ -570,8 +576,14 @@ class BandMapGUI:
     # Wrapper to schedule events to read the spots
     def Scheduler(self):
         OK = cluster_feed(self)
+        #if self.P.ECHO_ON:
+        #    print('SCHEDULER:',OK)
         if OK:
             self.root.after(100, self.Scheduler)
+        elif "telent connection closed" in self.last_error:
+            self.enable_scheduler=False
+            print('SCHEDULER - Attempting to reopen node ...')
+            self.SelectNode()
         else:
             self.enable_scheduler=False
 

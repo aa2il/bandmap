@@ -21,6 +21,7 @@
 
 import sys
 import re
+import time
 import pytz
 from datetime import datetime
 from dx.spot_processing import Spot
@@ -47,6 +48,31 @@ def cleanup(dxcc):
     except:
         dxcc2=dxcc
     return dxcc2
+
+
+# Function to test a telnet connection
+def test_telnet_connection(tn):
+    if not tn:
+        print('File cluster_feed.py')
+        print('TEST_TELNET_CONNECTION: *** ERROR *** Unexpected null connection')
+        return False
+    
+    try:
+        line=tn.read_very_eager().decode("utf-8")
+        ntries=0
+        while len(line)==0 and ntries<10:
+            ntries+=1
+            time.sleep(1)
+            line=tn.read_very_eager().decode("utf-8")
+        print('TEST TELNET CONNECTION - line=\n',line)
+        if len(line)==0:
+            print('TEST TELNET CONNECTION - No response - giving up')
+            return False
+    except EOFError:
+            print("TEST TELNET CONNECTION - EOFerror: telnet connection is closed")
+            return False
+
+    return True
 
 # Function to read and process spots from the telnet connection
 def cluster_feed(self):
@@ -113,6 +139,7 @@ def cluster_feed(self):
                 print(e)
                 line = ''
                 self.nerrors+=1
+                self.last_error=str(e)
             if VERBOSITY>=2:
                 print('Line:',line)
         else:
@@ -140,7 +167,7 @@ def cluster_feed(self):
     if len(line)>5:
         if self.P.ECHO_ON or VERBOSITY>=1:
             #print('>>> Cluster Feed:',line.rstrip())
-            print(line.rstrip())
+            print('LINE=',line.rstrip())
         if not self.P.TEST_MODE and False:
             fp.write(line+'\n')
             fp.flush()
@@ -160,12 +187,16 @@ def cluster_feed(self):
         self.lb_update()
             
     obj = Spot(line)
-    if self.P.ECHO_ON:
+    if self.P.ECHO_ON and False:
         pprint(vars(obj))
     sys.stdout.flush()
 
     # Check if we got a new spot
-    if hasattr(obj, 'dx_call'):
+    if not hasattr(obj, 'dx_call'):
+
+        print('Not sure what to do with this: ',line.strip())
+
+    else:
 
         dx_call=getattr(obj, "dx_call")
 
@@ -185,12 +216,12 @@ def cluster_feed(self):
 
             # Filter out NCDXF beacons
             elif 'NCDXF' in line:
-                print('Ignoring BEACON:',line)
+                print('Ignoring BEACON:',line.strip())
                 keep=False        
         
         if keep:
-            if dx_call==self.P.MY_CALL or self.P.ECHO_ON:
-                print('Line=',line.strip())
+            if dx_call==self.P.MY_CALL or (self.P.ECHO_ON and False):
+                print('keep:',line.strip())
 
             # Highlighting in WSJT-X window
             if self.P.CLUSTER=='WSJT':

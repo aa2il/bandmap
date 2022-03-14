@@ -38,6 +38,7 @@ import json
 from tcp_client import *
 from settings import *
 from params import *
+from cluster_feed import test_telnet_connection
 
 #########################################################################################
 
@@ -93,7 +94,11 @@ if __name__ == "__main__":
         P.tn = connection(P.TEST_MODE,P.CLUSTER,P.MY_CALL,P.WSJT_FNAME, \
                              ip_addr=P.WSJT_IP_ADDRESS,port=P.WSJT_PORT)
 
-    if not P.tn:
+    if P.tn:
+        OK=test_telnet_connection(P.tn)
+        if not OK:
+            sys.exit(0)
+    else:
         print('Giving up')
         sys.exit(0)
     

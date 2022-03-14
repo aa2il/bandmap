@@ -33,7 +33,7 @@ from settings import *
 NODES=OrderedDict()
 #NODES['PY3NZ']  = 'dxc.baependi.com.br:8000'        # dxwatch.com - down?
 #NODES['NK7Z']   = 'nk7z-cluster.ddns.net:7373'      # Lots of spots! - down?
-NODES['NC7J']   = 'dxc.nc7j.com'                    # Lots of spots, no FT8
+NODES['NC7J']   = 'dxc.nc7j.com:7373'               # Lots of spots, no FT8
 NODES['W3LPL']  = 'w3lpl.net:7373'                  # Ok - lots of spots, no FT8 dxc.w3lpl.net
 
 #telnet telnet.reversebeacon.net 7000
