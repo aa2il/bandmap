@@ -28,6 +28,7 @@ from dx.spot_processing import Spot
 from pprint import pprint
 from fileio import parse_adif
 import logging               
+from pywsjtx.simple_server import SimpleServer 
 
 #########################################################################################
 
@@ -52,10 +53,13 @@ def cleanup(dxcc):
 
 # Function to test a telnet connection
 def test_telnet_connection(tn):
+    #print('tn=',tn,type(tn),isinstance(tn,SimpleServer))
     if not tn:
         print('File cluster_feed.py')
         print('TEST_TELNET_CONNECTION: *** ERROR *** Unexpected null connection')
         return False
+    elif isinstance(tn,SimpleServer):
+        return True    
     
     try:
         line=tn.read_very_eager().decode("utf-8")
@@ -69,8 +73,8 @@ def test_telnet_connection(tn):
             print('TEST TELNET CONNECTION - No response - giving up')
             return False
     except EOFError:
-            print("TEST TELNET CONNECTION - EOFerror: telnet connection is closed")
-            return False
+        print("TEST TELNET CONNECTION - EOFerror: telnet connection is closed")
+        return False
 
     return True
 
