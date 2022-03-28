@@ -80,6 +80,7 @@ class BandMapGUI:
         self.nerrors=0
         self.enable_scheduler=True
         self.last_error=''
+        self.rig_freq = self.sock.get_freq(VFO=self.VFO) / 1000.
 
         # Create the GUI - need to be able to distinguish between multiple copies of bandmap 
         self.root = Tk()

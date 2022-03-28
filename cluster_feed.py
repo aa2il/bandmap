@@ -264,7 +264,7 @@ def cluster_feed(self):
                 print('\nDXCC=NONE!!!!')
                 pprint(vars(obj.dx_station))
                 sys.exit(0)
-            year=2021
+            year=2022
             obj.needed = self.P.data.needed_challenge(dxcc,str(band)+'M',0)
             obj.need_this_year = self.P.data.needed_challenge(dxcc,year,0) and self.P.SHOW_NEED_YEAR
 
