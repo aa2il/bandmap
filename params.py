@@ -138,8 +138,6 @@ class PARAMS:
         self.SHOW_NEED_MODE = not args.no_mode
         self.SHOW_NEED_YEAR = not args.no_year
 
-        self.CHALLENGE_FNAME = os.path.expanduser('~/Python/data/states.xls')
-
         # See     http://www.ng3k.com/misc/cluster.html            for a list 
         self.SERVER=args.server.upper()
         self.WSJT_FNAME=None
@@ -212,4 +210,6 @@ class PARAMS:
         else:
             self.ALLOW_CHANGES=False
         
-        
+        # The spreadsheet with the DXCC already worked data
+        self.CHALLENGE_FNAME = os.path.expanduser('~/'+MY_CALL2+'/states.xls')
+
