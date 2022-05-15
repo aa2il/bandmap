@@ -180,15 +180,15 @@ class BandMapGUI:
         LBframe = Frame(self.root)
         LBframe.pack(side=LEFT,fill=BOTH,expand=1)
 
-        scrollbar = Scrollbar(LBframe, orient=VERTICAL)
+        self.scrollbar = Scrollbar(LBframe, orient=VERTICAL)
 
         if sys.version_info[0]==3:
             lb_font = tkinter.font.Font(family="monospace",size=10,weight="bold")
         else:
             lb_font = tkFont.Font(family="monospace",size=10,weight="bold")
-        self.lb   = Listbox(LBframe, yscrollcommand=scrollbar.set,font=lb_font)
-        scrollbar.config(command=self.lb.yview)
-        scrollbar.pack(side=RIGHT, fill=Y)
+        self.lb   = Listbox(LBframe, yscrollcommand=self.scrollbar.set,font=lb_font)
+        self.scrollbar.config(command=self.lb.yview)
+        self.scrollbar.pack(side=RIGHT, fill=Y)
         self.lb.pack(side=LEFT, fill=BOTH, expand=1)
         self.lb.bind('<<ListboxSelect>>', self.LBSelect)
 #        self.lb.bind('<2>' if aqua else '<3>', lambda e: context_menu(e, menu))
@@ -433,6 +433,8 @@ class BandMapGUI:
             c="violet"
         elif x.need_mode:
             c="pink"
+        elif call.upper()==self.P.MY_CALL:
+            c="orangered"
         else:
             age = (now - x.time).total_seconds()/60      # In minutes
             if age<2:
@@ -488,6 +490,8 @@ class BandMapGUI:
             c="violet"
         elif x.need_mode:
             c="pink"
+        elif x.dx_call.upper()==self.P.MY_CALL:
+            c="orangered"
         else:
             age = (now - x.time).total_seconds()/60      # In minutes
             if age<2:
@@ -511,13 +515,15 @@ class BandMapGUI:
         # Dont bother if using as WSJT companion
         #if not CONTEST_MODE or CLUSTER=='WSJT':
         if self.P.CLUSTER=='WSJT':
+            print('LBSANITY - WS server - nothing to do')
             return
 
-        # Dont bother if not on same band as the rig
+        # Don't bother if not on same band as the rig
         b1 = self.rig_band
         b2 = self.band.get()
         #print 'LBSANITY:',b1,b2
         if b1!=b2:
+            print('LBSANITY - Rig on different band - nothing to do')
             return
 
         # Get rig freq
@@ -537,8 +543,38 @@ class BandMapGUI:
 
         # Make sure its visible and highlight it
         if ibest>-1:
-#            print "closest=",ibest,self.current[ibest].frequency
-            self.lb.see(ibest)
+            sb=self.scrollbar.get()
+            sz=self.lb.size()
+            yview=self.lb.yview()
+            print("LBSANITY: Closest=",ibest,
+                  '\tf=',self.current[ibest].frequency,
+                  '\tsize=',sz,
+                  '\tsb=',sb,
+                  '\tyview',yview)
+
+            #print('hght:',self.lb['height'])
+
+            # Use to scrollbar to determine how many lines are visible
+            if False and (sb[0]>0 or sb[1]<1):
+                n2 = int( .5*( sb[1]-sb[0] )*sz ) -1
+                print('n2=',n2,'\t',ibest+n2)
+                self.lb.see(ibest-n2)
+                self.lb.see(ibest+n2)
+
+            if True:
+                #d2=0.5*(sb[1]-sb[0])
+                #first=max( .5-d2 , 0 )
+                #last=min( .5+d2 , 1 )
+                #print('first=',first,'\tlast=',last)
+                #self.scrollbar.set(first,last)
+
+                # This lloks good - get rid of other junk if this pans out
+                d = yview[1]-yview[0]             # Fraction of list in view
+                n = d*sz                          # No. line in view
+                y = max( ibest*d/n - d/2. , 0)    # Top coord so view will be centered around ibest
+                self.lb.yview_moveto(y)
+
+            #self.lb.index(ibest)
             self.lb.selection_clear(0,END)
             if False:
                 # This was problematic
@@ -549,6 +585,8 @@ class BandMapGUI:
     def Reset(self):
         print("--- Reset ---",self.P.CLUSTER)
         self.Clear_Spot_List()
+        if self.P.UDP_CLIENT:
+            self.P.udp_client.StartClient()
         if self.tn:
             self.tn.close()
             self.enable_scheduler=False
