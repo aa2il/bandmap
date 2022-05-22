@@ -337,7 +337,11 @@ def cluster_feed(self):
                 #                self.SpotList.sort(key=lambda x: x.frequency, reverse=False)
 
                 # Show only those spots on the list that are from the desired band
-                BAND = self.band.get()
+                try:
+                    BAND = self.band.get()
+                except:
+                    print('CLUSTERFEDD Error - band=',self.band)
+                    return
                 now = datetime.utcnow().replace(tzinfo=UTC)
                 if band==BAND:
                     dxcc = obj.dx_station.country

@@ -289,7 +289,12 @@ class BandMapGUI:
     def SelectBands(self,allow_change=False):
 
         print('SELECT BANDS:')
-        band  = self.band.get()
+        try:
+            band  = self.band.get()
+        except:
+            print('SELECT BANDS Error - band=',self.band)
+            return
+        
         if VERBOSITY>0:
             logging.info("Calling Get Band ...")
         band2 = self.sock.get_band(VFO=self.VFO)
@@ -434,7 +439,7 @@ class BandMapGUI:
         elif x.need_mode:
             c="pink"
         elif call.upper()==self.P.MY_CALL:
-            c="orangered"
+            c="deepskyblue"    # "orangered"
         else:
             age = (now - x.time).total_seconds()/60      # In minutes
             if age<2:
@@ -491,7 +496,7 @@ class BandMapGUI:
         elif x.need_mode:
             c="pink"
         elif x.dx_call.upper()==self.P.MY_CALL:
-            c="orangered"
+            c="deepskyblue"    # "orangered"
         else:
             age = (now - x.time).total_seconds()/60      # In minutes
             if age<2:
