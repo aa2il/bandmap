@@ -28,7 +28,6 @@ import json
 from datetime import datetime
 from dx.spot_processing import ChallengeData
 
-from pprint import pprint
 from dx.cluster_connections import *
 from fileio import parse_adif
 from collections import OrderedDict 
@@ -45,6 +44,7 @@ from rig_io.ft_tables import bands
 from cluster_feed import *
 from settings import *
 import logging               
+from tcp_client import *
 
 #########################################################################################
 
@@ -57,6 +57,27 @@ VERBOSITY=0
 logging.basicConfig(
     format="%(asctime)-15s [%(levelname)s] %(funcName)s:\t(message)s",
     level=logging.INFO)
+
+#########################################################################################
+
+# Function to open UDP client
+def open_udp_client(P,port):
+    
+    try:
+        print('Opening UDP client ...')
+        P.udp_client = TCP_Client(None,port)
+        worker = Thread(target=P.udp_client.Listener, args=(), name='UDP Client' )
+        worker.setDaemon(True)
+        worker.start()
+        P.THREADS.append(worker)
+        return True
+    except Exception as e: 
+        print(e)
+        print('--- Unable to connect to UDP socket ---')
+        P.udp_client = None
+        return False
+    
+#########################################################################################
 
 # The GUI
 class BandMapGUI:
@@ -438,6 +459,8 @@ class BandMapGUI:
             c="violet"
         elif x.need_mode:
             c="pink"
+        elif x.dx_call.upper() in self.friends:
+            c="lightskyblue" 
         elif call.upper()==self.P.MY_CALL:
             c="deepskyblue"    # "orangered"
         else:
@@ -495,6 +518,8 @@ class BandMapGUI:
             c="violet"
         elif x.need_mode:
             c="pink"
+        elif x.dx_call.upper() in self.friends:
+            c="lightskyblue" 
         elif x.dx_call.upper()==self.P.MY_CALL:
             c="deepskyblue"    # "orangered"
         else:
@@ -590,7 +615,7 @@ class BandMapGUI:
     def Reset(self):
         print("--- Reset ---",self.P.CLUSTER)
         self.Clear_Spot_List()
-        if self.P.UDP_CLIENT:
+        if self.P.UDP_CLIENT and self.P.udp_client:
             self.P.udp_client.StartClient()
         if self.tn:
             self.tn.close()
@@ -703,9 +728,17 @@ class BandMapGUI:
             
             print("LBSelect: Setting call ",b[1])
             self.sock.set_call(b[1])
+
             if self.P.UDP_CLIENT:
-                self.P.udp_client.Send('Call:'+b[1])
-                
+                if not self.P.udp_client:
+                    self.P.udp_ntries+=1
+                    if self.P.udp_ntries<=5:
+                        open_udp_client(self.P,7474)
+                    else:
+                        print('Unable to open UDP client - too many attempts',self.P.udp_ntries)
+
+                if self.P.udp_client:
+                    self.P.udp_client.Send('Call:'+b[1])
 
             
     def LBRightClick(self,event):

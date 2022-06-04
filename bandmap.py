@@ -33,12 +33,14 @@
 #########################################################################################
 
 from rig_io.socket_io import *
-from bm_gui import *
-import json
-from tcp_client import *
+from bm_gui import BandMapGUI,open_udp_client
 from settings import *
 from params import *
+from dx.cluster_connections import connection
 from cluster_feed import test_telnet_connection
+from dx.spot_processing import ChallengeData
+from pprint import pprint
+from fileio import read_text_file
 
 #########################################################################################
 
@@ -107,21 +109,17 @@ if __name__ == "__main__":
 
     # Open UDP client
     if P.UDP_CLIENT:
-        try:
-            P.udp_client = TCP_Client(None,7474)
-            worker = Thread(target=P.udp_client.Listener, args=(), name='UDP Server' )
-            worker.setDaemon(True)
-            worker.start()
-            P.THREADS.append(worker)
-        except Exception as e: 
-            print(e)
-            print('--- Unable to connect to UDP socket ---')
-            P.UDP_CLIENT = False
-            P.udp_client = None
-                
+        P.udp_ntries=0
+        open_udp_client(P,7474)
+
     # Create GUI 
     bm = BandMapGUI(P)
-
+    
+    # Read list of friends
+    bm.friends = read_text_file('Friends.txt',
+                                KEEP_BLANKS=False,UPPER=True)
+    print('FRIENDS=',bm.friends)
+    
     bm.root.mainloop()
 
 
