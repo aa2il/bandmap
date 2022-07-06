@@ -36,7 +36,7 @@ from rig_io.socket_io import *
 from bm_gui import BandMapGUI,open_udp_client
 from settings import *
 from params import *
-from dx.cluster_connections import connection
+from dx.cluster_connections import connection,get_logger
 from cluster_feed import test_telnet_connection
 from dx.spot_processing import ChallengeData
 from pprint import pprint
