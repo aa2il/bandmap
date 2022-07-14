@@ -213,3 +213,5 @@ class PARAMS:
         # The spreadsheet with the DXCC already worked data
         self.CHALLENGE_FNAME = os.path.expanduser('~/'+MY_CALL2+'/states.xls')
 
+        self.KEEP_FREQ_CENTERED=True
+        

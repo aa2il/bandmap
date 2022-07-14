@@ -585,26 +585,13 @@ class BandMapGUI:
             #print('hght:',self.lb['height'])
 
             # Use to scrollbar to determine how many lines are visible
-            if False and (sb[0]>0 or sb[1]<1):
-                n2 = int( .5*( sb[1]-sb[0] )*sz ) -1
-                print('n2=',n2,'\t',ibest+n2)
-                self.lb.see(ibest-n2)
-                self.lb.see(ibest+n2)
-
             if True:
-                #d2=0.5*(sb[1]-sb[0])
-                #first=max( .5-d2 , 0 )
-                #last=min( .5+d2 , 1 )
-                #print('first=',first,'\tlast=',last)
-                #self.scrollbar.set(first,last)
-
-                # This lloks good - get rid of other junk if this pans out
+                # This looks good - get rid of other junk if this pans out
                 d = yview[1]-yview[0]             # Fraction of list in view
                 n = d*sz                          # No. line in view
                 y = max( ibest*d/n - d/2. , 0)    # Top coord so view will be centered around ibest
                 self.lb.yview_moveto(y)
 
-            #self.lb.index(ibest)
             self.lb.selection_clear(0,END)
             if False:
                 # This was problematic
@@ -820,6 +807,11 @@ class BandMapGUI:
         print('TOGGLE BOGGLE',self.P.SHOW_NEED_MODE)
 
     # Toggle showing of needs for this year
+    def toggle_keep_centered(self):
+        self.P.KEEP_FREQ_CENTERED=self.center_freq.get()
+        print('TOGGLE BOGGLE',self.P.KEEP_FREQ_CENTERED)
+
+    # Toggle showing of needs for this year
     def toggle_need_year(self):
         self.P.SHOW_NEED_YEAR=self.show_need_year.get()
         print('TOGGLE BOGGLE',self.P.SHOW_NEED_YEAR)
@@ -886,6 +878,14 @@ class BandMapGUI:
             underline=0,
             variable=self.show_need_mode,
             command=self.toggle_need_mode
+        )
+        
+        self.center_freq = BooleanVar(value=self.P.KEEP_FREQ_CENTERED)
+        Menu1.add_checkbutton(
+            label="Keep Freq Centered",
+            underline=0,
+            variable=self.center_freq,
+            command=self.toggle_keep_centered
         )
         
         """

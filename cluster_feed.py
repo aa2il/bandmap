@@ -212,8 +212,10 @@ def cluster_feed(self):
                 keep=False
 
         # Reject calls that really aren't calls
+        b = str(self.band.get())+'m'
         if keep:
-            if not dx_call or len(dx_call)<=2 or not obj.dx_station:
+            bb=str(getattr(obj, "band"))+'m'
+            if not dx_call or len(dx_call)<=2 or not obj.dx_station or not b==bb:
                 keep=False
             elif not obj.dx_station.country and not obj.dx_station.call_suffix:
                 keep=False
@@ -229,7 +231,6 @@ def cluster_feed(self):
 
             # Highlighting in WSJT-X window
             if self.P.CLUSTER=='WSJT':
-                b = str(self.band.get())+'m'
                 for qso in self.qsos:
                     if self.P.CW_SS:
                         # Can only work each station once regardless of band in this contest
