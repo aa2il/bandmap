@@ -103,6 +103,12 @@ class BandMapGUI:
         self.last_error=''
         self.rig_freq = self.sock.get_freq(VFO=self.VFO) / 1000.
 
+        # Open a file to save all of the spots
+        if P.SAVE_SPOTS:
+            self.fp = open("all_spots.dat","w")
+        else:
+            self.fp=-1
+
         # Create the GUI - need to be able to distinguish between multiple copies of bandmap 
         self.root = Tk()
         if P.SERVER=="WSJT":
@@ -585,12 +591,10 @@ class BandMapGUI:
             #print('hght:',self.lb['height'])
 
             # Use to scrollbar to determine how many lines are visible
-            if True:
-                # This looks good - get rid of other junk if this pans out
-                d = yview[1]-yview[0]             # Fraction of list in view
-                n = d*sz                          # No. line in view
-                y = max( ibest*d/n - d/2. , 0)    # Top coord so view will be centered around ibest
-                self.lb.yview_moveto(y)
+            d = yview[1]-yview[0]             # Fraction of list in view
+            n = d*sz                          # No. line in view
+            y = max( ibest*d/n - d/2. , 0)    # Top coord so view will be centered around ibest
+            self.lb.yview_moveto(y)
 
             self.lb.selection_clear(0,END)
             if False:

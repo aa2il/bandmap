@@ -8,10 +8,10 @@ echo    bandmap.py
 echo.
 echo Compile with:
 echo.
-        pyinstaller --onefile bandmap.py
+echo    pyinstaller --onefile bandmap.py
 echo    dist\bandmap.exe 
 echo.
-echo     Run Inno Setup Compiler & follow the prompts to create an installer
-echo     This installer works on Windoz 10 & Bottles!
+echo "Run Inno Setup Compiler & follow the prompts to create an installer"
+echo "This installer works on Windoz 10 & Bottles!"
 echo.
    

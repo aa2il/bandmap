@@ -42,6 +42,8 @@ from dx.spot_processing import ChallengeData
 from pprint import pprint
 from fileio import read_text_file
 
+from get_node_list import *
+
 #########################################################################################
 
 # Begin executable
@@ -49,6 +51,7 @@ if __name__ == "__main__":
 
     print("\n\n***********************************************************************************")
     print("\nStarting Bandmap  ...")
+    print('\nUse -echo flag to echo lines from zerver')
 
     # Process command line params
     P=PARAMS()
@@ -57,13 +60,12 @@ if __name__ == "__main__":
         pprint(vars(P))
         print(' ')
 
-    # Open a file to save all of the spots
-    if not P.TEST_MODE and False:
-        fp = open("/tmp/all_spots.dat","w")
-    else:
-        fp=-1
+    # Read list of nodes - work in progress
+    if False:
+        get_node_list(P)
+        sys.exit(0)
 
-    # Open xlmrpc connection to fldigi
+    # Open xlmrpc connection to rig
     P.sock = open_rig_connection(P.CONNECTION,0,P.PORT,0,'BANDMAP',rig=P.RIG)
     if not P.sock.active:
         print('*** No connection to rig ***')
@@ -96,13 +98,14 @@ if __name__ == "__main__":
         P.tn = connection(P.TEST_MODE,P.CLUSTER,P.MY_CALL,P.WSJT_FNAME, \
                              ip_addr=P.WSJT_IP_ADDRESS,port=P.WSJT_PORT)
 
-    if P.tn:
-        OK=test_telnet_connection(P.tn)
-        if not OK:
+    if not P.TEST_MODE:
+        if P.tn:
+            OK=test_telnet_connection(P.tn)
+            if not OK:
+                sys.exit(0)
+        else:
+            print('Giving up')
             sys.exit(0)
-    else:
-        print('Giving up')
-        sys.exit(0)
     
     # Read challenge data
     P.data = ChallengeData(P.CHALLENGE_FNAME)

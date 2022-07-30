@@ -39,8 +39,8 @@ foreach i (*.py DIFF *.bat)
         diff -w $old/$i $i >> DIFFS
         echo " " >> DIFFS
         
-        kompare $old/$i $i
-        #kompare $i $old/$i
+        #kompare $old/$i $i
+        kompare $i $old/$i
     endif
 end
 

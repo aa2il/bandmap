@@ -33,8 +33,9 @@ from settings import *
 NODES=OrderedDict()
 #NODES['PY3NZ']  = 'dxc.baependi.com.br:8000'        # dxwatch.com - down?
 #NODES['NK7Z']   = 'nk7z-cluster.ddns.net:7373'      # Lots of spots! - down?
-NODES['NC7J']   = 'dxc.nc7j.com:7373'               # Lots of spots, no FT8
+NODES['NC7J']   = 'dxc.nc7j.com:7373'               # OK - AR cluster
 NODES['W3LPL']  = 'w3lpl.net:7373'                  # Ok - lots of spots, no FT8 dxc.w3lpl.net
+NODES['WS7I']  = 'ws7i.ewarg.org:7300'               # OK - need to work on filtering - uses "non AR" cluster, can show FT8
 
 #telnet telnet.reversebeacon.net 7000
 #telnet telnet.reversebeacon.net 7001
@@ -94,6 +95,8 @@ class PARAMS:
                               help='Enable band buttons')
         arg_proc.add_argument('-udp', action='store_true',
                               help='Start UDP client')
+        arg_proc.add_argument('-save', action='store_true',
+                              help='Save All Spots')
         arg_proc.add_argument('-no_mode', action='store_true',
                               help='Dont indicate mode needs')
         arg_proc.add_argument('-no_year', action='store_true',
@@ -132,6 +135,7 @@ class PARAMS:
         self.CW_SS        = args.ss
         self.DX_ONLY      = args.dx
         self.UDP_CLIENT   = args.udp
+        self.SAVE_SPOTS   = args.save
         self.RIG_VFO      = args.vfo
         self.FT4          = args.ft4
         self.DEBUG        = args.debug
@@ -210,8 +214,10 @@ class PARAMS:
         else:
             self.ALLOW_CHANGES=False
         
-        # The spreadsheet with the DXCC already worked data
-        self.CHALLENGE_FNAME = os.path.expanduser('~/'+MY_CALL2+'/states.xls')
+        # The spreadsheets with the DXCC already worked data & node info
+        self.DATA_DIR        = os.path.expanduser('~/'+self.MY_CALL+'/')
+        self.CHALLENGE_FNAME = self.DATA_DIR+'/states.xls'
+        self.NODES_FNAME     = self.DATA_DIR+'/states.xls'
 
         self.KEEP_FREQ_CENTERED=True
         

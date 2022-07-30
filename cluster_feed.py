@@ -83,6 +83,7 @@ def cluster_feed(self):
     #    print 'Cluster Feed ....'
     tn=self.tn
     lb=self.lb
+    fp=self.fp
     VERBOSITY = self.P.DEBUG
 
     if self.nerrors>10:
@@ -172,8 +173,8 @@ def cluster_feed(self):
         if self.P.ECHO_ON or VERBOSITY>=1:
             #print('>>> Cluster Feed:',line.rstrip())
             print('LINE=',line.rstrip())
-        if not self.P.TEST_MODE and False:
-            fp.write(line+'\n')
+        if self.P.SAVE_SPOTS:
+            fp.write(line.rstrip()+'\n')
             fp.flush()
 
         # Some clusters ask additional questions
