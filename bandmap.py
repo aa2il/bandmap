@@ -118,10 +118,13 @@ if __name__ == "__main__":
     # Create GUI 
     bm = BandMapGUI(P)
     
-    # Read list of friends
+    # Read list of friends & wanted
     bm.friends = read_text_file('Friends.txt',
                                 KEEP_BLANKS=False,UPPER=True)
     print('FRIENDS=',bm.friends)
+    bm.most_wanted = read_text_file('Most_Wanted.txt',
+                                    KEEP_BLANKS=False,UPPER=True)
+    print('Most Wanted=',bm.most_wanted)
     
     bm.root.mainloop()
 

@@ -147,6 +147,8 @@ def cluster_feed(self):
                 self.last_error=str(e)
             if VERBOSITY>=2:
                 print('Line:',line)
+            elif len(line)>0 and False:
+                print('===> '+line.strip())
         else:
             return True
         
@@ -172,7 +174,7 @@ def cluster_feed(self):
     if len(line)>5:
         if self.P.ECHO_ON or VERBOSITY>=1:
             #print('>>> Cluster Feed:',line.rstrip())
-            print('LINE=',line.rstrip())
+            print('==> ',line.rstrip())
         if self.P.SAVE_SPOTS:
             fp.write(line.rstrip()+'\n')
             fp.flush()
@@ -192,7 +194,8 @@ def cluster_feed(self):
         self.lb_update()
             
     obj = Spot(line)
-    if self.P.ECHO_ON and False:
+    if self.P.ECHO_ON and True:
+        #print('OBJ:')
         pprint(vars(obj))
     sys.stdout.flush()
 

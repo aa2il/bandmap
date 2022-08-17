@@ -102,6 +102,8 @@ class BandMapGUI:
         self.enable_scheduler=True
         self.last_error=''
         self.rig_freq = self.sock.get_freq(VFO=self.VFO) / 1000.
+        self.friends=[]
+        self.most_wanteds=[]
 
         # Open a file to save all of the spots
         if P.SAVE_SPOTS:
@@ -408,8 +410,13 @@ class BandMapGUI:
                                (int(x.df),x.dx_call,x.mode,cleanup(dxcc),x.snr))
             else:
                 #print('Insert2')
+                if x.mode=='CW':
+                    val=x.wpm
+                else:
+                    #val=x.snr
+                    val=''
                 self.lb.insert(END, "%-6.1f  %-10.19s  %+6.6s %-15.15s %+4.4s" % \
-                               (x.frequency,x.dx_call,x.mode,cleanup(dxcc),x.snr))
+                               (x.frequency,x.dx_call,x.mode,cleanup(dxcc),val))
 
             # Change background colors on each list entry
             self.lb_colors('A',END,now,band,x)
@@ -467,6 +474,8 @@ class BandMapGUI:
             c="pink"
         elif x.dx_call.upper() in self.friends:
             c="lightskyblue" 
+        elif x.dx_call.upper() in self.most_wanted:
+            c="turquoise" 
         elif call.upper()==self.P.MY_CALL:
             c="deepskyblue"    # "orangered"
         else:
@@ -526,6 +535,8 @@ class BandMapGUI:
             c="pink"
         elif x.dx_call.upper() in self.friends:
             c="lightskyblue" 
+        elif x.dx_call.upper() in self.most_wanted:
+            c="turquoise" 
         elif x.dx_call.upper()==self.P.MY_CALL:
             c="deepskyblue"    # "orangered"
         else:
