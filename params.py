@@ -97,6 +97,8 @@ class PARAMS:
                               help='Start UDP client')
         arg_proc.add_argument('-save', action='store_true',
                               help='Save All Spots')
+        arg_proc.add_argument('-cwops', action='store_true',
+                              help='Highlight CWops Members')
         arg_proc.add_argument('-no_mode', action='store_true',
                               help='Dont indicate mode needs')
         arg_proc.add_argument('-no_year', action='store_true',
@@ -133,6 +135,7 @@ class PARAMS:
         
         self.TEST_MODE    = args.test
         self.CW_SS        = args.ss
+        self.CWOPS        = args.cwops
         self.DX_ONLY      = args.dx
         self.UDP_CLIENT   = args.udp
         self.SAVE_SPOTS   = args.save

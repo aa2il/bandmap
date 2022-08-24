@@ -45,6 +45,7 @@ from cluster_feed import *
 from settings import *
 import logging               
 from tcp_client import *
+from load_history import load_history
 
 #########################################################################################
 
@@ -394,8 +395,20 @@ class BandMapGUI:
             #print('qsos=',self.qsos)
             #print('qsos[0]=',self.qsos[0])
             #sys.exit(0)
-        #else:
-        #    self.qsos = {}
+
+        # Load data for highlighting CW ops members
+        if self.P.CWOPS:
+            self.calls = [ qso['call'] for qso in self.qsos ]
+            self.calls=list( set( self.calls) )
+            print('No. unique calls works:',len(self.calls))
+            #print(self.calls)
+
+            fname='~/Python/history/data/Shareable CWops data.xlsx'
+            HIST = load_history(fname)
+            self.members=list( set( HIST.keys() ) )
+            print('No. CW Ops Members:',len(self.members))
+            #print(self.members)
+            #sys.exit(0)
 
         # Re-populate list box with spots from this band
         # This seems to be the slow part
@@ -418,7 +431,7 @@ class BandMapGUI:
                 self.lb.insert(END, "%-6.1f  %-10.19s  %+6.6s %-15.15s %+4.4s" % \
                                (x.frequency,x.dx_call,x.mode,cleanup(dxcc),val))
 
-            # Change background colors on each list entry
+            # JBA - Change background colors on each list entry
             self.lb_colors('A',END,now,band,x)
 
 
@@ -461,6 +474,7 @@ class BandMapGUI:
                 if match:
                     break
 
+        dx_call=x.dx_call.upper()                 
         if idx<0:
             return
         elif match:
@@ -472,12 +486,17 @@ class BandMapGUI:
             c="violet"
         elif x.need_mode:
             c="pink"
-        elif x.dx_call.upper() in self.friends:
+        elif dx_call in self.friends:
             c="lightskyblue" 
-        elif x.dx_call.upper() in self.most_wanted:
+        elif dx_call in self.most_wanted:
             c="turquoise" 
         elif call.upper()==self.P.MY_CALL:
-            c="deepskyblue"    # "orangered"
+            c="deepskyblue"
+        elif self.P.CWOPS and dx_call in self.members:
+            if dx_call in self.calls:
+                c="gold"
+            else:
+                c='orange'
         else:
             age = (now - x.time).total_seconds()/60      # In minutes
             if age<2:
@@ -490,6 +509,7 @@ class BandMapGUI:
 
     # Change background colors on each list entry
     def lb_colors(self,tag,idx,now,band,x):
+        #print('LB_COLORS ...')
             
         match=False
         #if self.P.PARSE_LOG:
@@ -524,6 +544,7 @@ class BandMapGUI:
                         break
 
         age=None
+        dx_call=x.dx_call.upper()                 
         if match:
             print('*** Dupe ***',qso['call'],qso['band'])
             c="red"
@@ -533,12 +554,17 @@ class BandMapGUI:
             c="violet"
         elif x.need_mode:
             c="pink"
-        elif x.dx_call.upper() in self.friends:
+        elif dx_call in self.friends:
             c="lightskyblue" 
-        elif x.dx_call.upper() in self.most_wanted:
-            c="turquoise" 
-        elif x.dx_call.upper()==self.P.MY_CALL:
-            c="deepskyblue"    # "orangered"
+        elif dx_call in self.most_wanted:
+            c="turquoise"
+        elif dx_call==self.P.MY_CALL:
+            c="deepskyblue" 
+        elif self.P.CWOPS and dx_call in self.members:
+            if dx_call in self.calls:
+                c="gold"
+            else:
+                c='orange'
         else:
             age = (now - x.time).total_seconds()/60      # In minutes
             if age<2:
@@ -558,6 +584,7 @@ class BandMapGUI:
             
     # Make sure the entry closest to the rig freq is visible
     def LBsanity(self):
+        #print('LBSANITY ...')
 
         # Dont bother if using as WSJT companion
         #if not CONTEST_MODE or CLUSTER=='WSJT':

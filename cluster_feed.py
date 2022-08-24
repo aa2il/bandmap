@@ -219,15 +219,19 @@ def cluster_feed(self):
         b = str(self.band.get())+'m'
         if keep:
             bb=str(getattr(obj, "band"))+'m'
-            if not dx_call or len(dx_call)<=2 or not obj.dx_station or not b==bb:
+            if not dx_call or len(dx_call)<=2 or not obj.dx_station:   #  or not b==bb:
                 keep=False
             elif not obj.dx_station.country and not obj.dx_station.call_suffix:
                 keep=False
 
             # Filter out NCDXF beacons
-            elif 'NCDXF' in line:
+            elif 'NCDXF' in line or '/B' in dx_call:
                 print('Ignoring BEACON:',line.strip())
-                keep=False        
+                keep=False
+
+        if False:
+            print(line.strip())
+            print('keep=',keep,'\tb=',b,'\tbb=',bb)
         
         if keep:
             if dx_call==self.P.MY_CALL or (self.P.ECHO_ON and False):
