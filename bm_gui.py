@@ -104,7 +104,7 @@ class BandMapGUI:
         self.last_error=''
         self.rig_freq = self.sock.get_freq(VFO=self.VFO) / 1000.
         self.friends=[]
-        self.most_wanteds=[]
+        self.most_wanted=[]
 
         # Open a file to save all of the spots
         if P.SAVE_SPOTS:
