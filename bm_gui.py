@@ -46,10 +46,11 @@ from settings import *
 import logging               
 from tcp_client import *
 from load_history import load_history
+from utilities import freq2band
 
 #########################################################################################
 
-DEFAULT_BAND = 20
+DEFAULT_BAND = '20m'
 VERBOSITY=0
 
 #########################################################################################
@@ -125,7 +126,7 @@ class BandMapGUI:
         self.create_menu_bar()
 
         # Set band according to rig freq
-        self.band   = IntVar(self.root)
+        self.band   = StringVar(self.root)
         self.ant    = IntVar(self.root)
         self.ant.set(-1)
         self.mode   = StringVar(self.root)
@@ -133,9 +134,12 @@ class BandMapGUI:
         if self.sock.active:
             if VERBOSITY>0:
                 logging.info("Calling Get band ...")
-            b = self.sock.get_band(VFO=self.VFO)     # Query rig at startup
+            f = 1e-6*self.sock.get_freq(VFO=self.VFO)     # Query rig at startup
+            b = freq2band(f)
         else:
+            f = 0
             b = DEFAULT_BAND              # No conenction so just default
+        print('BM_GUI: band=',b,'\tf=',f)
         self.band.set(b)
         self.rig_band=b
         print("Initial band=",b)
@@ -155,7 +159,7 @@ class BandMapGUI:
                             indicatoron = 0,
                             variable=self.band, 
                             command=lambda: self.SelectBands(self.P.ALLOW_CHANGES),
-                            value=b)
+                            value=bb)
             self.Band_Buttons.append( but )
                 
             if not P.CONTEST_MODE or bands[bb]["CONTEST"]:
@@ -242,7 +246,7 @@ class BandMapGUI:
     # Set rig freq to lo or hi end of mode subband
     def SetSubBand(self,iopt):
 
-        b = str( self.band.get() )+'m'
+        b = self.band.get()
         if VERBOSITY>0:
             logging.info("Calling Get Mode ...")
         m = self.sock.get_mode(VFO=self.VFO)
@@ -327,19 +331,22 @@ class BandMapGUI:
         
         if VERBOSITY>0:
             logging.info("Calling Get Band ...")
-        band2 = self.sock.get_band(VFO=self.VFO)
+        frq2 = 1e-6*self.sock.get_freq(VFO=self.VFO)
+        band2 = freq2band(frq2)
         
-        print("You've selected ",band,'m - Current rig band=',band2,"m",\
+        print("You've selected ",band,' - Current rig band=',band2,\
               ' - allow_change=',allow_change,' - mode=',self.FT_MODE, \
               flush=True)
 
         # Check for band change
         if allow_change:
-            b=str(band)+'m'
+            b=band
             if self.P.CLUSTER=='WSJT':
+                print('BM_GUI - Config WSJT ...',b,self.FT_MODE)
                 self.P.tn.configure_wsjt(NewMode=self.FT_MODE)
                 time.sleep(.1)
                 new_frq = bands[b][self.FT_MODE] + 1
+                print('BM_GUI - Config WSJT ...',b,self.FT_MODE,new_frq)
                 if VERBOSITY>0:
                     logging.info("Calling Set Freq and Mode ...")
                 self.sock.set_freq(new_frq,VFO=self.VFO)
@@ -363,23 +370,23 @@ class BandMapGUI:
                 self.P.sock.set_ant(ant,VFO=self.VFO)
 
         # Extract a list of spots that are in the desired band
+        iband=int( band.replace('m','') )
         if self.P.CONTEST_MODE:
             #for x in self.SpotList:
             #    print '-',x.mode,'-',x.mode!='FT8'
             if self.P.DX_ONLY:
-                idx = [i for i,x in enumerate(self.SpotList) if x.band == band and \
+                idx = [i for i,x in enumerate(self.SpotList) if x.band == iband and \
                        x.dx_station.country!='United States' and x.mode not in ['FT8','FT4'] ] 
             else:
-                idx = [i for i,x in enumerate(self.SpotList) if x.band == band and x.mode not in ['FT8','FT4'] ] 
+                idx = [i for i,x in enumerate(self.SpotList) if x.band == iband and x.mode not in ['FT8','FT4'] ] 
         else:
             if self.P.DX_ONLY:
                 # Retain only stations outside US or SESs
-                idx = [i for i,x in enumerate(self.SpotList) if x and \
-                       x.band == band and \
+                idx = [i for i,x in enumerate(self.SpotList) if x and x.band == iband and \
                        (x.dx_station.country!='United States' or len(x.dx_call)==3 or \
                         x.dx_call=='WM3PEN')] 
             else:
-                idx = [i for i,x in enumerate(self.SpotList) if x and x.band == band]
+                idx = [i for i,x in enumerate(self.SpotList) if x and x.band == iband]
             
         self.current = [self.SpotList[i] for i in idx]
         self.current.sort(key=lambda x: x.frequency, reverse=False)
@@ -461,7 +468,8 @@ class BandMapGUI:
     
 
     def lb_update(self):
-        b = str(self.band.get())+'m'
+        b = self.band.get()
+        #print('LB_UPDATE: b=',b)
         now = datetime.utcnow().replace(tzinfo=UTC)
         idx=-1
         for x in self.current:
@@ -514,7 +522,7 @@ class BandMapGUI:
         match=False
         #if self.P.PARSE_LOG:
         if len(self.qsos)>0:
-            b=str(band)+'m'
+            b=band
             for qso in self.qsos:
                 #print('QSO=',qso)
                 if self.P.CW_SS:
@@ -595,7 +603,7 @@ class BandMapGUI:
         # Don't bother if not on same band as the rig
         b1 = self.rig_band
         b2 = self.band.get()
-        #print 'LBSANITY:',b1,b2
+        #print('LBSANITY: rig band=',b1,'\tband=',b2)
         if b1!=b2:
             print('LBSANITY - Rig on different band - nothing to do')
             return
@@ -707,8 +715,8 @@ class BandMapGUI:
                 self.FT_MODE  = tmp[2]
             
         else:
-            self.rig_band = self.sock.get_band(VFO=self.VFO)
-            self.rig_freq = self.sock.get_freq(VFO=self.VFO) / 1000.
+            self.rig_freq = 1e-3*self.sock.get_freq(VFO=self.VFO)
+            self.rig_band = freq2band(1e-3*self.rig_freq)
 
         self.SelectAnt(-1)
         self.SelectMode('')
@@ -797,15 +805,18 @@ class BandMapGUI:
         del self.current[index]
         self.lb.delete(index)
 
+        #print('\nCENTER CLICK B4:',len(self.SpotList),self.SpotList)
         idx=[]
         i=0
-        for x in self.SpotList:
-            if hasattr(x, 'dx_call'):
-                dx_call=getattr(x, "dx_call")
-                if dx_call==call:
-                    self.SpotList[i]=None
-                else:
-                    i+=1
+        for i in range(len(self.SpotList)):
+            x=self.SpotList[i]
+            if hasattr(x, 'dx_call') and x.dx_call==call:
+                idx.append(i)
+        idx.reverse()
+        #print('idx=',idx)
+        for i in idx:
+            x=self.SpotList.pop(i)
+        #print('\nCENTER CLICK AFTER:',len(self.SpotList),self.SpotList)
             
     #########################################################################################
 

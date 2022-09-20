@@ -29,6 +29,7 @@ from pprint import pprint
 from fileio import parse_adif
 import logging               
 from pywsjtx.simple_server import SimpleServer 
+from utilities import freq2band
 
 #########################################################################################
 
@@ -116,12 +117,14 @@ def cluster_feed(self):
         if tn.nsleep>=1 and True:
             band  = self.band.get()
             #logging.info("Calling Get band ...")
-            band2 = self.sock.get_band(VFO=self.VFO)
+            frq2 = 1e-6*self.sock.get_freq(VFO=self.VFO)
+            band2 = freq2band(frq2)
             #print('CLUSTER_FEED: band/band2=',band,band2)
             if band2==0 or not band2:
                 print('CLUSTER_FEED: Current band=',band,'\t-\tRig band=',band2)
                 tmp   = tn.last_band()
-                band2 = int( tmp[0:-1] )
+                #band2 = int( tmp[0:-1] )
+                band2=tmp
             if band!=band2:
                 print('CLUSTER_FEED: band2=',band2)
                 self.band.set(band2)
@@ -194,7 +197,7 @@ def cluster_feed(self):
         self.lb_update()
             
     obj = Spot(line)
-    if self.P.ECHO_ON and True:
+    if self.P.ECHO_ON and False:
         #print('OBJ:')
         pprint(vars(obj))
     sys.stdout.flush()
@@ -206,32 +209,31 @@ def cluster_feed(self):
 
     else:
 
-        dx_call=getattr(obj, "dx_call")
+        dx_call=obj.dx_call
 
         # Reject FT8/4 spots if we're in a contest
         keep=True
         if self.P.CONTEST_MODE:
-            mode = getattr(obj, "mode")
-            if mode=='FT4' or mode=='FT8':
+            if obj.mode in ['FT4','FT8']:
                 keep=False
 
         # Reject calls that really aren't calls
-        b = str(self.band.get())+'m'
+        b = self.band.get()
         if keep:
-            bb=str(getattr(obj, "band"))+'m'
-            if not dx_call or len(dx_call)<=2 or not obj.dx_station:   #  or not b==bb:
+            if not dx_call or len(dx_call)<=2 or not obj.dx_station: 
                 keep=False
             elif not obj.dx_station.country and not obj.dx_station.call_suffix:
                 keep=False
 
             # Filter out NCDXF beacons
             elif 'NCDXF' in line or '/B' in dx_call:
-                print('Ignoring BEACON:',line.strip())
+                if VERBOSITY>=1:
+                    print('Ignoring BEACON:',line.strip())
                 keep=False
 
         if False:
-            print(line.strip())
-            print('keep=',keep,'\tb=',b,'\tbb=',bb)
+            print('CLUSTER FEED:',line.strip())
+            print('keep=',keep,'\tb=',b)
         
         if keep:
             if dx_call==self.P.MY_CALL or (self.P.ECHO_ON and False):
@@ -263,9 +265,10 @@ def cluster_feed(self):
                     tn.highlight_spot(dx_call,fg,bg)
                     #print('CLUSTER FEED: call=',obj.dx_call,'\tsnr=',obj.snr,'\tfg/bg=',fg,bg,'\t',obj.snr.isnumeric(),int(obj.snr),len(obj.snr))
 
-            freq=float( getattr(obj, "frequency") )
-            mode=getattr(obj, "mode")
-            band=getattr(obj, "band")
+            # Pull out info from the spot
+            freq=float( obj.frequency )
+            mode=obj.mode
+            band=obj.band
             self.nspots+=1
 
             dxcc=obj.dx_station.country
@@ -273,7 +276,8 @@ def cluster_feed(self):
                 print('\nDXCC=NONE!!!!')
                 pprint(vars(obj.dx_station))
                 sys.exit(0)
-            year=2022
+            now = datetime.utcnow().replace(tzinfo=UTC)
+            year=now.year
             obj.needed = self.P.data.needed_challenge(dxcc,str(band)+'M',0)
             obj.need_this_year = self.P.data.needed_challenge(dxcc,year,0) and self.P.SHOW_NEED_YEAR
 
@@ -289,17 +293,12 @@ def cluster_feed(self):
             obj.need_mode = self.P.data.needed_challenge(dxcc,mode2,0) and self.P.SHOW_NEED_MODE
                 
             # Check if this call is already there
-            #print [x for x in SpotList if x.dx_call == dx_call]               # list of all matches
-            #print any(x.dx_call == dx_call for x in SpotList)                 # if there is any matches
-
-            ### JBA
-            ###idx1 = [i for i,x in enumerate(self.SpotList) if x.dx_call == dx_call]  # indices of all matches
+            # Need some error trapping here bx we seem to get confused sometimes
             try:
                 b = self.band.get()
             except:
-                b = 0
+                b = ''
 
-            
             try:
                 idx1 = [i for i,x in enumerate(self.SpotList)
                         if x.dx_call==dx_call and x.band==band]  # indices of all matches
@@ -324,7 +323,7 @@ def cluster_feed(self):
                     #print lb.get(idx2[0])
                     lb.delete(idx2[0])
                     if self.P.CLUSTER=='WSJT':
-                        df = getattr(obj, "df")
+                        df = obj.df
                         try:
                             df=int(df)
                             #print('Insert3')
@@ -347,7 +346,7 @@ def cluster_feed(self):
 
                 # Show only those spots on the list that are from the desired band
                 try:
-                    BAND = self.band.get()
+                    BAND = int( self.band.get().replace('m','') )
                 except:
                     print('CLUSTERFEDD Error - band=',self.band)
                     return
@@ -374,12 +373,10 @@ def cluster_feed(self):
                     self.current.insert(idx2[0], obj )
 
                     if self.P.CLUSTER=='WSJT':
-                        df = int( getattr(obj, "df") )
-                        #print('Insert5')
+                        df = int( obj.df )
                         lb.insert(idx2[0], "%4d  %-10.10s  %+6.6s %-17.17s %+4.4s" % \
                                   (df,dx_call,mode,cleanup(dxcc),obj.snr))
                     else:
-                        #print('Insert6')
                         lb.insert(idx2[0], "%-6.1f  %-10.10s  %+6.6s %-15.15s %+4.4s" % \
                                   (freq,dx_call,mode,cleanup(dxcc),obj.snr))
 
@@ -405,7 +402,7 @@ def cull_old_spots(self):
 
     now = datetime.utcnow().replace(tzinfo=UTC)
     NewList=[];
-    BAND = self.band.get()
+    BAND = int( self.band.get().replace('m','') )
     for x in self.SpotList:
         try:
             age = (now - x.time).total_seconds()/60      # In minutes
