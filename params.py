@@ -218,7 +218,8 @@ class PARAMS:
             self.ALLOW_CHANGES=False
         
         # The spreadsheets with the DXCC already worked data & node info
-        self.DATA_DIR        = os.path.expanduser('~/'+self.MY_CALL+'/')
+        MY_CALL2 = self.MY_CALL.split('/')[0]
+        self.DATA_DIR        = os.path.expanduser('~/'+MY_CALL2+'/')
         self.CHALLENGE_FNAME = self.DATA_DIR+'/states.xls'
         self.NODES_FNAME     = self.DATA_DIR+'/states.xls'
 

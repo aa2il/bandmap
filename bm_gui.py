@@ -411,7 +411,7 @@ class BandMapGUI:
             #print(self.calls)
 
             fname='~/Python/history/data/Shareable CWops data.xlsx'
-            HIST = load_history(fname)
+            HIST,fname2 = load_history(fname)
             self.members=list( set( HIST.keys() ) )
             print('No. CW Ops Members:',len(self.members))
             #print(self.members)
