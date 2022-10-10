@@ -628,12 +628,13 @@ class BandMapGUI:
             sb=self.scrollbar.get()
             sz=self.lb.size()
             yview=self.lb.yview()
+            """
             print("LBSANITY: Closest=",ibest,
                   '\tf=',self.current[ibest].frequency,
                   '\tsize=',sz,
                   '\tsb=',sb,
                   '\tyview',yview)
-
+            """
             #print('hght:',self.lb['height'])
 
             # Use to scrollbar to determine how many lines are visible
