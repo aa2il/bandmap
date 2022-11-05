@@ -126,7 +126,7 @@ def cluster_feed(self):
                 #band2 = int( tmp[0:-1] )
                 band2=tmp
             if band!=band2:
-                print('CLUSTER_FEED: band2=',band2)
+                print('CLUSTER_FEED: BAND.SET band2=',band2)
                 self.band.set(band2)
                 self.SelectBands()
 
@@ -197,7 +197,7 @@ def cluster_feed(self):
         self.lb_update()
             
     obj = Spot(line)
-    if self.P.ECHO_ON and False:
+    if self.P.ECHO_ON and True:
         #print('OBJ:')
         pprint(vars(obj))
     sys.stdout.flush()
@@ -315,7 +315,6 @@ def cluster_feed(self):
                     self.SpotList[i].time=obj.time
 
                 # Update list box entry - In progress
-                #b = self.band.get()
                 idx2 = [i for i,x in enumerate(self.current) if x.dx_call == dx_call and x.band==b]
                 if len(idx2)>0 and True:
                     bgc = self.lb.itemcget(idx2[0], 'background')
@@ -381,7 +380,9 @@ def cluster_feed(self):
                                   (freq,dx_call,mode,cleanup(dxcc),obj.snr))
 
                     # Change background colors on each list entry
-                    self.lb_colors('B',idx2[0],now,band,obj)
+                    if VERBOSITY>=1:
+                        print('CLUSTER_FEED: Calling LB_COLORS ... band=',band)
+                    self.lb_colors('B',idx2[0],now,str(band)+'m',obj)
 
     # Check if we need to cull old spots
     dt = (datetime.now() - self.last_check).total_seconds()/60      # In minutes

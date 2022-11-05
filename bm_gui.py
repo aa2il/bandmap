@@ -139,7 +139,7 @@ class BandMapGUI:
         else:
             f = 0
             b = DEFAULT_BAND              # No conenction so just default
-        print('BM_GUI: band=',b,'\tf=',f)
+        print('BM_GUI: BAND.SET band=',b,'\tf=',f)
         self.band.set(b)
         self.rig_band=b
         print("Initial band=",b)
@@ -439,6 +439,8 @@ class BandMapGUI:
                                (x.frequency,x.dx_call,x.mode,cleanup(dxcc),val))
 
             # JBA - Change background colors on each list entry
+            if VERBOSITY>0:
+                print('SELECT BANDS: Calling LB_COLORS ... band=',band)
             self.lb_colors('A',END,now,band,x)
 
 
@@ -469,7 +471,7 @@ class BandMapGUI:
 
     def lb_update(self):
         b = self.band.get()
-        #print('LB_UPDATE: b=',b)
+        print('LB_UPDATE: b=',b)
         now = datetime.utcnow().replace(tzinfo=UTC)
         idx=-1
         for x in self.current:
@@ -512,39 +514,46 @@ class BandMapGUI:
             else:
                 c="lightgreen"
         self.lb.itemconfigure(idx, background=c)
+        print('LB_UPDATE:',dx_call,c)
                 
                 
 
     # Change background colors on each list entry
     def lb_colors(self,tag,idx,now,band,x):
-        #print('LB_COLORS ...')
-            
+        dx_call=x.dx_call.upper()
+        if isinstance(band,int):
+            print('LB_COLORS: ******** Missing m ********',band)
+            band = str(band)+'m'
+        b=band
+        nqsos=len(self.qsos)
+        if VERBOSITY>0:
+            print('LB_COLORS: ... call=',dx_call,'\tband=',b,'nqsos=',nqsos)
+        
         match=False
         #if self.P.PARSE_LOG:
-        if len(self.qsos)>0:
-            b=band
+        if nqsos>0:
             for qso in self.qsos:
                 #print('QSO=',qso)
                 if self.P.CW_SS:
                     # Can only work each station once regardless of band in this contest
-                    match = x.dx_call==qso['call']
+                    match = dx_call==qso['call']
                 else:
                     try:
-                        match = (x.dx_call==qso['call']) and (b==qso['band'])
+                        match = (dx_call==qso['call']) and (b==qso['band'])
                     except Exception as e: 
                         print(e)
                         match=False
-                        print('\n!@#$%^!&&*#^#^ MATCH ERROR',x.dx_call)
+                        print('\n!@#$%^!&&*#^#^ MATCH ERROR',dx_call)
                         print('qso=',qso)
                         print('!@#$%^!&&*#^#^ MATCH ERROR\n')
-                #print('\n------LB_COLORS: qso=',qso,x.dx_call,match)
+                #print('\n------LB_COLORS: qso=',qso,dx_call,match)
                 if match:
                     t1 = datetime.strptime(now.strftime("%Y%m%d %H%M%S"), "%Y%m%d %H%M%S") 
                     t2 = datetime.strptime( qso['qso_date_off']+" "+qso["time_off"] , "%Y%m%d %H%M%S")
                     delta=(t1-t2).total_seconds() / 3600
                     match = delta < self.P.MAX_HOURS_DUPE
                     if VERBOSITY>=2:
-                        print('--- Possible dupe ',tag,' for',x.dx_call,'\tt12=',t1,t2,'\tdelta=',
+                        print('--- Possible dupe ',tag,' for',dx_call,'\tt12=',t1,t2,'\tdelta=',
                               delta,match)
                     if match:
                         if VERBOSITY>=2:
@@ -552,7 +561,6 @@ class BandMapGUI:
                         break
 
         age=None
-        dx_call=x.dx_call.upper()                 
         if match:
             print('*** Dupe ***',qso['call'],qso['band'])
             c="red"
@@ -580,8 +588,10 @@ class BandMapGUI:
             else:
                 c="lightgreen"
 
-        #print('@@@@@@@@@@@@@@@@ LB_COLORS:',tag,x.dx_call,c,age)
+        #print('@@@@@@@@@@@@@@@@ LB_COLORS:',tag,dx_call,c,age)
         self.lb.itemconfigure(idx, background=c)
+        if VERBOSITY>0:
+            print('... LB_COLORS: call=',dx_call,'\tcolor=',c,'\tmatch=',match)
                 
         # Make sure the entry closest to the rig freq is visible
         #print '... Repopulated'

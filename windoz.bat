@@ -6,7 +6,7 @@ echo Already should have everything we need installed already
 echo.
 echo    bandmap.py  
 echo.
-echo Compile with:
+echo Compile with (works on both windoz & linux):
 echo.
 echo    pyinstaller --onefile bandmap.py
 echo    dist\bandmap.exe 

@@ -12,3 +12,5 @@
 /dist/bandmap_setup.exe
 /all_spots.dat
 /spot_processing.log
+/build/bandmap/*
+/dist/bandmap
