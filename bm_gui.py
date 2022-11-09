@@ -618,6 +618,11 @@ class BandMapGUI:
             print('LBSANITY - Rig on different band - nothing to do')
             return
 
+        # Don't bother if user doesn't want to keep rig freq centered
+        if not self.P.KEEP_FREQ_CENTERED:
+            print('LBSANITY - DONT KEEP CENTERED - nothing to do')
+            return
+
         # Get rig freq
         frq = self.rig_freq
         dfbest=1e9
