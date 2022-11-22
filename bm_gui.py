@@ -107,6 +107,15 @@ class BandMapGUI:
         self.friends=[]
         self.most_wanted=[]
 
+        # Load data for highlighting CW ops members
+        if self.P.CWOPS:
+            fname='~/Python/history/data/Shareable CWops data.xlsx'
+            HIST,fname2 = load_history(fname)
+            self.members=list( set( HIST.keys() ) )
+            print('No. CW Ops Members:',len(self.members))
+            #print(self.members)
+            #sys.exit(0)
+        
         # Open a file to save all of the spots
         if P.SAVE_SPOTS:
             self.fp = open("all_spots.dat","w")
@@ -322,7 +331,10 @@ class BandMapGUI:
     # Callback to handle band changes
     def SelectBands(self,allow_change=False):
 
-        print('SELECT BANDS:')
+        VERBOSITY = self.P.DEBUG
+        if VERBOSITY>0:
+            print('SELECT BANDS A: nspots=',self.nspots,len(self.SpotList),len(self.current))
+            
         try:
             band  = self.band.get()
         except:
@@ -394,29 +406,22 @@ class BandMapGUI:
         # Get latest logbook
         now = datetime.utcnow().replace(tzinfo=UTC)
         if self.P.PARSE_LOG:
-            self.qsos = parse_adif(self.P.LOG_NAME)
+            logbook = parse_adif(self.P.LOG_NAME,REVISIT=True)
+            self.qsos += logbook
             print('################################# QSOs in log=',
-                  len(self.qsos))
+                  len(logbook),len(self.qsos))
             if len(self.qsos)==0:
                 self.P.PARSE_LOG=False
             #print('qsos=',self.qsos)
             #print('qsos[0]=',self.qsos[0])
             #sys.exit(0)
 
-        # Load data for highlighting CW ops members
         if self.P.CWOPS:
             self.calls = [ qso['call'] for qso in self.qsos ]
             self.calls=list( set( self.calls) )
             print('No. unique calls works:',len(self.calls))
             #print(self.calls)
-
-            fname='~/Python/history/data/Shareable CWops data.xlsx'
-            HIST,fname2 = load_history(fname)
-            self.members=list( set( HIST.keys() ) )
-            print('No. CW Ops Members:',len(self.members))
-            #print(self.members)
-            #sys.exit(0)
-
+            
         # Re-populate list box with spots from this band
         # This seems to be the slow part
         #print 'Repopulate ...',len(self.current),len(self.qsos)
@@ -443,6 +448,8 @@ class BandMapGUI:
                 print('SELECT BANDS: Calling LB_COLORS ... band=',band)
             self.lb_colors('A',END,now,band,x)
 
+        if VERBOSITY>0:
+            print('SELECT BANDS B: nspots=',self.nspots,len(self.SpotList),len(self.current))
 
     def match_qsos(self,qso,x,b,now):
         if self.P.CW_SS:
@@ -602,6 +609,7 @@ class BandMapGUI:
             
     # Make sure the entry closest to the rig freq is visible
     def LBsanity(self):
+        VERBOSITY = self.P.DEBUG
         #print('LBSANITY ...')
 
         # Dont bother if using as WSJT companion
@@ -615,12 +623,14 @@ class BandMapGUI:
         b2 = self.band.get()
         #print('LBSANITY: rig band=',b1,'\tband=',b2)
         if b1!=b2:
-            print('LBSANITY - Rig on different band - nothing to do')
+            if VERBOSITY>0:
+                print('LBSANITY - Rig on different band - nothing to do')
             return
 
         # Don't bother if user doesn't want to keep rig freq centered
         if not self.P.KEEP_FREQ_CENTERED:
-            print('LBSANITY - DONT KEEP CENTERED - nothing to do')
+            if VERBOSITY>0:
+                print('LBSANITY - DONT KEEP CENTERED - nothing to do')
             return
 
         # Get rig freq
@@ -697,17 +707,20 @@ class BandMapGUI:
 
     # Wrapper to schedule events to read the spots
     def Scheduler(self):
-        OK = cluster_feed(self)
-        #if self.P.ECHO_ON:
-        #    print('SCHEDULER:',OK)
-        if OK:
-            self.root.after(100, self.Scheduler)
-        elif "telent connection closed" in self.last_error:
-            self.enable_scheduler=False
-            print('SCHEDULER - Attempting to reopen node ...')
-            self.SelectNode()
+        n = cluster_feed(self)
+        if n==0:
+            if "telent connection closed" in self.last_error:
+                self.enable_scheduler=False
+                print('SCHEDULER - Attempting to reopen node ...')
+                self.SelectNode()
+            else:
+                #print('SCHEDULER - Nothing returned')
+                dt=200          # Wait a bit before querying cluster again
         else:
-            self.enable_scheduler=False
+            dt=5      # We got a spot - see if there are more
+            
+        if self.enable_scheduler:
+            self.root.after(dt, self.Scheduler)        # Was 100
 
     # Watch Dog 
     def WatchDog(self):

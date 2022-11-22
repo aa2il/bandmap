@@ -1,7 +1,7 @@
 #########################################################################################
 #
 # cluster_feed.py - Rev. 1.0
-# Copyright (C) 2021 by Joseph B. Attili, aa2il AT arrl DOT net
+# Copyright (C) 2021-2 by Joseph B. Attili, aa2il AT arrl DOT net
 #
 # Routines to grab spots from the dx cluster.
 #
@@ -79,17 +79,18 @@ def test_telnet_connection(tn):
 
     return True
 
-# Function to read and process spots from the telnet connection
+# Function to read spots from the telnet connection
 def cluster_feed(self):
-    #    print 'Cluster Feed ....'
     tn=self.tn
-    lb=self.lb
     fp=self.fp
     VERBOSITY = self.P.DEBUG
 
+    if VERBOSITY>=1:
+        print('CLUSTER FEED A: nspots=',self.nspots,len(self.SpotList),len(self.current))
+
     if self.nerrors>10:
         print('CLUSTER_FEED: Too many errors - giving up!')
-        return False
+        return 0
 
     if self.P.TEST_MODE:
 
@@ -101,7 +102,7 @@ def cluster_feed(self):
                 tn.close()
                 return False
             else:
-#                line=a[2:]
+                #                line=a[2:]
                 line=a
         else:
             line=''
@@ -148,16 +149,15 @@ def cluster_feed(self):
                 line = ''
                 self.nerrors+=1
                 self.last_error=str(e)
+                
             if VERBOSITY>=2:
                 print('Line:',line)
-            elif len(line)>0 and False:
-                print('===> '+line.strip())
         else:
-            return True
+            return 0
         
         if line=='': 
-            #print 'CLUSTER FEED: Time out ',TIME_OUT
-            return True                # Time out
+            #print('CLUSTER FEED: Time out ',self.P.TIME_OUT)
+            return 0
         elif not "\n" in line:
             # Dont let timeout happen before we get entire line
             #print 'CLUSTER FEED: Partial line read'
@@ -171,9 +171,8 @@ def cluster_feed(self):
                 print(getattr(e, 'message', repr(e)))
                 print('line  =',line,type(line))
                 print('line2 =',line2,type(line2))
-                return True                # Time out
+                return 0
 
-    # Process the spot
     if len(line)>5:
         if self.P.ECHO_ON or VERBOSITY>=1:
             #print('>>> Cluster Feed:',line.rstrip())
@@ -185,8 +184,20 @@ def cluster_feed(self):
         # Some clusters ask additional questions
         if line.find("Is this correct?")>=0:
             tn.write(b"Y\n")              # send "Y"
-            return True
+            return 0
 
+    # Process the spot
+    digest_spot(self,line)
+    return 1
+
+        
+# Function to read spots from the telnet connection
+def digest_spot(self,line):
+
+    tn=self.tn
+    lb=self.lb
+    VERBOSITY = self.P.DEBUG
+            
     # Check for logged contact
     if "<adif_ver" in line:
         print('\nCluster Feed: LOGGED Contact Detected ...')
@@ -307,12 +318,21 @@ def cluster_feed(self):
 
             if len(idx1)>0:
 
-                # Call already in list - Update spot time
+                # Call already in list - Update spot info
                 if VERBOSITY>=2:
-                    print("Found call:",idx1,dx_call)
+                    print("CLUSTER FEED - Found call:",idx1,dx_call)
                 for i in idx1:
-                    #print self.SpotList[i].dx_call,self.SpotList[i].time,obj.time
+                    if VERBOSITY>=2:
+                        print('CLUSTER FEED A i=',i,self.SpotList[i].dx_call,
+                              '\ttime=',self.SpotList[i].time,obj.time,
+                              '\tfreq=',self.SpotList[i].frequency,obj.frequency)
                     self.SpotList[i].time=obj.time
+                    self.SpotList[i].frequency=obj.frequency
+                    self.SpotList[i].snr=obj.snr
+                    if VERBOSITY>=2:
+                        print('CLUSTER FEED B i=',i,self.SpotList[i].dx_call,
+                              '\ttime=',self.SpotList[i].time,obj.time,
+                              '\tfreq=',self.SpotList[i].frequency,obj.frequency)
 
                 # Update list box entry - In progress
                 idx2 = [i for i,x in enumerate(self.current) if x.dx_call == dx_call and x.band==b]
@@ -339,7 +359,8 @@ def cluster_feed(self):
             else:
                     
                 # New call - maintain a list of all spots sorted by freq 
-                ##                print "New call",dx_call,freq,mode,band
+                print("CLUSTER FEED: New call =",dx_call,'\tfreq=',freq,
+                      '\tmode=',mode,'\tband=',band)
                 self.SpotList.append( obj )
                 #                self.SpotList.sort(key=lambda x: x.frequency, reverse=False)
 
@@ -390,7 +411,8 @@ def cluster_feed(self):
     if dt>1:
         cull_old_spots(self)
                     
-    #    print "nspots=",self.nspots,len(self.SpotList)
+    if VERBOSITY>=1:
+        print('CLUSTER FEED B: nspots=',self.nspots,len(self.SpotList),len(self.current))
     return True
 
 #########################################################################################
@@ -398,10 +420,11 @@ def cluster_feed(self):
 # Function to cull aged spots
 def cull_old_spots(self):
     #logging.info("Calling Get_Freq ...")
-    frq = self.sock.get_freq(VFO=self.VFO)
-    print("Culling old spots ... Rig freq=",frq,flush=True)
-
     now = datetime.utcnow().replace(tzinfo=UTC)
+    frq = self.sock.get_freq(VFO=self.VFO)
+    print("CULL OLD SPOTS - Rig freq=",frq,'\tnspots=',self.nspots,len(self.SpotList),len(self.current),
+          '\nmax age=',self.P.MAX_AGE,'\tnow=',now)
+
     NewList=[];
     BAND = int( self.band.get().replace('m','') )
     for x in self.SpotList:
@@ -420,7 +443,7 @@ def cull_old_spots(self):
         if age<self.P.MAX_AGE and x!=None:
             NewList.append(x)
         else:
-            print("Removed spot ",x.dx_call,x.frequency,x.band," age=",age)
+            print("CULL OLD SPOTS - Removed spot ",x.dx_call,'\t',x.time,x.frequency,x.band," age=",age)
             if (not OLD_WAY) and x.band==BAND:
                 idx2 = [i for i,y in enumerate(self.current) 
                         if y.frequency == x.frequency and y.dx_call == x.dx_call]
@@ -432,6 +455,7 @@ def cull_old_spots(self):
     self.SpotList=NewList
     if OLD_WAY:
         self.SelectBands()
+    print("CULL OLD SPOTS - New nspots=",self.nspots,len(self.SpotList),len(self.current))
     self.last_check=datetime.now()
 #    print self.last_check
 
