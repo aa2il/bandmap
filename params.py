@@ -224,4 +224,5 @@ class PARAMS:
         self.NODES_FNAME     = self.DATA_DIR+'/states.xls'
 
         self.KEEP_FREQ_CENTERED=True
+        self.SMALL_FONT=False
         

@@ -1,7 +1,7 @@
 #########################################################################################
 #
 # bmgui.py - Rev. 1.0
-# Copyright (C) 2021 by Joseph B. Attili, aa2il AT arrl DOT net
+# Copyright (C) 2021-2 by Joseph B. Attili, aa2il AT arrl DOT net
 #
 # Gui for dx cluster bandmap
 #
@@ -225,15 +225,16 @@ class BandMapGUI:
 
         self.scrollbar = Scrollbar(LBframe, orient=VERTICAL)
 
+        SIZE=10 
         if sys.version_info[0]==3:
-            lb_font = tkinter.font.Font(family="monospace",size=10,weight="bold")
+            self.lb_font = tkinter.font.Font(family="monospace",size=SIZE,weight="bold")
         else:
-            lb_font = tkFont.Font(family="monospace",size=10,weight="bold")
-        self.lb   = Listbox(LBframe, yscrollcommand=self.scrollbar.set,font=lb_font)
+            self.lb_font = tkFont.Font(family="monospace",size=SIZE,weight="bold")
+        self.lb   = Listbox(LBframe, yscrollcommand=self.scrollbar.set,font=self.lb_font)
         self.scrollbar.config(command=self.lb.yview)
         self.scrollbar.pack(side=RIGHT, fill=Y)
         self.lb.pack(side=LEFT, fill=BOTH, expand=1)
-        self.lb.bind('<<ListboxSelect>>', self.LBSelect)
+        self.lb.bind('<<ListboxSelect>>', self.LBLeftClick)
 #        self.lb.bind('<2>' if aqua else '<3>', lambda e: context_menu(e, menu))
         self.lb.bind('<Button-2>',self.LBCenterClick)
         self.lb.bind('<Button-3>',self.LBRightClick)
@@ -334,7 +335,9 @@ class BandMapGUI:
         VERBOSITY = self.P.DEBUG
         if VERBOSITY>0:
             print('SELECT BANDS A: nspots=',self.nspots,len(self.SpotList),len(self.current))
-            
+
+        scrolling(self,'SELECT BANDS A')
+        
         try:
             band  = self.band.get()
         except:
@@ -629,8 +632,12 @@ class BandMapGUI:
 
         # Don't bother if user doesn't want to keep rig freq centered
         if not self.P.KEEP_FREQ_CENTERED:
-            if VERBOSITY>0:
-                print('LBSANITY - DONT KEEP CENTERED - nothing to do')
+            #if VERBOSITY>0:
+            #    print('LBSANITY - DONT KEEP CENTERED - nothing to do')
+
+            y=scrolling(self,'LBSANITY')
+            self.lb.yview_moveto(y)
+            
             return
 
         # Get rig freq
@@ -757,16 +764,11 @@ class BandMapGUI:
     #########################################################################################
 
     # Callback when an item in the listbox is selected
-    def LBSelect(self,evt):
-        print('LBSelect: Left Click - tune rig to a spot')
+    def LBSelect(self,value,vfo):
+        print('LBSelect: Tune rig to a spot - vfo=',vfo,value)
 
-        # Note here that Tkinter passes an event object to onselect()
-        w = evt.widget
-        if len( w.curselection() ) > 0:
-            index = int(w.curselection()[0])
-            value = w.get(index)
-            print('You selected item %d: "%s"' % (index, value))
-
+        # Examine item that was selected
+        if True:
             b=value.strip().split()
             if b[2]=='FT8' or b[2]=='FT4':
                 b[0] = float(b[0])+1
@@ -785,12 +787,12 @@ class BandMapGUI:
             #print("LBSelect: Setting freq ",b[0])
             if VERBOSITY>0:
                 logging.info("Calling Set Freq ...")
-            self.sock.set_freq(float(b[0]),VFO=self.VFO)
+            self.sock.set_freq(float(b[0]),VFO=vfo)
             if not self.P.CONTEST_MODE:
                 print("LBSelect: Setting mode ",b[2])
-                #self.sock.mode.set(b[2],VFO=self.VFO)
+                #self.sock.mode.set(b[2],VFO=vfo)
                 self.SelectMode(b[2])
-                self.sock.set_freq(float(b[0]),VFO=self.VFO)
+                self.sock.set_freq(float(b[0]),VFO=vfo)
             
             print("LBSelect: Setting call ",b[1])
             self.sock.set_call(b[1])
@@ -807,19 +809,30 @@ class BandMapGUI:
                     self.P.udp_client.Send('Call:'+b[1])
 
             
+    def LBLeftClick(self,event):
+        print('LBLeftClick ...')
+        w=event.widget
+        if len( w.curselection() ) > 0:
+            index = int(w.curselection()[0])
+            value = w.get(index)
+            print('You selected item %d: "%s"' % (index, value))
+            self.LBSelect(value,self.P.RIG_VFO)
+        
     def LBRightClick(self,event):
-        print('LBRightClick: QRZ?')
-
+        print('LBRightClick ...')
         index = event.widget.nearest(event.y)
         value = event.widget.get(index)
         print('You selected item %d: "%s"' % (index, value))
 
-        b=value.strip().split()
-        print("Looking up call: ",b[1])
+        if False:
+            b=value.strip().split()
+            print("Looking up call: ",b[1])
         
-        link = 'https://www.qrz.com/db/' + b[1]
-        #webbrowser.open(link, new=2)
-        webbrowser.open_new_tab(link)
+            link = 'https://www.qrz.com/db/' + b[1]
+            webbrowser.open_new_tab(link)
+
+        else:
+            self.LBSelect(value,'B')
     
 
     def LBCenterClick(self,event):
@@ -893,6 +906,17 @@ class BandMapGUI:
         self.P.KEEP_FREQ_CENTERED=self.center_freq.get()
         print('TOGGLE BOGGLE',self.P.KEEP_FREQ_CENTERED)
 
+    # Toggle font used in list box
+    def toggle_small_font(self):
+        self.P.SMALL_FONT=self.small_font.get()
+        if self.P.SMALL_FONT:
+            SIZE=8
+        else:
+            SIZE=10 
+        print('TOGGLE BOGGLE',self.P.SMALL_FONT,SIZE)
+        self.lb_font.configure(size=SIZE)
+        self.lb.configure(font=self.lb_font)
+        
     # Toggle showing of needs for this year
     def toggle_need_year(self):
         self.P.SHOW_NEED_YEAR=self.show_need_year.get()
@@ -970,6 +994,14 @@ class BandMapGUI:
             command=self.toggle_keep_centered
         )
         
+        self.small_font = BooleanVar(value=self.P.SMALL_FONT)
+        Menu1.add_checkbutton(
+            label="Small Font",
+            underline=0,
+            variable=self.small_font,
+            command=self.toggle_small_font
+        )
+        
         """
         # Not quite done with this yet
         self.ft4 = BooleanVar(value=self.P.FT4)
@@ -981,6 +1013,7 @@ class BandMapGUI:
         )
         """
         
+        Menu1.add_separator()
         nodemenu = Menu(self.root, tearoff=0)
         self.node = StringVar(self.root)
         self.node.set(self.P.SERVER)
@@ -992,6 +1025,7 @@ class BandMapGUI:
                                      command=lambda: self.SelectNode() )
         
         Menu1.add_cascade(label="Nodes", menu=nodemenu)
+
         Menu1.add_separator()
         Menu1.add_command(label="Settings ...", command=self.Settings)
         Menu1.add_separator()

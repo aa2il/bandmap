@@ -417,6 +417,22 @@ def digest_spot(self,line):
 
 #########################################################################################
 
+# Debug routine for scorlling issues
+def scrolling(self,txt):
+
+    sb=self.scrollbar.get()
+    sz=self.lb.size()
+    yview=self.lb.yview()
+    y=yview[0]
+    
+    idx=int( y*sz +0.5 )
+    val=self.lb.get(min(max(idx,0),sz-1))
+    print(txt+': sz=',sz,'\tyview=',yview,
+          '\ny=',y,'\tidx=',idx,'\tval=',val)
+
+    return y
+
+    
 # Function to cull aged spots
 def cull_old_spots(self):
     #logging.info("Calling Get_Freq ...")
@@ -424,6 +440,8 @@ def cull_old_spots(self):
     frq = self.sock.get_freq(VFO=self.VFO)
     print("CULL OLD SPOTS - Rig freq=",frq,'\tnspots=',self.nspots,len(self.SpotList),len(self.current),
           '\nmax age=',self.P.MAX_AGE,'\tnow=',now)
+
+    scrolling(self,'CULL OLD SPOTS A')
 
     NewList=[];
     BAND = int( self.band.get().replace('m','') )
@@ -452,9 +470,11 @@ def cull_old_spots(self):
                 self.lb.delete(idx2[0])
 
     # Update gui display
+    scrolling(self,'CULL OLD SPOTS B')
     self.SpotList=NewList
     if OLD_WAY:
         self.SelectBands()
+    scrolling(self,'CULL OLD SPOTS C')
     print("CULL OLD SPOTS - New nspots=",self.nspots,len(self.SpotList),len(self.current))
     self.last_check=datetime.now()
 #    print self.last_check
