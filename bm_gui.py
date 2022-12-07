@@ -184,10 +184,14 @@ class BandMapGUI:
                 Button(ModeFrame,text="Reset", \
                        command=self.Reset ).pack(side=LEFT,anchor=W)
 
-        subFrame1 = Frame(ModeFrame)
-        subFrame1.pack(side=LEFT)
+        if False:
+            subFrame1 = Frame(ModeFrame)
+            subFrame1.pack(side=LEFT)
+        else:
+            subFrame1 = self.toolbar
         #for m in modes:
-        for m in ['CW','Data','SSB','LSB','USB']:
+        #for m in ['CW','Data','SSB','LSB','USB']:
+        for m in ['CW','Data','SSB']:
             Radiobutton(subFrame1, 
                         text=m,
                         indicatoron = 0,
@@ -196,8 +200,11 @@ class BandMapGUI:
                         value=m).pack(side=LEFT,anchor=W)
         self.SelectMode('')
 
-        subFrame2 = Frame(ModeFrame)
-        subFrame2.pack(side=LEFT)
+        if False:
+            subFrame2 = Frame(ModeFrame)
+            subFrame2.pack(side=LEFT)
+        else:
+            subFrame2 = self.toolbar
         for a in [1,2,3]:
             Radiobutton(subFrame2, 
                         text='Ant'+str(a),
@@ -207,16 +214,20 @@ class BandMapGUI:
                         value=a).pack(side=LEFT,anchor=W)
         self.SelectAnt(-1)
 
-        Button(ModeFrame,text="-1",
+        if False:
+            frm=ModeFrame
+        else:
+            frm=self.toolbar
+        Button(frm,text="-1",
                command=lambda: self.FreqAdjust(-1) ).pack(side=LEFT,anchor=W)
-        Button(ModeFrame,text="+1",
+        Button(frm,text="+1",
                command=lambda: self.FreqAdjust(+1) ).pack(side=LEFT,anchor=W)
         
 
         if P.CONTEST_MODE:
-            Button(ModeFrame,text="<",
+            Button(frm,text="<",
                    command=lambda: self.SetSubBand(1) ).pack(side=LEFT,anchor=W)
-            Button(ModeFrame,text=">",
+            Button(frm,text=">",
                    command=lambda: self.SetSubBand(3) ).pack(side=LEFT,anchor=W)
 
         # List box
@@ -806,7 +817,7 @@ class BandMapGUI:
                         print('Unable to open UDP client - too many attempts',self.P.udp_ntries)
 
                 if self.P.udp_client:
-                    self.P.udp_client.Send('Call:'+b[1])
+                    self.P.udp_client.Send('Call:'+b[1]+':'+vfo)
 
             
     def LBLeftClick(self,event):
@@ -945,11 +956,28 @@ class BandMapGUI:
         print('TOGGLE BOGGLE',self.P.FT4,self.FT_MODE)
     """
 
+    def click_bait(self):
+        try:
+            self.n+=1
+        except:
+            self.n=0
+        print('CLICK BAIT',self.n)
+
     # Function to create menu bar
     def create_menu_bar(self):
         print('Creating Menubar ...')
-                   
-        menubar = Menu(self.root)
+        OLD_WAY=False
+
+        if OLD_WAY:
+            menubar = Menu(self.root)
+        else:
+            self.toolbar = Frame(self.root, bd=1, relief=RAISED)
+            self.toolbar.pack(side=TOP, fill=X)
+            #Label(self.toolbar,text='HEY').pack(side=LEFT, padx=2, pady=2)
+
+            menubar = Menubutton(self.toolbar,text='Cluster',relief='flat')
+            menubar.pack(side=LEFT, padx=2, pady=2)
+
         Menu1 = Menu(menubar, tearoff=0)
         Menu1.add_command(label="Clear", command=self.Clear_Spot_List)
         Menu1.add_command(label="Reset", command=self.Reset)
@@ -1032,7 +1060,15 @@ class BandMapGUI:
         Menu1.add_command(label="Show Log ...", command=self.ShowLog)
         Menu1.add_separator()
         Menu1.add_command(label="Exit", command=self.root.quit)
-        menubar.add_cascade(label="Cluster", menu=Menu1)
+        
+        if OLD_WAY:
+            menubar.add_cascade(label="Cluster", menu=Menu1)
+            menubar.add_command(label="Click Me", command=self.click_bait)
+            self.root.config(menu=menubar)
+        else:
+            menubar.menu =  Menu1
+            menubar["menu"]= menubar.menu  
+            #Button(self.toolbar,text="Click Me", command=self.click_bait) \
+            #    .pack(side=LEFT, padx=2, pady=2)
 
-        self.root.config(menu=menubar)
 
