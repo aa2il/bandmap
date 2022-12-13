@@ -175,20 +175,11 @@ class BandMapGUI:
                 but.pack(side=LEFT,anchor=W)
 
         # Another row of buttons to select mode & antenna
-        ModeFrame = Frame(self.root)
-        ModeFrame.pack(side=TOP)
-        if False:
-            Button(ModeFrame,text="Clear", \
-                   command=self.Clear_Spot_List ).pack(side=LEFT,anchor=W)
-            if P.CLUSTER!='WSJT':
-                Button(ModeFrame,text="Reset", \
-                       command=self.Reset ).pack(side=LEFT,anchor=W)
-
-        if False:
-            subFrame1 = Frame(ModeFrame)
-            subFrame1.pack(side=LEFT)
-        else:
-            subFrame1 = self.toolbar
+        #ModeFrame = Frame(self.root)
+        #ModeFrame.pack(side=TOP)
+        #subFrame1 = Frame(ModeFrame,relief=RIDGE,borderwidth=2)
+        subFrame1 = Frame(self.toolbar,relief=FLAT,borderwidth=2,bg='red')
+        subFrame1.pack(side=LEFT)
         #for m in modes:
         #for m in ['CW','Data','SSB','LSB','USB']:
         for m in ['CW','Data','SSB']:
@@ -200,11 +191,9 @@ class BandMapGUI:
                         value=m).pack(side=LEFT,anchor=W)
         self.SelectMode('')
 
-        if False:
-            subFrame2 = Frame(ModeFrame)
-            subFrame2.pack(side=LEFT)
-        else:
-            subFrame2 = self.toolbar
+        #subFrame2 = Frame(ModeFrame)
+        subFrame2 = Frame(self.toolbar,relief=FLAT,borderwidth=2,bg='green')
+        subFrame2.pack(side=LEFT)
         for a in [1,2,3]:
             Radiobutton(subFrame2, 
                         text='Ant'+str(a),
@@ -218,6 +207,8 @@ class BandMapGUI:
             frm=ModeFrame
         else:
             frm=self.toolbar
+            #frm=Frame(self.toolbar,relief=RIDGE,borderwidth=1)
+            #frm.pack(side=LEFT)
         Button(frm,text="-1",
                command=lambda: self.FreqAdjust(-1) ).pack(side=LEFT,anchor=W)
         Button(frm,text="+1",

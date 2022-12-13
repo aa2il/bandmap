@@ -311,8 +311,10 @@ def digest_spot(self,line):
                 b = ''
 
             try:
+                # Indices of all matches
                 idx1 = [i for i,x in enumerate(self.SpotList)
-                        if x.dx_call==dx_call and x.band==band]  # indices of all matches
+                        if x.dx_call==dx_call and x.band==band and x.mode==mode]
+                #if x.dx_call==dx_call and x.band==band]
             except:
                 idx1 = []
 
