@@ -170,7 +170,7 @@ def cluster_feed(self):
                 print('*** TIME_OUT2 or other issue on CLUSTER_FEED ***')
                 print(getattr(e, 'message', repr(e)))
                 print('line  =',line,type(line))
-                print('line2 =',line2,type(line2))
+                #print('line2 =',line2,type(line2))
                 return 0
 
     if len(line)>5:
@@ -221,6 +221,12 @@ def digest_spot(self,line):
     else:
 
         dx_call=obj.dx_call
+
+        # Fix common mistakes
+        if dx_call in self.corrections:
+            print('CLUSTER_FEED: *** NEED A CORRECTION ***',dx_call)
+            dx_call = self.corrections[dx_call]
+            obj.dx_call = dx_call
 
         # Reject FT8/4 spots if we're in a contest
         keep=True

@@ -33,7 +33,7 @@
 #########################################################################################
 
 from rig_io.socket_io import *
-from bm_gui import BandMapGUI,open_udp_client
+from gui import BandMapGUI,open_udp_client
 from settings import *
 from params import *
 from dx.cluster_connections import connection,get_logger
@@ -118,14 +118,23 @@ if __name__ == "__main__":
     # Create GUI 
     bm = BandMapGUI(P)
     
-    # Read list of friends & wanted
+    # Read lists of friends & most wanted & common error
     bm.friends = read_text_file('Friends.txt',
                                 KEEP_BLANKS=False,UPPER=True)
     print('FRIENDS=',bm.friends)
     bm.most_wanted = read_text_file('Most_Wanted.txt',
                                     KEEP_BLANKS=False,UPPER=True)
-    print('Most Wanted=',bm.most_wanted)
-    
+    print('MOST WANTED=',bm.most_wanted)
+    corrections = read_text_file('Corrections.txt',
+                                    KEEP_BLANKS=False,UPPER=True)
+    print('Corrections=',corrections)
+    bm.corrections={}
+    for x in corrections:
+        print(x)
+        y=x.split(' ')
+        bm.corrections[y[0]] = y[1]
+    print('Corrections=',bm.corrections)
+
     bm.root.mainloop()
 
 

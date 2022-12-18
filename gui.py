@@ -106,6 +106,7 @@ class BandMapGUI:
         self.rig_freq = self.sock.get_freq(VFO=self.VFO) / 1000.
         self.friends=[]
         self.most_wanted=[]
+        self.corrections=[]
 
         # Load data for highlighting CW ops members
         if self.P.CWOPS:
@@ -279,7 +280,7 @@ class BandMapGUI:
         self.sock.set_freq(float(frq/1000.),VFO=self.VFO)
 
     # Callback to select antenna
-    def SelectAnt(self,a=None):
+    def SelectAnt(self,a=None,b=None):
         if not a:
             a  = self.ant.get()
         if a==-1:
@@ -288,6 +289,20 @@ class BandMapGUI:
             a = self.sock.get_ant()
             self.ant.set(a)
             #print "\n%%%%%%%%%% Select Antenna: Got Antenna =",a,"%%%%%%%%"
+        elif a==-2:
+            if VERBOSITY>0:
+                logging.info("Checking Ant matches Band ...")
+            if self.P.sock.rig_type2=='FTdx3000':
+                if b in ['160m','80m']:
+                    ant=3
+                elif b in ['40m','20m','15m']:
+                    ant=1
+                elif b in ['30m','17m','12m','10m','6m']:
+                    ant=2
+                else:
+                    ant=1
+                self.P.sock.set_ant(ant,VFO=self.VFO)
+                
         else:
             print("\n%%%%%%%%%% Select Antenna: Setting Antenna =",a,"%%%%%%%%")
             if VERBOSITY>0:
@@ -372,20 +387,11 @@ class BandMapGUI:
                 if band != band2:
                     if VERBOSITY>0:
                         logging.info("Calling Set Mode ...")
-                    self.sock.set_band(b,VFO=self.VFO)
+                    self.sock.set_band(band,VFO=self.VFO)
 
             # Make sure antenna selection is correct also
-            if self.P.sock.rig_type2=='FTdx3000':
-                if b in ['80m']:
-                    ant=3
-                elif b in ['40m','20m','15m']:
-                    ant=1
-                elif b in ['30m','17m','12m','10m','6m']:
-                    ant=2
-                else:
-                    ant=1
-                self.P.sock.set_ant(ant,VFO=self.VFO)
-
+            self.SelectAnt(-2,band)
+            
         # Extract a list of spots that are in the desired band
         iband=int( band.replace('m','') )
         if self.P.CONTEST_MODE:
@@ -770,45 +776,49 @@ class BandMapGUI:
         print('LBSelect: Tune rig to a spot - vfo=',vfo,value)
 
         # Examine item that was selected
-        if True:
-            b=value.strip().split()
-            if b[2]=='FT8' or b[2]=='FT4':
-                b[0] = float(b[0])+1
+        b=value.strip().split()
+        if b[2]=='FT8' or b[2]=='FT4':
+            b[0] = float(b[0])+1
 
-            # If we're running WSJT, tune to a particular spot
-            if self.P.CLUSTER=='WSJT':
-                df = b[0]
-                dx_call = b[1]
-                #print('\n========================= LBSelect:',b,'\n')
-                self.P.tn.configure_wsjt(RxDF=df,DxCall=dx_call)
-                return
+        # If we're running WSJT, tune to a particular spot
+        if self.P.CLUSTER=='WSJT':
+            df = b[0]
+            dx_call = b[1]
+            #print('\n========================= LBSelect:',b,'\n')
+            self.P.tn.configure_wsjt(RxDF=df,DxCall=dx_call)
+            return
 
-            # Note - need to set freq first so get on right band, then set the mode
-            # We do a second set freq since rig may offset by 700 Hz if we are in CW mode
-            # There must be a better way to do this but this is what we do for now
-            #print("LBSelect: Setting freq ",b[0])
-            if VERBOSITY>0:
-                logging.info("Calling Set Freq ...")
+        # Note - need to set freq first so get on right band, then set the mode
+        # We do a second set freq since rig may offset by 700 Hz if we are in CW mode
+        # There must be a better way to do this but this is what we do for now
+        #print("LBSelect: Setting freq ",b[0])
+        if VERBOSITY>0:
+            logging.info("Calling Set Freq ...")
+        self.sock.set_freq(float(b[0]),VFO=vfo)
+        if not self.P.CONTEST_MODE:
+            print("LBSelect: Setting mode ",b[2])
+            #self.sock.mode.set(b[2],VFO=vfo)
+            self.SelectMode(b[2])
             self.sock.set_freq(float(b[0]),VFO=vfo)
-            if not self.P.CONTEST_MODE:
-                print("LBSelect: Setting mode ",b[2])
-                #self.sock.mode.set(b[2],VFO=vfo)
-                self.SelectMode(b[2])
-                self.sock.set_freq(float(b[0]),VFO=vfo)
             
-            print("LBSelect: Setting call ",b[1])
-            self.sock.set_call(b[1])
+        print("LBSelect: Setting call ",b[1])
+        self.sock.set_call(b[1])
 
-            if self.P.UDP_CLIENT:
-                if not self.P.udp_client:
-                    self.P.udp_ntries+=1
-                    if self.P.udp_ntries<=5:
-                        open_udp_client(self.P,7474)
-                    else:
-                        print('Unable to open UDP client - too many attempts',self.P.udp_ntries)
+        # Make sure antenna selection is correct also
+        if True:
+            band=freq2band(0.001*float(b[0]))
+            self.SelectAnt(-2,band)
 
-                if self.P.udp_client:
-                    self.P.udp_client.Send('Call:'+b[1]+':'+vfo)
+        if self.P.UDP_CLIENT:
+            if not self.P.udp_client:
+                self.P.udp_ntries+=1
+                if self.P.udp_ntries<=5:
+                    open_udp_client(self.P,7474)
+                else:
+                    print('Unable to open UDP client - too many attempts',self.P.udp_ntries)
+
+            if self.P.udp_client:
+                self.P.udp_client.Send('Call:'+b[1]+':'+vfo)
 
             
     def LBLeftClick(self,event):
@@ -954,20 +964,28 @@ class BandMapGUI:
             self.n=0
         print('CLICK BAIT',self.n)
 
+    #########################################################################################
+
     # Function to create menu bar
     def create_menu_bar(self):
         print('Creating Menubar ...')
+        OLD_WAY=True
         OLD_WAY=False
+        MENU_ITEMS=1
 
+        self.toolbar = Frame(self.root, bd=1, relief=RAISED)
+        self.toolbar.pack(side=TOP, fill=X)
         if OLD_WAY:
-            menubar = Menu(self.root)
+            menubar  = Menu(self.root)
+            menubar2 = menubar
         else:
-            self.toolbar = Frame(self.root, bd=1, relief=RAISED)
-            self.toolbar.pack(side=TOP, fill=X)
-            #Label(self.toolbar,text='HEY').pack(side=LEFT, padx=2, pady=2)
-
-            menubar = Menubutton(self.toolbar,text='Cluster',relief='flat')
+            menubar  = Menubutton(self.toolbar,text='Options',relief='flat')
             menubar.pack(side=LEFT, padx=2, pady=2)
+            if MENU_ITEMS==1:
+                menubar2 = menubar
+            else:
+                menubar2 = Menubutton(self.toolbar,text='Cluster',relief='flat')
+                menubar2.pack(side=LEFT, padx=2, pady=2)
 
         Menu1 = Menu(menubar, tearoff=0)
         Menu1.add_command(label="Clear", command=self.Clear_Spot_List)
@@ -1031,35 +1049,39 @@ class BandMapGUI:
             command=self.toggle_ft4
         )
         """
-        
-        Menu1.add_separator()
-        nodemenu = Menu(self.root, tearoff=0)
+
+        # Sub-menu to pick server
+        Menu2 = Menu(menubar2, tearoff=0)
         self.node = StringVar(self.root)
         self.node.set(self.P.SERVER)
-        #print( self.node.get() , self.P.SERVER )
         for node in list(self.P.NODES.keys()):
-            nodemenu.add_radiobutton(label=node,
+            Menu2.add_radiobutton(label=node,
                                      value=node,
                                      variable=self.node,
-                                     command=lambda: self.SelectNode() )
-        
-        Menu1.add_cascade(label="Nodes", menu=nodemenu)
+                                     command=self.SelectNode )
 
+        if MENU_ITEMS==1:
+            Menu1.add_separator()
+            Menu1.add_cascade(label="Cluster", menu=Menu2)
+        
         Menu1.add_separator()
         Menu1.add_command(label="Settings ...", command=self.Settings)
         Menu1.add_separator()
         Menu1.add_command(label="Show Log ...", command=self.ShowLog)
         Menu1.add_separator()
-        Menu1.add_command(label="Exit", command=self.root.quit)
+        Menu1.add_command(label="Exit", command=self.root.quit)        
         
         if OLD_WAY:
-            menubar.add_cascade(label="Cluster", menu=Menu1)
-            menubar.add_command(label="Click Me", command=self.click_bait)
+            menubar.add_cascade(label="Options", menu=Menu1)
+            if MENU_ITEMS==2:
+                menubar.add_cascade(label="Cluster", menu=Menu2)
+            #menubar.add_command(label="Click Me", command=self.click_bait)
             self.root.config(menu=menubar)
         else:
             menubar.menu =  Menu1
             menubar["menu"]= menubar.menu  
-            #Button(self.toolbar,text="Click Me", command=self.click_bait) \
-            #    .pack(side=LEFT, padx=2, pady=2)
+            if MENU_ITEMS==2:
+                menubar2.menu =  Menu2
+                menubar2["menu"]= menubar2.menu  
 
 
