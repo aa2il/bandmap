@@ -2,7 +2,7 @@
 #########################################################################################
 #
 # bandmap.py - Rev. 1.0
-# Copyright (C) 2021 by Joseph B. Attili, aa2il AT arrl DOT net
+# Copyright (C) 2021-2 by Joseph B. Attili, aa2il AT arrl DOT net
 #
 # Simple gui to sort & display dx cluster spots.  Indications as to the age of a spot and
 # the "need" status of a spot's DXCC are also given.  The rig can be tuned to a spot by
@@ -33,7 +33,8 @@
 #########################################################################################
 
 from rig_io.socket_io import *
-from gui import BandMapGUI,open_udp_client
+from gui import BandMapGUI
+from udp import open_udp_client
 from settings import *
 from params import *
 from dx.cluster_connections import connection,get_logger

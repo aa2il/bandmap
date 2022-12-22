@@ -1,9 +1,9 @@
 #########################################################################################
 #
-# bmgui.py - Rev. 1.0
+# gui.py - Rev. 1.0
 # Copyright (C) 2021-2 by Joseph B. Attili, aa2il AT arrl DOT net
 #
-# Gui for dx cluster bandmap
+# Gui for dx cluster bandmap.
 #
 ############################################################################################
 #
@@ -44,9 +44,9 @@ from rig_io.ft_tables import bands
 from cluster_feed import *
 from settings import *
 import logging               
-from tcp_client import *
 from load_history import load_history
 from utilities import freq2band
+from udp import *
 
 #########################################################################################
 
@@ -60,25 +60,6 @@ logging.basicConfig(
     format="%(asctime)-15s [%(levelname)s] %(funcName)s:\t(message)s",
     level=logging.INFO)
 
-#########################################################################################
-
-# Function to open UDP client
-def open_udp_client(P,port):
-    
-    try:
-        print('Opening UDP client ...')
-        P.udp_client = TCP_Client(None,port)
-        worker = Thread(target=P.udp_client.Listener, args=(), name='UDP Client' )
-        worker.setDaemon(True)
-        worker.start()
-        P.THREADS.append(worker)
-        return True
-    except Exception as e: 
-        print(e)
-        print('--- Unable to connect to UDP socket ---')
-        P.udp_client = None
-        return False
-    
 #########################################################################################
 
 # The GUI
@@ -809,6 +790,7 @@ class BandMapGUI:
             band=freq2band(0.001*float(b[0]))
             self.SelectAnt(-2,band)
 
+        # Send spot info to keyer
         if self.P.UDP_CLIENT:
             if not self.P.udp_client:
                 self.P.udp_ntries+=1
