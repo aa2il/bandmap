@@ -672,7 +672,7 @@ class BandMapGUI:
 
     # Callback to reset telnet connection
     def Reset(self):
-        print("--- Reset ---",self.P.CLUSTER)
+        print("\n------------- Reset -------------",self.P.CLUSTER,'\n')
         self.Clear_Spot_List()
         if self.P.UDP_CLIENT and self.P.udp_client:
             self.P.udp_client.StartClient()
@@ -693,6 +693,7 @@ class BandMapGUI:
 
     # Callback to clear all spots
     def Clear_Spot_List(self):
+        print("\n------------- Clear Spot List -------------",self.P.CLUSTER,'\n')
         self.nspots=0
         self.SpotList=[];
         self.current=[]
@@ -773,6 +774,7 @@ class BandMapGUI:
         # We do a second set freq since rig may offset by 700 Hz if we are in CW mode
         # There must be a better way to do this but this is what we do for now
         #print("LBSelect: Setting freq ",b[0])
+        print("LBSelect: Setting freq=',b[0],'on VFO',vfo,'\tmode=',b[2].'\tcall ",b[1])
         if VERBOSITY>0:
             logging.info("Calling Set Freq ...")
         self.sock.set_freq(float(b[0]),VFO=vfo)
@@ -780,15 +782,12 @@ class BandMapGUI:
             print("LBSelect: Setting mode ",b[2])
             #self.sock.mode.set(b[2],VFO=vfo)
             self.SelectMode(b[2])
-            self.sock.set_freq(float(b[0]),VFO=vfo)
-            
-        print("LBSelect: Setting call ",b[1])
+            self.sock.set_freq(float(b[0]),VFO=vfo)            
         self.sock.set_call(b[1])
 
         # Make sure antenna selection is correct also
-        if True:
-            band=freq2band(0.001*float(b[0]))
-            self.SelectAnt(-2,band)
+        band=freq2band(0.001*float(b[0]))
+        self.SelectAnt(-2,band)
 
         # Send spot info to keyer
         if self.P.UDP_CLIENT:
@@ -819,6 +818,8 @@ class BandMapGUI:
         print('You selected item %d: "%s"' % (index, value))
 
         if False:
+            # This used to trigger a qrz call lookup
+            # Keep this for now in case we want this capability later
             b=value.strip().split()
             print("Looking up call: ",b[1])
         
@@ -826,6 +827,8 @@ class BandMapGUI:
             webbrowser.open_new_tab(link)
 
         else:
+            # Now is tunes VFO-B
+            # Perhaps we can have a flag to select which action we want??
             self.LBSelect(value,'B')
     
 
