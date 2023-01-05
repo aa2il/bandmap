@@ -794,7 +794,8 @@ class BandMapGUI:
             if not self.P.udp_client:
                 self.P.udp_ntries+=1
                 if self.P.udp_ntries<=5:
-                    open_udp_client(self.P,7474)
+                    open_udp_client(self.P,KEYER_UDP_PORT)
+                    #self.P.udp_client.Connect(None,KEYER_UDP_PORT)
                 else:
                     print('Unable to open UDP client - too many attempts',self.P.udp_ntries)
 

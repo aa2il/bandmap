@@ -114,7 +114,7 @@ if __name__ == "__main__":
     # Open UDP client
     if P.UDP_CLIENT:
         P.udp_ntries=0
-        open_udp_client(P,7474)
+        open_udp_client(P,None)
 
     # Create GUI 
     bm = BandMapGUI(P)

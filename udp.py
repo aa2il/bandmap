@@ -20,6 +20,7 @@
 #########################################################################################
 
 from tcp_client import *
+#from tcp_server import *
 
 #########################################################################################
 
@@ -46,14 +47,25 @@ def udp_msg_handler(self,sock,msg):
     
 # Function to open UDP client
 def open_udp_client(P,port):
+
+    if not port:
+        port = 7474
+        #port = KEYER_UDP_PORT
+        #port = BANDMAP_UDP_PORT
     
     try:
         print('Opening UDP client ...')
-        P.udp_client = TCP_Client(P,None,port,Handler=udp_msg_handler)
+        P.udp_client = TCP_Client(P,None,port,Client=True,
+                                  Handler=udp_msg_handler)
+        #P.udp_client = TCP_Server(P,None,port,Server=False,
+        #Handler=udp_msg_handler)
         worker = Thread(target=P.udp_client.Listener,args=(), kwargs={}, name='UDP Client' )
         worker.setDaemon(True)
         worker.start()
         P.THREADS.append(worker)
+        
+        #P.udp_client.Connect(None,KEYER_UDP_PORT)
+        
         return True
     except Exception as e: 
         print('OPEN UDP CLIENT: Exception Raised:',e)
