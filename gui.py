@@ -30,7 +30,7 @@ from dx.spot_processing import ChallengeData
 
 from dx.cluster_connections import *
 from fileio import parse_adif
-from collections import OrderedDict 
+#from collections import OrderedDict 
 import webbrowser
 
 if sys.version_info[0]==3:
@@ -89,6 +89,10 @@ class BandMapGUI:
         self.most_wanted=[]
         self.corrections=[]
 
+        # UDP stuff
+        P.udp_client=None
+        P.udp_ntries=0
+        
         # Load data for highlighting CW ops members
         if self.P.CWOPS:
             fname='~/Python/history/data/Shareable CWops data.xlsx'
@@ -418,6 +422,7 @@ class BandMapGUI:
         # This seems to be the slow part
         #print 'Repopulate ...',len(self.current),len(self.qsos)
         self.lb.delete(0, END)
+        n=0
         for x in self.current:
             #pprint(vars(x))
             dxcc=x.dx_station.country
@@ -438,7 +443,8 @@ class BandMapGUI:
             # JBA - Change background colors on each list entry
             if VERBOSITY>0:
                 print('SELECT BANDS: Calling LB_COLORS ... band=',band)
-            self.lb_colors('A',END,now,band,x)
+            self.current[n].color=self.lb_colors('A',END,now,band,x)
+            n+=1
 
         if VERBOSITY>0:
             print('SELECT BANDS B: nspots=',self.nspots,len(self.SpotList),len(self.current))
@@ -467,8 +473,8 @@ class BandMapGUI:
 
         return match
     
-
-    def lb_update(self):
+    # NOT USED??????
+    def lb_update_OLD(self):
         b = self.band.get()
         print('LB_UPDATE: b=',b)
         now = datetime.utcnow().replace(tzinfo=UTC)
@@ -563,29 +569,39 @@ class BandMapGUI:
         if match:
             print('*** Dupe ***',qso['call'],qso['band'])
             c="red"
+            c2='r'
         elif x.needed:
             c="magenta"
+            c2='m'
         elif x.need_this_year:
             c="violet"
+            c2='m'
         elif x.need_mode:
             c="pink"
+            c2='m'
         elif dx_call in self.friends:
             c="lightskyblue" 
+            c2='b'
         elif dx_call in self.most_wanted:
             c="turquoise"
+            c2='b'
         elif dx_call==self.P.MY_CALL:
             c="deepskyblue" 
+            c2='b'
         elif self.P.CWOPS and dx_call in self.members:
             if dx_call in self.calls:
                 c="gold"
             else:
                 c='orange'
+            c2=c
         else:
             age = (now - x.time).total_seconds()/60      # In minutes
             if age<2:
                 c="yellow"
+                c2='y'
             else:
                 c="lightgreen"
+                c2='g'
 
         #print('@@@@@@@@@@@@@@@@ LB_COLORS:',tag,dx_call,c,age)
         self.lb.itemconfigure(idx, background=c)
@@ -598,6 +614,7 @@ class BandMapGUI:
         self.LBsanity()
         #print(" ")
 
+        return c2
             
     # Make sure the entry closest to the rig freq is visible
     def LBsanity(self):
@@ -674,8 +691,10 @@ class BandMapGUI:
     def Reset(self):
         print("\n------------- Reset -------------",self.P.CLUSTER,'\n')
         self.Clear_Spot_List()
-        if self.P.UDP_CLIENT and self.P.udp_client:
-            self.P.udp_client.StartClient()
+        if self.P.UDP_CLIENT and self.P.udp_client and False:
+            self.P.udp_client.StartServer()
+        if self.P.UDP_CLIENT and self.P.udp_server and False:
+            self.P.udp_server.StartServer()
         if self.tn:
             self.tn.close()
             self.enable_scheduler=False
@@ -793,9 +812,12 @@ class BandMapGUI:
         if self.P.UDP_CLIENT:
             if not self.P.udp_client:
                 self.P.udp_ntries+=1
-                if self.P.udp_ntries<=5:
-                    open_udp_client(self.P,KEYER_UDP_PORT)
-                    #self.P.udp_client.Connect(None,KEYER_UDP_PORT)
+                if self.P.udp_ntries<=10:
+                    self.P.udp_client=open_udp_client(self.P,KEYER_UDP_PORT,
+                                                      udp_msg_handler)
+                    if self.P.udp_client:
+                        print('GUI->LBSelect: Opened connection to KEYER.')
+                        self.P.udp_ntries=0
                 else:
                     print('Unable to open UDP client - too many attempts',self.P.udp_ntries)
 

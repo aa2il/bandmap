@@ -1,7 +1,7 @@
 #########################################################################################
 #
 # udp.py - Rev. 1.0
-# Copyright (C) 2022 by Joseph B. Attili, aa2il AT arrl DOT net
+# Copyright (C) 2022-3 by Joseph B. Attili, aa2il AT arrl DOT net
 #
 # UDP messaging for bandmap.
 #
@@ -19,8 +19,8 @@
 #
 #########################################################################################
 
-from tcp_client import *
-#from tcp_server import *
+from tcp_server import *
+from pprint import pprint
 
 #########################################################################################
 
@@ -29,6 +29,11 @@ def udp_msg_handler(self,sock,msg):
     id=sock.getpeername()
     print('UDP MSG HANDLER: id=',id,'\tmsg=',msg.rstrip())
 
+    if False:
+        print("P=")
+        pprint(vars(self.P))
+        print(' ')
+    
     msgs=msg.split('\n')
     for m in msgs:
         print('UDP MSG HANDLER: m=',m,len(m))
@@ -42,34 +47,21 @@ def udp_msg_handler(self,sock,msg):
             else:
                 print('UDP MSG HANDLER: Server name is',mm[1])
                 
+        elif mm[0]=='SpotList':
+            band=mm[1]
+            if mm[2]=='?':
+                print('UDP MSG HANDLER: SpotList query',band)
+                a=[]
+                for x in self.P.gui.current:
+                    a.append(x.dx_call)
+                    a.append(x.frequency)
+                    try:
+                        a.append(x.color)
+                    except:
+                        a.append('white')
+                    msg2='SpotList:'+band+':'+str(a)+'\n'
+                print('\tReply:',msg2)
+                sock.send(msg2.encode())
+            else:
+                print('UDP MSG HANDLER: Not sure what to do with this',mm)
      
-
-    
-# Function to open UDP client
-def open_udp_client(P,port):
-
-    if not port:
-        port = 7474
-        #port = KEYER_UDP_PORT
-        #port = BANDMAP_UDP_PORT
-    
-    try:
-        print('Opening UDP client ...')
-        P.udp_client = TCP_Client(P,None,port,Client=True,
-                                  Handler=udp_msg_handler)
-        #P.udp_client = TCP_Server(P,None,port,Server=False,
-        #Handler=udp_msg_handler)
-        worker = Thread(target=P.udp_client.Listener,args=(), kwargs={}, name='UDP Client' )
-        worker.setDaemon(True)
-        worker.start()
-        P.THREADS.append(worker)
-        
-        #P.udp_client.Connect(None,KEYER_UDP_PORT)
-        
-        return True
-    except Exception as e: 
-        print('OPEN UDP CLIENT: Exception Raised:',e)
-        print('--- Unable to connect to UDP socket ---')
-        P.udp_client = None
-        return False
-    

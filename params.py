@@ -209,7 +209,7 @@ class PARAMS:
         MY_CALL2          = self.MY_CALL.replace('/','_')
         self.LOG_NAME     = os.path.expanduser( self.LOG_NAME.replace('[MYCALL]',MY_CALL2 ) )
         self.NODES        = NODES
-        self.THREADS      = []
+        self.threads      = []
         print('LOG_NAME=',self.LOG_NAME,'\tPARGE_LOG=',self.PARSE_LOG)
 
         if self.SERVER=="WSJT" or args.buttons:

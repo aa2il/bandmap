@@ -2,7 +2,7 @@
 #########################################################################################
 #
 # bandmap.py - Rev. 1.0
-# Copyright (C) 2021-2 by Joseph B. Attili, aa2il AT arrl DOT net
+# Copyright (C) 2021-3 by Joseph B. Attili, aa2il AT arrl DOT net
 #
 # Simple gui to sort & display dx cluster spots.  Indications as to the age of a spot and
 # the "need" status of a spot's DXCC are also given.  The rig can be tuned to a spot by
@@ -34,7 +34,6 @@
 
 from rig_io.socket_io import *
 from gui import BandMapGUI
-from udp import open_udp_client
 from settings import *
 from params import *
 from dx.cluster_connections import connection,get_logger
@@ -42,8 +41,9 @@ from cluster_feed import test_telnet_connection
 from dx.spot_processing import ChallengeData
 from pprint import pprint
 from fileio import read_text_file
-
 from get_node_list import *
+from tcp_server import *
+from udp import *
 
 #########################################################################################
 
@@ -56,11 +56,7 @@ if __name__ == "__main__":
 
     # Process command line params
     P=PARAMS()
-    if True:
-        print("P=")
-        pprint(vars(P))
-        print(' ')
-
+    
     # Read list of nodes - work in progress
     if False:
         get_node_list(P)
@@ -111,32 +107,44 @@ if __name__ == "__main__":
     # Read challenge data
     P.data = ChallengeData(P.CHALLENGE_FNAME)
 
-    # Open UDP client
+    # Start thread with UDP server
     if P.UDP_CLIENT:
-        P.udp_ntries=0
-        open_udp_client(P,None)
-
+        P.udp_server = TCP_Server(P,None,BANDMAP_UDP_PORT,Server=True,
+                                  Handler=udp_msg_handler)
+        worker = Thread(target=P.udp_server.Listener, args=(),
+                        name='Bandmap UDP Server' )
+        worker.daemon=True
+        worker.start()
+        P.threads.append(worker)
+        
     # Create GUI 
-    bm = BandMapGUI(P)
+    gui = BandMapGUI(P)
+    P.gui=gui
     
     # Read lists of friends & most wanted & common error
-    bm.friends = read_text_file('Friends.txt',
+    P.gui.friends = read_text_file('Friends.txt',
                                 KEEP_BLANKS=False,UPPER=True)
-    print('FRIENDS=',bm.friends)
-    bm.most_wanted = read_text_file('Most_Wanted.txt',
+    print('FRIENDS=',P.gui.friends)
+    P.gui.most_wanted = read_text_file('Most_Wanted.txt',
                                     KEEP_BLANKS=False,UPPER=True)
-    print('MOST WANTED=',bm.most_wanted)
+    print('MOST WANTED=',P.gui.most_wanted)
     corrections = read_text_file('Corrections.txt',
                                     KEEP_BLANKS=False,UPPER=True)
     print('Corrections=',corrections)
-    bm.corrections={}
+    P.gui.corrections={}
     for x in corrections:
         print(x)
         y=x.split(' ')
-        bm.corrections[y[0]] = y[1]
-    print('Corrections=',bm.corrections)
+        P.gui.corrections[y[0]] = y[1]
+    print('Corrections=',P.gui.corrections)
 
-    bm.root.mainloop()
+    if True:
+        print("P=")
+        pprint(vars(P))
+        print(' ')
+
+    # Let's go!
+    P.gui.root.mainloop()
 
 
 
