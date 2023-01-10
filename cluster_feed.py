@@ -223,9 +223,14 @@ def digest_spot(self,line):
         dx_call=obj.dx_call
 
         # Fix common mistakes
-        if dx_call in self.corrections:
+        if dx_call==None or len(dx_call)<3:
+            print('CLUSTER_FEED: *** CORRECTION but dont know what to do - call=',dx_call)            
+        elif dx_call in self.corrections:
             print('CLUSTER_FEED: *** NEED A CORRECTION ***',dx_call)
             dx_call = self.corrections[dx_call]
+            obj.dx_call = dx_call
+        elif dx_call[0]=='T' and dx_call[1:] in self.members:
+            dx_call = dx_call[1:]
             obj.dx_call = dx_call
 
         # Reject FT8/4 spots if we're in a contest
@@ -386,7 +391,7 @@ def digest_spot(self,line):
                     if self.P.DX_ONLY and dxcc=='United States' and len(obj.dx_call)>3:
                         return True
 
-                    # Find insertion point - This might be where the sorting probelm is - if two stations have same freq?
+                    # Find insertion point - This might be where the sorting problem is - if two stations have same freq?
                     #self.current.append( obj )
                     #self.current.sort(key=lambda x: x.frequency, reverse=False)
                     idx2 = [i for i,x in enumerate(self.current) if x.frequency > freq]
@@ -411,7 +416,7 @@ def digest_spot(self,line):
                     # Change background colors on each list entry
                     if VERBOSITY>=1:
                         print('CLUSTER_FEED: Calling LB_COLORS ... band=',band)
-                    self.lb_colors('B',idx2[0],now,str(band)+'m',obj)
+                    self.current[idx2[0]].color = self.lb_colors('B',idx2[0],now,str(band)+'m',obj)
 
     # Check if we need to cull old spots
     dt = (datetime.now() - self.last_check).total_seconds()/60      # In minutes

@@ -1,7 +1,7 @@
 #########################################################################################
 #
 # gui.py - Rev. 1.0
-# Copyright (C) 2021-2 by Joseph B. Attili, aa2il AT arrl DOT net
+# Copyright (C) 2021-3 by Joseph B. Attili, aa2il AT arrl DOT net
 #
 # Gui for dx cluster bandmap.
 #
@@ -101,6 +101,8 @@ class BandMapGUI:
             print('No. CW Ops Members:',len(self.members))
             #print(self.members)
             #sys.exit(0)
+        else:
+            self.members=[]
         
         # Open a file to save all of the spots
         if P.SAVE_SPOTS:

@@ -59,7 +59,7 @@ def udp_msg_handler(self,sock,msg):
                         a.append(x.color)
                     except:
                         a.append('white')
-                    msg2='SpotList:'+band+':'+str(a)+'\n'
+                msg2='SpotList:'+band+':'+str(a)+'\n'
                 print('\tReply:',msg2)
                 sock.send(msg2.encode())
             else:
