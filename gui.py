@@ -116,7 +116,14 @@ class BandMapGUI:
             self.root.title("Band Map by AA2IL - " + P.SERVER)
         else:
             self.root.title("Band Map by AA2IL - Server " + P.SERVER)
-        sz="400x1200"
+
+        # Move to lower left corner of screen
+        self.screen_width = self.root.winfo_screenwidth()
+        self.screen_height = self.root.winfo_screenheight()
+        print('Screen=',self.screen_width, self.screen_height)
+        w=400
+        h=self.screen_height
+        sz=str(w)+'x'+str(h)+'+'+str(self.screen_width-400)+'+0'
         self.root.geometry(sz)
 
         # Add menu bar
@@ -233,6 +240,7 @@ class BandMapGUI:
         self.SelectBands(True)
         self.Scheduler()
         self.WatchDog()
+
 
     # Adjust rig freq 
     def FreqAdjust(self,df):
@@ -577,25 +585,26 @@ class BandMapGUI:
             c2='m'
         elif x.need_this_year:
             c="violet"
-            c2='m'
+            c2='v'
         elif x.need_mode:
             c="pink"
-            c2='m'
+            c2='p'
         elif dx_call in self.friends:
             c="lightskyblue" 
-            c2='b'
+            c2='lb'
         elif dx_call in self.most_wanted:
             c="turquoise"
-            c2='b'
+            c2='t'
         elif dx_call==self.P.MY_CALL:
             c="deepskyblue" 
             c2='b'
         elif self.P.CWOPS and dx_call in self.members:
             if dx_call in self.calls:
                 c="gold"
+                c2='g'
             else:
                 c='orange'
-            c2=c
+                c2='o'
         else:
             age = (now - x.time).total_seconds()/60      # In minutes
             if age<2:

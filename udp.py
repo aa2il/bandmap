@@ -21,6 +21,7 @@
 
 from tcp_server import *
 from pprint import pprint
+import zlib
 
 #########################################################################################
 
@@ -59,9 +60,34 @@ def udp_msg_handler(self,sock,msg):
                         a.append(x.color)
                     except:
                         a.append('white')
-                msg2='SpotList:'+band+':'+str(a)+'\n'
-                print('\tReply:',msg2)
-                sock.send(msg2.encode())
+                a=str(a)
+                msg2='SpotList:'+band+':'+a+'\n'
+                print('\nReply:',msg2)
+
+                if len(msg)>1000:
+                    # Check size of text
+                    #a_size=sys.getsizeof(msg2)
+                    #print('msg2=',msg2,'\nSize of original msg',a_size)
+
+                    # Compress text
+                    msg22 = zlib.compress(msg2.encode())
+
+                    # Check size of text after compression
+                    #a2_size=sys.getsizeof(msg22)
+                    #print("Ssize of compressed msg:",a2_size)
+
+                    # Decompressing text
+                    #a3=zlib.decompress(msg22)
+
+                    #Check size of text after decompression
+                    #a3_size=sys.getsizeof(a3)
+                    #print("Size of decompressed text",a3_size,'\na3=',a3)
+                    #print("\nDifference of size= ", a_size-a2_size)
+                    
+                    sock.send(msg22)
+                else:
+                    sock.send(msg2.encode())
+                    
             else:
                 print('UDP MSG HANDLER: Not sure what to do with this',mm)
      
