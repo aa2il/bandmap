@@ -24,6 +24,7 @@ import os
 import time
 import socket
 import json
+import platform
 
 from datetime import datetime
 from dx.spot_processing import ChallengeData
@@ -222,11 +223,20 @@ class BandMapGUI:
 
         self.scrollbar = Scrollbar(LBframe, orient=VERTICAL)
 
-        SIZE=10 
-        if sys.version_info[0]==3:
-            self.lb_font = tkinter.font.Font(family="monospace",size=SIZE,weight="bold")
+        # Select a fixed-space font
+        if platform.system()=='Linux':
+            FAMILY="monospace"
+        elif platform.system()=='Windows':
+            #FAMILY="fixed"             # Doesn't come out fixed space?!
+            FAMILY="courier"
         else:
-            self.lb_font = tkFont.Font(family="monospace",size=SIZE,weight="bold")
+            print('GUI INIT: Unknown OS',platform.system())
+            sys.exit(0)
+        SIZE=10
+        if sys.version_info[0]==3:
+            self.lb_font = tkinter.font.Font(family=FAMILY,size=SIZE,weight="bold")
+        else:
+            self.lb_font = tkFont.Font(family=FAMILY,size=SIZE,weight="bold")
         self.lb   = Listbox(LBframe, yscrollcommand=self.scrollbar.set,font=self.lb_font)
         self.scrollbar.config(command=self.lb.yview)
         self.scrollbar.pack(side=RIGHT, fill=Y)
@@ -483,8 +493,8 @@ class BandMapGUI:
 
         return match
     
-    # NOT USED??????
-    def lb_update_OLD(self):
+    # Why is this still around? - see cluster_feed.py
+    def lb_update(self):
         b = self.band.get()
         print('LB_UPDATE: b=',b)
         now = datetime.utcnow().replace(tzinfo=UTC)

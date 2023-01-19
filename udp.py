@@ -52,6 +52,8 @@ def udp_msg_handler(self,sock,msg):
             band=mm[1]
             if mm[2]=='?':
                 print('UDP MSG HANDLER: SpotList query',band)
+                if not hasattr(self.P,'gui'):
+                    continue
                 a=[]
                 for x in self.P.gui.current:
                     a.append(x.dx_call)

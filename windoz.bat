@@ -1,17 +1,33 @@
 @echo off
+echo %DATE% %TIME%
+goto BUILD
 echo.
-echo Notes about how to run grid plotter on Windoze 10
+echo Notes about how to run BANDMAP on Windoze 10
 echo.
 echo Already should have everything we need installed already
+        pip install -r requirements.txt
 echo.
-echo    bandmap.py  
+echo Run the script under python:
+     bandmap.py
+:BUILD     
 echo.
-echo Compile with (works on both windoz & linux):
+echo Compile - works on both windoz and linux:
+echo This takes a long time ...
 echo.
-echo    pyinstaller --onefile bandmap.py
-echo    dist\bandmap.exe 
+     pyinstaller --onefile bandmap.py
+     copy ..\data\cty.plist dist
+     copy ..\data\nodes.plist dist
 echo.
-echo "Run Inno Setup Compiler & follow the prompts to create an installer"
-echo "This installer works on Windoz 10 & Bottles!"
+echo Run the compiled version:
+     dist\bandmap.exe
+echo.
+echo On Linux:
+echo "cp ../data/cty.plist dist"
+echo dist\bandmap.exe
+echo.
+echo Run Inno Setup Compiler and follow the prompts to create an installer.
+echo This installer works on Windoz 10 and Bottles.
+echo.
+echo %DATE% %TIME%
 echo.
    

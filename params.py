@@ -2,7 +2,7 @@
 ################################################################################
 #
 # Params.py - Rev 1.0
-# Copyright (C) 2021 by Joseph B. Attili, aa2il AT arrl DOT net
+# Copyright (C) 2021-3 by Joseph B. Attili, aa2il AT arrl DOT net
 #
 # Command line param parser for bandmap
 #
@@ -73,7 +73,7 @@ class PARAMS:
         arg_proc.add_argument('-ss', action='store_true',help='ARRL Sweepstakes')
         arg_proc.add_argument('-echo', action='store_true',help='Echo lines from server')
         arg_proc.add_argument("-rig", help="Connection Type to Rig",
-                              type=str,default=["ANY"],nargs='+',
+                              type=str,default=["NONE"],nargs='+',
                               choices=CONNECTIONS+['NONE']+RIGS)
         arg_proc.add_argument("-port", help="TCPIP port",
                               type=int,default=0)
@@ -99,10 +99,10 @@ class PARAMS:
                               help='Save All Spots')
         arg_proc.add_argument('-cwops', action='store_true',
                               help='Highlight CWops Members')
-        arg_proc.add_argument('-no_mode', action='store_true',
-                              help='Dont indicate mode needs')
-        arg_proc.add_argument('-no_year', action='store_true',
-                              help='Dont indicate needs for this year')
+        arg_proc.add_argument('-show_mode', action='store_true',
+                              help='Show mode needs')
+        arg_proc.add_argument('-show_year', action='store_true',
+                              help='Show dxcc needs for this year')
         arg_proc.add_argument('-ft4', action='store_true',
                               help='Use FT4 freqs instead of FT8')
         arg_proc.add_argument("-vfo", help="VFO to follow",
@@ -142,8 +142,8 @@ class PARAMS:
         self.RIG_VFO      = args.vfo
         self.FT4          = args.ft4
         self.DEBUG        = args.debug
-        self.SHOW_NEED_MODE = not args.no_mode
-        self.SHOW_NEED_YEAR = not args.no_year
+        self.SHOW_NEED_MODE = args.show_mode
+        self.SHOW_NEED_YEAR = args.show_year
 
         # See     http://www.ng3k.com/misc/cluster.html            for a list 
         self.SERVER=args.server.upper()
@@ -221,7 +221,14 @@ class PARAMS:
         MY_CALL2 = self.MY_CALL.split('/')[0]
         self.DATA_DIR        = os.path.expanduser('~/'+MY_CALL2+'/')
         self.CHALLENGE_FNAME = self.DATA_DIR+'/states.xls'
+        if not os.path.isfile(self.CHALLENGE_FNAME):
+            self.CHALLENGE_FNAME = 'states.xls'
+        if not os.path.isfile(self.CHALLENGE_FNAME):
+            self.CHALLENGE_FNAME = None
+        
         self.NODES_FNAME     = self.DATA_DIR+'/states.xls'
+        if not os.path.isfile(self.NODES_FNAME):
+            self.NODES_FNAME = 'nodes.xls'
 
         self.KEEP_FREQ_CENTERED=True
         self.SMALL_FONT=False
