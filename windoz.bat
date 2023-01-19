@@ -17,6 +17,7 @@ echo.
      pyinstaller --onefile bandmap.py
      copy ..\data\cty.plist dist
      copy ..\data\nodes.plist dist
+     copy Release_Notes.txt dist
 echo.
 echo Run the compiled version:
      dist\bandmap.exe
