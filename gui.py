@@ -5,7 +5,7 @@
 #
 # Gui for dx cluster bandmap.
 #
-############################################################################################
+#########################################################################################
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -31,7 +31,6 @@ from dx.spot_processing import ChallengeData
 
 from dx.cluster_connections import *
 from fileio import parse_adif
-#from collections import OrderedDict 
 import webbrowser
 
 if sys.version_info[0]==3:
@@ -405,6 +404,9 @@ class BandMapGUI:
             if self.P.DX_ONLY:
                 idx = [i for i,x in enumerate(self.SpotList) if x.band == iband and \
                        x.dx_station.country!='United States' and x.mode not in ['FT8','FT4'] ] 
+            elif self.P.NA_ONLY:
+                idx = [i for i,x in enumerate(self.SpotList) if x.band == iband and \
+                       x.dx_station.continent=='NA' and x.mode not in ['FT8','FT4'] ] 
             else:
                 idx = [i for i,x in enumerate(self.SpotList) if x.band == iband and x.mode not in ['FT8','FT4'] ] 
         else:
@@ -413,6 +415,10 @@ class BandMapGUI:
                 idx = [i for i,x in enumerate(self.SpotList) if x and x.band == iband and \
                        (x.dx_station.country!='United States' or len(x.dx_call)==3 or \
                         x.dx_call=='WM3PEN')] 
+            elif self.P.NA_ONLY:
+                # Retain only stations in North America
+                idx = [i for i,x in enumerate(self.SpotList) if x and x.band == iband and \
+                       x.dx_station.continent=='NA']
             else:
                 idx = [i for i,x in enumerate(self.SpotList) if x and x.band == iband]
             
@@ -662,7 +668,7 @@ class BandMapGUI:
             #if VERBOSITY>0:
             #    print('LBSANITY - DONT KEEP CENTERED - nothing to do')
 
-            y=scrolling(self,'LBSANITY')
+            y=scrolling(self,'LBSANITY',verbosity=0)
             self.lb.yview_moveto(y)
             
             return
@@ -937,6 +943,11 @@ class BandMapGUI:
         self.P.DX_ONLY=self.dx_only.get()
         print('TOGGLE BOGGLE',self.P.DX_ONLY)
 
+    # Toggle NA ONLY mode
+    def toggle_na_only(self):
+        self.P.NA_ONLY=self.na_only.get()
+        print('TOGGLE BOGGLE',self.P.NA_ONLY)
+
     # Toggle showing of needs for mode
     def toggle_need_mode(self):
         self.P.SHOW_NEED_MODE=self.show_need_mode.get()
@@ -957,6 +968,16 @@ class BandMapGUI:
         print('TOGGLE BOGGLE',self.P.SMALL_FONT,SIZE)
         self.lb_font.configure(size=SIZE)
         self.lb.configure(font=self.lb_font)
+
+        # Need to force a refresh to get the correct no. of rows in the list box
+        geom=self.root.geometry()
+        h=self.root.winfo_height()
+        w=self.root.winfo_width()
+        print('TOGGLE SMALL FONT: size=',SIZE,'\tgeom=',geom,h,w)
+        sz=str(w)+'x'+str(int(h+1))
+        self.root.geometry(sz)
+        sz=str(w)+'x'+str(h)
+        self.root.geometry(sz)
         
     # Toggle showing of needs for this year
     def toggle_need_year(self):
@@ -1026,6 +1047,14 @@ class BandMapGUI:
             underline=0,
             variable=self.dx_only,
             command=self.toggle_dx_only
+        )
+        
+        self.na_only = BooleanVar(value=self.P.NA_ONLY)
+        Menu1.add_checkbutton(
+            label="NA Only",
+            underline=0,
+            variable=self.na_only,
+            command=self.toggle_na_only
         )
         
         self.contest_mode = BooleanVar(value=self.P.CONTEST_MODE)

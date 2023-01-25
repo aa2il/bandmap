@@ -91,6 +91,8 @@ class PARAMS:
                               #default="")    #,nargs='+')
         arg_proc.add_argument('-dx', action='store_true',
                               help='Show only DX spots')
+        arg_proc.add_argument('-na_only', action='store_true',
+                              help='Show only spots from North America')
         arg_proc.add_argument('-buttons', action='store_true',
                               help='Enable band buttons')
         arg_proc.add_argument('-udp', action='store_true',
@@ -137,6 +139,7 @@ class PARAMS:
         self.CW_SS        = args.ss
         self.CWOPS        = args.cwops
         self.DX_ONLY      = args.dx
+        self.NA_ONLY      = args.na_only
         self.UDP_CLIENT   = args.udp
         self.SAVE_SPOTS   = args.save
         self.RIG_VFO      = args.vfo
@@ -197,7 +200,7 @@ class PARAMS:
         elif self.CLUSTER=='WSJT':
             self.MAX_AGE=5
         else:
-            self.MAX_AGE=15
+            self.MAX_AGE=10               # Was 15
     
         self.rootlogger = "dxcsucker"
         self.TIME_OUT=.01
@@ -218,8 +221,8 @@ class PARAMS:
             self.ALLOW_CHANGES=False
         
         # The spreadsheets with the DXCC already worked data & node info
-        MY_CALL2 = self.MY_CALL.split('/')[0]
-        self.DATA_DIR        = os.path.expanduser('~/'+MY_CALL2+'/')
+        MY_CALL3 = self.MY_CALL.split('/')[0]
+        self.DATA_DIR        = os.path.expanduser('~/'+MY_CALL3+'/')
         self.CHALLENGE_FNAME = self.DATA_DIR+'/states.xls'
         if not os.path.isfile(self.CHALLENGE_FNAME):
             self.CHALLENGE_FNAME = 'states.xls'

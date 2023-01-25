@@ -1,7 +1,7 @@
 #########################################################################################
 #
 # cluster_feed.py - Rev. 1.0
-# Copyright (C) 2021-2 by Joseph B. Attili, aa2il AT arrl DOT net
+# Copyright (C) 2021-3 by Joseph B. Attili, aa2il AT arrl DOT net
 #
 # Routines to grab spots from the dx cluster.
 #
@@ -385,12 +385,18 @@ def digest_spot(self,line):
                     return
                 now = datetime.utcnow().replace(tzinfo=UTC)
                 if band==BAND:
-                    dxcc = obj.dx_station.country
 
-                    # Cull out U.S. stations, except SESs
+                    # Cull out U.S. stations, except SESs (Useful for chasing DX)
+                    dxcc = obj.dx_station.country
                     if self.P.DX_ONLY and dxcc=='United States' and len(obj.dx_call)>3:
                         return True
 
+                    # Cull out stations not in North America (useful for NAQP for example)
+                    cont = obj.dx_station.continent
+                    #print('cont=',cont)
+                    if self.P.NA_ONLY and cont!='NA':
+                        return True
+                    
                     # Find insertion point - This might be where the sorting problem is - if two stations have same freq?
                     #self.current.append( obj )
                     #self.current.sort(key=lambda x: x.frequency, reverse=False)
@@ -430,8 +436,8 @@ def digest_spot(self,line):
 
 #########################################################################################
 
-# Debug routine for scorlling issues
-def scrolling(self,txt):
+# Debug routine for scrolling issues
+def scrolling(self,txt,verbosity=0):
 
     sb=self.scrollbar.get()
     sz=self.lb.size()
@@ -440,8 +446,9 @@ def scrolling(self,txt):
     
     idx=int( y*sz +0.5 )
     val=self.lb.get(min(max(idx,0),sz-1))
-    print(txt+': sz=',sz,'\tyview=',yview,
-          '\ny=',y,'\tidx=',idx,'\tval=',val)
+    if verbosity>0:
+        print(txt+': sz=',sz,'\tyview=',yview,
+              '\ny=',y,'\tidx=',idx,'\tval=',val)
 
     return y
 
@@ -454,7 +461,7 @@ def cull_old_spots(self):
     print("CULL OLD SPOTS - Rig freq=",frq,'\tnspots=',self.nspots,len(self.SpotList),len(self.current),
           '\nmax age=',self.P.MAX_AGE,'\tnow=',now)
 
-    scrolling(self,'CULL OLD SPOTS A')
+    #scrolling(self,'CULL OLD SPOTS A')
 
     NewList=[];
     BAND = int( self.band.get().replace('m','') )
@@ -483,11 +490,11 @@ def cull_old_spots(self):
                 self.lb.delete(idx2[0])
 
     # Update gui display
-    scrolling(self,'CULL OLD SPOTS B')
+    #scrolling(self,'CULL OLD SPOTS B')
     self.SpotList=NewList
     if OLD_WAY:
         self.SelectBands()
-    scrolling(self,'CULL OLD SPOTS C')
+    #scrolling(self,'CULL OLD SPOTS C')
     print("CULL OLD SPOTS - New nspots=",self.nspots,len(self.SpotList),len(self.current))
     self.last_check=datetime.now()
 #    print self.last_check
