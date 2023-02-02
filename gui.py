@@ -397,7 +397,10 @@ class BandMapGUI:
             self.SelectAnt(-2,band)
             
         # Extract a list of spots that are in the desired band
-        iband=int( band.replace('m','') )
+        if 'cm' in band:
+            iband=int( band.replace('cm','') )
+        else:
+            iband=int( band.replace('m','') )
         if self.P.CONTEST_MODE:
             #for x in self.SpotList:
             #    print '-',x.mode,'-',x.mode!='FT8'
