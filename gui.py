@@ -518,7 +518,13 @@ class BandMapGUI:
                 if match:
                     break
 
-        dx_call=x.dx_call.upper()                 
+        dx_call=x.dx_call.upper()
+        if self.P.CWOPS and '/' in dx_call:
+            dx_station = Station(dx_call)
+            home_call = dx_station.homecall
+        else:
+            home_call = dx_call
+            
         if idx<0:
             return
         elif match:
@@ -536,7 +542,7 @@ class BandMapGUI:
             c="turquoise" 
         elif call.upper()==self.P.MY_CALL:
             c="deepskyblue"
-        elif self.P.CWOPS and dx_call in self.members:
+        elif self.P.CWOPS and ( (dx_call in self.members) or (home_call in self.members) ):
             if dx_call in self.calls:
                 c="gold"
             else:
@@ -956,7 +962,7 @@ class BandMapGUI:
         self.P.SHOW_NEED_MODE=self.show_need_mode.get()
         print('TOGGLE BOGGLE',self.P.SHOW_NEED_MODE)
 
-    # Toggle showing of needs for this year
+    # Toggle keep freq centered
     def toggle_keep_centered(self):
         self.P.KEEP_FREQ_CENTERED=self.center_freq.get()
         print('TOGGLE BOGGLE',self.P.KEEP_FREQ_CENTERED)

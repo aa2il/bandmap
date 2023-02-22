@@ -37,20 +37,29 @@ def udp_msg_handler(self,sock,msg):
     
     msgs=msg.split('\n')
     for m in msgs:
-        print('UDP MSG HANDLER: m=',m,len(m))
-
         mm=m.split(':')
+        print('UDP MSG HANDLER: m=',m,'\tmm[0]=',mm[0])
+
         if mm[0]=='Name':
+            
             if mm[1]=='?':
                 print('UDP MSG HANDLER: Server name query')
                 msg2='Name:BANDMAP\n'
                 sock.send(msg2.encode())
             else:
                 print('UDP MSG HANDLER: Server name is',mm[1])
+            return
                 
         elif mm[0]=='SpotList':
-            band=mm[1]
-            if mm[2]=='?':
+            
+            if mm[1]=='Refresh':
+                return
+            elif mm[1]=='?':
+                band=self.P.gui.band.get()
+            else:
+                band=mm[1]
+            
+            if mm[1]=='?' or mm[2]=='?':
                 print('UDP MSG HANDLER: SpotList query',band)
                 if not hasattr(self.P,'gui'):
                     continue
@@ -90,6 +99,7 @@ def udp_msg_handler(self,sock,msg):
                 else:
                     sock.send(msg2.encode())
                     
-            else:
-                print('UDP MSG HANDLER: Not sure what to do with this',mm)
+            return
+                    
+        print('UDP MSG HANDLER: Not sure what to do with this',mm)
      
