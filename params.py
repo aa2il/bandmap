@@ -198,9 +198,9 @@ class PARAMS:
         if args.age:
             self.MAX_AGE=args.age
         elif self.CLUSTER=='WSJT':
-            self.MAX_AGE=5
+            self.MAX_AGE=4               # Was 5
         else:
-            self.MAX_AGE=10               # Was 15
+            self.MAX_AGE=5               # Was 10
     
         self.rootlogger = "dxcsucker"
         self.TIME_OUT=.01

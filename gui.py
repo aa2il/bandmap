@@ -51,7 +51,7 @@ from udp import *
 #########################################################################################
 
 DEFAULT_BAND = '20m'
-VERBOSITY=0
+VERBOSITY=1
 
 #########################################################################################
 
@@ -435,8 +435,8 @@ class BandMapGUI:
             self.qsos += logbook
             print('################################# QSOs in log=',
                   len(logbook),len(self.qsos))
-            if len(self.qsos)==0:
-                self.P.PARSE_LOG=False
+            #if len(self.qsos)==0:
+            #    self.P.PARSE_LOG=False
             #print('qsos=',self.qsos)
             #print('qsos[0]=',self.qsos[0])
             #sys.exit(0)
@@ -639,10 +639,12 @@ class BandMapGUI:
                 c="lightgreen"
                 c2='g'
 
-        #print('@@@@@@@@@@@@@@@@ LB_COLORS:',tag,dx_call,c,age)
+        #print('@@@@@@@@@@@@@@@@ LB_COLORS: tag=',tag,'\tcall=',dx_call,
+        #      '\tc=',c,'\tage=',age)
         self.lb.itemconfigure(idx, background=c)
         if VERBOSITY>0:
-            print('... LB_COLORS: call=',dx_call,'\tcolor=',c,'\tmatch=',match)
+            print('... LB_COLORS: tag=',tag,'\tcall=',dx_call,'\tcolor=',c,
+                  '\tage=',age,'\tmatch=',match)
                 
         # Make sure the entry closest to the rig freq is visible
         #print '... Repopulated'
