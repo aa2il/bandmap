@@ -27,7 +27,7 @@ import json
 import platform
 
 from datetime import datetime
-from dx.spot_processing import ChallengeData
+from dx.spot_processing import ChallengeData,Station
 
 from dx.cluster_connections import *
 from fileio import parse_adif
@@ -600,6 +600,13 @@ class BandMapGUI:
                             print('MATCHED!!!')
                         break
 
+        dx_call=x.dx_call.upper()
+        if self.P.CWOPS and '/' in dx_call:
+            dx_station = Station(dx_call)
+            home_call = dx_station.homecall
+        else:
+            home_call = dx_call
+            
         age=None
         if match:
             print('*** Dupe ***',qso['call'],qso['band'])
@@ -623,7 +630,7 @@ class BandMapGUI:
         elif dx_call==self.P.MY_CALL:
             c="deepskyblue" 
             c2='b'
-        elif self.P.CWOPS and dx_call in self.members:
+        elif self.P.CWOPS and ( (dx_call in self.members) or (home_call in self.members) ):
             if dx_call in self.calls:
                 c="gold"
                 c2='g'
