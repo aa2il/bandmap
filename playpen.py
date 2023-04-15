@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 ############################################################################################
 #
-# playpen.py - Copyright (C) 2021 by Joseph B. Attili, aa2il AT arrl DOT net
+# playpen.py - Copyright (C) 2021-3 by Joseph B. Attili, aa2il AT arrl DOT net
 #
 # Work area to get various components up and running.
 #
@@ -34,14 +34,47 @@ LOG_NAME='~/.fldigi/logs/aa2il_2018.adif'
 
 print('HEY')
 
-
 if True:
+    
     logger = get_logger("dxcsucker")
-    dx_station = Station("AA2IL")
+    dx_station = Station("KU5B")
+    print(dx_station)
+    pprint(vars(dx_station))
+    
+    dx_station = Station("KU5B/OT")
     print(dx_station)
     pprint(vars(dx_station))
     sys.exit(0)
+
+    dx_station = Station("AD4EB")
+    print(dx_station)
+    pprint(vars(dx_station))
+
+    # This is valid
+    dx_station = Station("F/AD4EB")
+    print(dx_station)
+    pprint(vars(dx_station))
+
+    # This is not
+    dx_station = Station("AD4EB/F")
+    print(dx_station)
+    pprint(vars(dx_station))
+
+    # This works
+    dx_station = Station("VP5/AD4EB")
+    print(dx_station)
+    pprint(vars(dx_station))
     
+    # so does kthisworks
+    dx_station = Station("AD4EB/VP5")
+    print(dx_station)
+    pprint(vars(dx_station))
+
+    # Bogus State QP
+    dx_station = Station("AD4EB/FLOY")
+    print(dx_station)
+    pprint(vars(dx_station))
+    sys.exit(0)
 
 if True:
     from pyhamtools.locator import calculate_heading, calculate_heading_longpath
@@ -53,7 +86,6 @@ if True:
     #254.3136
     sys.exit(0)
 
-# Playpen
 if True:
 
     if False:

@@ -519,8 +519,10 @@ class BandMapGUI:
                     break
 
         dx_call=x.dx_call.upper()
+        dx_station = Station(dx_call)
+        if dx_station.country=='United States' and len(dx_station.appendix)>=2:
+            dx_call=dx_station.homecall            # Strip out bogus appendices from state QPs
         if self.P.CWOPS and '/' in dx_call:
-            dx_station = Station(dx_call)
             home_call = dx_station.homecall
         else:
             home_call = dx_call
@@ -601,6 +603,9 @@ class BandMapGUI:
                         break
 
         dx_call=x.dx_call.upper()
+        dx_station = Station(dx_call)
+        if dx_station.country=='United States' and len(dx_station.appendix)>=2:
+            dx_call=dx_station.homecall            # Strip out bogus appendices from state QPs
         if self.P.CWOPS and '/' in dx_call:
             dx_station = Station(dx_call)
             home_call = dx_station.homecall
