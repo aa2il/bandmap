@@ -381,7 +381,11 @@ class BandMapGUI:
                 print('BM_GUI - Config WSJT ...',b,self.FT_MODE)
                 self.P.tn.configure_wsjt(NewMode=self.FT_MODE)
                 time.sleep(.1)
-                new_frq = bands[b][self.FT_MODE] + 1
+                try:
+                    new_frq = bands[b][self.FT_MODE] + 1
+                except Exception as e: 
+                    print(e)
+                    return
                 print('BM_GUI - Config WSJT ...',b,self.FT_MODE,new_frq)
                 if VERBOSITY>0:
                     logging.info("Calling Set Freq and Mode ...")
