@@ -51,7 +51,7 @@ from udp import *
 #########################################################################################
 
 DEFAULT_BAND = '20m'
-VERBOSITY=1
+VERBOSITY=0
 
 #########################################################################################
 
@@ -118,12 +118,16 @@ class BandMapGUI:
             self.root.title("Band Map by AA2IL - Server " + P.SERVER)
 
         # Move to lower left corner of screen
-        self.screen_width = self.root.winfo_screenwidth()
-        self.screen_height = self.root.winfo_screenheight()
-        print('Screen=',self.screen_width, self.screen_height)
-        w=400
-        h=self.screen_height
-        sz=str(w)+'x'+str(h)+'+'+str(self.screen_width-400)+'+0'
+        if P.GEO==None:
+            self.screen_width = self.root.winfo_screenwidth()
+            self.screen_height = self.root.winfo_screenheight()
+            print('Screen=',self.screen_width, self.screen_height)
+            w=400
+            h=self.screen_height
+            sz=str(w)+'x'+str(h)+'+'+str(self.screen_width-400)+'+0'
+        else:
+            #bandmap.py -geo 400x790+1520+240
+            sz=P.GEO
         self.root.geometry(sz)
 
         # Add menu bar
@@ -231,7 +235,10 @@ class BandMapGUI:
         else:
             print('GUI INIT: Unknown OS',platform.system())
             sys.exit(0)
-        SIZE=10
+        if self.P.SMALL_FONT:
+            SIZE=8
+        else:
+            SIZE=10 
         if sys.version_info[0]==3:
             self.lb_font = tkinter.font.Font(family=FAMILY,size=SIZE,weight="bold")
         else:

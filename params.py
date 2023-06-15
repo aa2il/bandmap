@@ -107,10 +107,14 @@ class PARAMS:
                               help='Show dxcc needs for this year')
         arg_proc.add_argument('-ft4', action='store_true',
                               help='Use FT4 freqs instead of FT8')
+        arg_proc.add_argument('-small', action='store_true',
+                              help='Use small font')
         arg_proc.add_argument("-vfo", help="VFO to follow",
                               type=str,default="A",
                               choices=['A','B'] )
         #arg_proc.add_argument('-noft8', action='store_true',help='Filter out FT8 spots')
+        arg_proc.add_argument('-geo',type=str,default=None,
+                              help='Geometry')
         arg_proc.add_argument('-test', action='store_true',help='Test Mode')
         arg_proc.add_argument("-hours", help="Max no. hours for a dupe",
                               type=float,default=2*24)
@@ -135,6 +139,7 @@ class PARAMS:
         self.PARSE_LOG    = True
         #self.PARSE_LOG    = self.CONTEST_MODE or len(args.log)>0
         
+        self.GEO          = args.geo
         self.TEST_MODE    = args.test
         self.CW_SS        = args.ss
         self.CWOPS        = args.cwops
@@ -234,5 +239,6 @@ class PARAMS:
             self.NODES_FNAME = 'nodes.xls'
 
         self.KEEP_FREQ_CENTERED=True
-        self.SMALL_FONT=False
+        self.SMALL_FONT = args.small
+        
         
