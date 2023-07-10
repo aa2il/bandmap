@@ -1,37 +1,77 @@
-n7kom
-nj7v
-SV2HUD
-N7AUE
-WB7UKC
-KM6GOX
-k6pa
-yl3jd
-kb1fgc
-wz4m
-k5vba
-k0pir
-k3es
-n0zt
-k6rb
-n3jt
-wt9u
-kr2q
-n6ror
-k3jt
-w5tm
-ky4gs
-KE7MPO
-W5CYN
-N0RPM
-AG5ZN
-W0WL
-k4tnw
-k3jas
-ae7vu
-sp5mx
-AA7TO
-KN6RDC
-N3RTW
-N5GG
-N6GV
-WB0RLJ
+# CWA 0
+yl3jd,Hanz,Advisor
+kb1fgc,Rich,Classmate
+wz4m,Tommy,Classmate
+k5vba,Stan,Classmate
+k0pir,Rich,Classmate
+k3es,Brian,Classmate
+n0zt,Dan,Hanz Former Student
+
+# CWA 1
+n7kom,Former Student
+nj7v,Charlie,Former Student
+SV2HUD,Vas,Former Student
+N7AUE,Jim,Muley
+WB7UKC,Marty Mueller
+N7AAE,Marty Mueller
+KM6GOX,Derek,Former Student
+
+# CWops
+k6rb,Rob,#3,Sponsored me
+n3jt,Jim,#1,Sponsored me
+wt9u,Jim,Sponsored me
+kr2q,Doug,NJ
+k3jt,Terry,WV
+w5tm,Ed,OK
+ky4gs,Amanda,SC
+ko4vw,Steve,GA
+w7zdx,Bog
+w7brs,Jeff,OR
+
+# CWA 2
+KE7MPO,Skip,WA,Former Student
+W5CYN,Jim,,Former Student
+N0RPM,Jason,Former Student
+AG5ZN,Bill,Former Student
+W0WL,Joe,Former Student
+
+# CWA 3
+AA7TO,Jr,,Former Student
+KN6RDC,Christian,,Former Student
+N3RTW,Sean,Former Student
+N5GG,Colin,Former Student
+N6GV,Gary,Former Student
+WB0RLJ,Jim,Former Student
+
+# Locals
+k6pa,Troy, Bought Army Tower from him
+n6utc,Efram,VHFer
+n6mi,Scott,VHF guru
+n6vi,Marty,VHF guru
+wa7bnm,Bruce
+n6ki,Dennis
+N6GP,Tim,VHFer
+
+# Clubs
+n6ror,ROARS
+W5LVC,Dallas Club
+K4HTA,VA Club
+
+# 13 Colonies
+K2A
+K2B
+K2C
+K2D
+K2E
+K2F
+K2G
+K2H
+K2I
+K2J
+K2K
+K2L
+K2M
+WM3PEN
+GB13COL
+TM13COL
+

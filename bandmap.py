@@ -125,13 +125,23 @@ if __name__ == "__main__":
     gui = BandMapGUI(P)
     P.gui=gui
     
-    # Read lists of friends & most wanted & common error
-    P.gui.friends = read_text_file('Friends.txt',
+    # Read list of friends
+    P.gui.friends = []
+    lines = read_text_file('Friends.txt',
                                 KEEP_BLANKS=False,UPPER=True)
+    for line in lines:
+        c=line.split(',')[0]
+        if c[0]!='#':
+            P.gui.friends.append(c)
     print('FRIENDS=',P.gui.friends)
+    #sys.exit(0)
+                                   
+    # Read lists of most wanted
     P.gui.most_wanted = read_text_file('Most_Wanted.txt',
                                     KEEP_BLANKS=False,UPPER=True)
     print('MOST WANTED=',P.gui.most_wanted)
+    
+    # Read lists of common errors
     corrections = read_text_file('Corrections.txt',
                                     KEEP_BLANKS=False,UPPER=True)
     print('Corrections=',corrections)

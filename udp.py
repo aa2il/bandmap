@@ -73,7 +73,7 @@ def udp_msg_handler(self,sock,msg):
                         a.append('white')
                 a=str(a)
                 msg2='SpotList:'+band+':'+a+'\n'
-                print('\nReply:',msg2)
+                #print('\nReply:',msg2)
 
                 if len(msg)>1000:
                     # Check size of text

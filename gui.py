@@ -309,7 +309,7 @@ class BandMapGUI:
                 elif b in ['40m','20m','15m']:
                     ant=1
                 elif b in ['30m','17m','12m','10m','6m']:
-                    ant=2
+                    ant=3    # Ant 2 is broken
                 else:
                     ant=1
                 self.P.sock.set_ant(ant,VFO=self.VFO)
@@ -356,6 +356,8 @@ class BandMapGUI:
             logging.info("Calling Set Mode ...")
         if not self.P.CONTEST_MODE:
             self.sock.set_mode(m,VFO=self.VFO,Filter='Auto')
+            if m=='CW':
+                self.sock.set_if_shift(0)
 
     # Callback to handle band changes
     def SelectBands(self,allow_change=False):
@@ -519,6 +521,9 @@ class BandMapGUI:
         print('LB_UPDATE: b=',b)
         now = datetime.utcnow().replace(tzinfo=UTC)
         idx=-1
+        if len(self.current)==0:
+            print('LB_UPDATE - Nothing to do.',self.current)
+            return
         for x in self.current:
             idx+=1
             for qso in self.qsos:
@@ -528,6 +533,9 @@ class BandMapGUI:
                 #match |= call==self.P.MY_CALL
                 if match:
                     break
+        #else:
+        #    print('LB_UPDATE - Nothing to do.',self.current)
+        #    return
 
         dx_call=x.dx_call.upper()
         dx_station = Station(dx_call)
@@ -836,6 +844,7 @@ class BandMapGUI:
     # Callback when an item in the listbox is selected
     def LBSelect(self,value,vfo):
         print('LBSelect: Tune rig to a spot - vfo=',vfo,value)
+        scrolling(self,'LBSelect')
 
         # Examine item that was selected
         b=value.strip().split()

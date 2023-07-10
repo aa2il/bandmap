@@ -187,7 +187,9 @@ def cluster_feed(self):
             return 0
 
     # Process the spot
+    scrolling(self,'DIGEST SPOT A')
     digest_spot(self,line)
+    scrolling(self,'DIGEST SPOT B')
     return 1
 
         
@@ -368,6 +370,7 @@ def digest_spot(self,line):
                         lb.insert(idx2[0], "%-6.1f  %-10.19s  %+6.6s %-15.16s %+4.4s" % \
                                   (freq,dx_call,mode,cleanup(dxcc),obj.snr))
                     lb.itemconfigure(idx2[0], background=bgc)
+                    scrolling(self,'DIGEST SPOT C')
                     
             else:
                     
@@ -423,6 +426,7 @@ def digest_spot(self,line):
                     if VERBOSITY>=1:
                         print('CLUSTER_FEED: Calling LB_COLORS ... band=',band)
                     self.current[idx2[0]].color = self.lb_colors('B',idx2[0],now,str(band)+'m',obj)
+                    scrolling(self,'DIGEST SPOT D')
 
     # Check if we need to cull old spots
     dt = (datetime.now() - self.last_check).total_seconds()/60      # In minutes
@@ -437,7 +441,8 @@ def digest_spot(self,line):
 #########################################################################################
 
 # Debug routine for scrolling issues
-def scrolling(self,txt,verbosity=0):
+def scrolling(self,txt,verbosity=1):
+    #print('SCROLLING:',txt,verbosity)
 
     sb=self.scrollbar.get()
     sz=self.lb.size()
@@ -447,8 +452,8 @@ def scrolling(self,txt,verbosity=0):
     idx=int( y*sz +0.5 )
     val=self.lb.get(min(max(idx,0),sz-1))
     if verbosity>0:
-        print(txt+': sz=',sz,'\tyview=',yview,
-              '\ny=',y,'\tidx=',idx,'\tval=',val)
+        print('SCROLLING:',txt+': sz=',sz,'\tyview=',yview,
+              '\n\ty=',y,'\tidx=',idx,'\tval=',val)
 
     return y
 

@@ -33,9 +33,13 @@ from settings import *
 NODES=OrderedDict()
 #NODES['PY3NZ']  = 'dxc.baependi.com.br:8000'        # dxwatch.com - down?
 #NODES['NK7Z']   = 'nk7z-cluster.ddns.net:7373'      # Lots of spots! - down?
+NODES['W9PA']   = 'dxc.w9pa.net:7373'               # Ok - lots of spots, no FT8 dxc.w3lpl.net
 NODES['NC7J']   = 'dxc.nc7j.com:7373'               # OK - AR cluster
 NODES['W3LPL']  = 'w3lpl.net:7373'                  # Ok - lots of spots, no FT8 dxc.w3lpl.net
-NODES['WS7I']  = 'ws7i.ewarg.org:7300'               # OK - need to work on filtering - uses "non AR" cluster, can show FT8
+NODES['WC2L']   = 'dxc.wc2l.com'                    # 
+NODES['K3LR']   = 'dx.k3lr.com'                     # 
+NODES['AE5E']   = 'dxspots.com'                     # 
+NODES['WS7I']   = 'ws7i.ewarg.org:7300'               # OK - need to work on filtering - uses "non AR" cluster, can show FT8
 
 #telnet telnet.reversebeacon.net 7000
 #telnet telnet.reversebeacon.net 7001
@@ -45,7 +49,6 @@ NODES['W8AEF']  = 'paul.w8aef.com:7373'             # AZ - no FT8 - can turn it 
 NODES['N6WS']   = 'n6ws.no-ip.org:7300'             # Ok
 NODES['K1TTT']  = 'k1ttt.net:7373'                  # (Peru, MA); Skimmer capable
 NODES['W6RFU']  = 'ucsbdx.ece.ucsb.edu:7300'        # Ok - CQ Zones 1-5 spots only (i.e. US & Canada)
-NODES['K3LR']   = 'dx.k3lr.com'                     # 
 NODES['AE5E']   = 'dxspots.com'                     # Ok - not many spots
 NODES['N4DEN']  = 'dxc.n4den.us:7373'               # Ok
 NODES['W6KK']   = 'w6kk.zapto.org:7300'             # Ok - USA and VE spots only, not many spots
