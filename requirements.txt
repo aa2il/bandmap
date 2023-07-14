@@ -1,17 +1,10 @@
 # pip3 install -r requirements.txt
 # pip3 install --upgrade PyAudio
 
-pyqt5
-matplotlib
-pyqtgraph
-basemap
 pyserial
 xlrd
 unidecode
 pyhamtools
-PyAudio>=0.2.12
-
+numpy
 pandas
-scipy
-levenshtein
 
