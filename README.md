@@ -27,7 +27,6 @@ Entries are color coded to help identify "targets of most interest."
    - Under bash:      export PYTHONPATH="$HOME/Python/libs"
 6) Bombs away:
    - ./bandmap.py
-   - See also start and start_cw for examples how to run this thing         
 
 # Installation under Mini-conda:
 
