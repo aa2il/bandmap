@@ -359,6 +359,46 @@ class BandMapGUI:
             if m=='CW':
                 self.sock.set_if_shift(0)
 
+    #Function to collect spots for a particular band
+    def collect_spots(self,band):
+
+        if 'cm' in band:
+            iband=int( band.replace('cm','') )
+        else:
+            iband=int( band.replace('m','') )
+            
+        if self.P.CONTEST_MODE:
+            
+            if self.P.DX_ONLY:
+                idx = [i for i,x in enumerate(self.SpotList) if x.band == iband and \
+                       x.dx_station.country!='United States' and x.mode not in ['FT8','FT4'] ] 
+            elif self.P.NA_ONLY:
+                idx = [i for i,x in enumerate(self.SpotList) if x.band == iband and \
+                       x.dx_station.continent=='NA' and x.mode not in ['FT8','FT4'] ] 
+            else:
+                idx = [i for i,x in enumerate(self.SpotList) if x.band == iband and x.mode not in ['FT8','FT4'] ]
+                
+        else:
+            
+            if self.P.DX_ONLY:
+                # Retain only stations outside US or SESs
+                idx = [i for i,x in enumerate(self.SpotList) if x and x.band == iband and \
+                       (x.dx_station.country!='United States' or len(x.dx_call)==3 or \
+                        x.dx_call=='WM3PEN')] 
+            elif self.P.NA_ONLY:
+                # Retain only stations in North America
+                idx = [i for i,x in enumerate(self.SpotList) if x and x.band == iband and \
+                       x.dx_station.continent=='NA']
+            else:
+                idx = [i for i,x in enumerate(self.SpotList) if x and x.band == iband]
+            
+        spots = [self.SpotList[i] for i in idx]
+        spots.sort(key=lambda x: x.frequency, reverse=False)
+
+        return spots
+
+
+                
     # Callback to handle band changes
     def SelectBands(self,allow_change=False):
 
@@ -410,36 +450,7 @@ class BandMapGUI:
             self.SelectAnt(-2,band)
             
         # Extract a list of spots that are in the desired band
-        if 'cm' in band:
-            iband=int( band.replace('cm','') )
-        else:
-            iband=int( band.replace('m','') )
-        if self.P.CONTEST_MODE:
-            #for x in self.SpotList:
-            #    print '-',x.mode,'-',x.mode!='FT8'
-            if self.P.DX_ONLY:
-                idx = [i for i,x in enumerate(self.SpotList) if x.band == iband and \
-                       x.dx_station.country!='United States' and x.mode not in ['FT8','FT4'] ] 
-            elif self.P.NA_ONLY:
-                idx = [i for i,x in enumerate(self.SpotList) if x.band == iband and \
-                       x.dx_station.continent=='NA' and x.mode not in ['FT8','FT4'] ] 
-            else:
-                idx = [i for i,x in enumerate(self.SpotList) if x.band == iband and x.mode not in ['FT8','FT4'] ] 
-        else:
-            if self.P.DX_ONLY:
-                # Retain only stations outside US or SESs
-                idx = [i for i,x in enumerate(self.SpotList) if x and x.band == iband and \
-                       (x.dx_station.country!='United States' or len(x.dx_call)==3 or \
-                        x.dx_call=='WM3PEN')] 
-            elif self.P.NA_ONLY:
-                # Retain only stations in North America
-                idx = [i for i,x in enumerate(self.SpotList) if x and x.band == iband and \
-                       x.dx_station.continent=='NA']
-            else:
-                idx = [i for i,x in enumerate(self.SpotList) if x and x.band == iband]
-            
-        self.current = [self.SpotList[i] for i in idx]
-        self.current.sort(key=lambda x: x.frequency, reverse=False)
+        self.current = self.collect_spots(band)
 
         # Get latest logbook
         now = datetime.utcnow().replace(tzinfo=UTC)
@@ -514,113 +525,12 @@ class BandMapGUI:
                 print('--- MATCH_QSOS: Possible dupe for',x.dx_call,'\tt12',t1,t2,'\tdelta=',delta,match)
 
         return match
-    
-    # Why is this still around? - see cluster_feed.py
-    def lb_update(self):
-        b = self.band.get()
-        print('LB_UPDATE: b=',b)
+
+    # Function to determine spot color
+    def spot_color(self,match,x):
+
         now = datetime.utcnow().replace(tzinfo=UTC)
-        idx=-1
-        if len(self.current)==0:
-            print('LB_UPDATE - Nothing to do.',self.current)
-            return
-        for x in self.current:
-            idx+=1
-            for qso in self.qsos:
-                match = self.match_qsos(qso,x,b,now)
-                call=qso['call']
-                #print('LB_UPDATE:',call,x.dx_call,match)
-                #match |= call==self.P.MY_CALL
-                if match:
-                    break
-        #else:
-        #    print('LB_UPDATE - Nothing to do.',self.current)
-        #    return
-
-        dx_call=x.dx_call.upper()
-        dx_station = Station(dx_call)
-        if dx_station.country=='United States' and len(dx_station.appendix)>=2:
-            dx_call=dx_station.homecall            # Strip out bogus appendices from state QPs
-        if self.P.CWOPS and '/' in dx_call:
-            home_call = dx_station.homecall
-        else:
-            home_call = dx_call
-            
-        if idx<0:
-            return
-        elif match:
-            print('*** Dupe ***',qso['call'],qso['band'])
-            c="red"
-        elif x.needed:
-            c="magenta"
-        elif x.need_this_year:
-            c="violet"
-        elif x.need_mode:
-            c="pink"
-        elif dx_call in self.friends:
-            c="lightskyblue" 
-        elif dx_call in self.most_wanted:
-            c="turquoise" 
-        elif call.upper()==self.P.MY_CALL:
-            c="deepskyblue"
-        elif self.P.CWOPS and ( (dx_call in self.members) or (home_call in self.members) ):
-            if dx_call in self.calls:
-                c="gold"
-            else:
-                c='orange'
-        else:
-            age = (now - x.time).total_seconds()/60      # In minutes
-            if age<2:
-                c="yellow"
-            else:
-                c="lightgreen"
-        self.lb.itemconfigure(idx, background=c)
-        print('LB_UPDATE:',dx_call,c)
-                
-                
-
-    # Change background colors on each list entry
-    def lb_colors(self,tag,idx,now,band,x):
-        dx_call=x.dx_call.upper()
-        if isinstance(band,int):
-            print('LB_COLORS: ******** Missing m ********',band)
-            band = str(band)+'m'
-        b=band
-        nqsos=len(self.qsos)
-        if VERBOSITY>0:
-            print('LB_COLORS: ... call=',dx_call,'\tband=',b,'nqsos=',nqsos)
-        
-        match=False
-        #if self.P.PARSE_LOG:
-        if nqsos>0:
-            for qso in self.qsos:
-                #print('QSO=',qso)
-                if self.P.CW_SS:
-                    # Can only work each station once regardless of band in this contest
-                    match = dx_call==qso['call']
-                else:
-                    try:
-                        match = (dx_call==qso['call']) and (b==qso['band'])
-                    except Exception as e: 
-                        print(e)
-                        match=False
-                        print('\n!@#$%^!&&*#^#^ MATCH ERROR',dx_call)
-                        print('qso=',qso)
-                        print('!@#$%^!&&*#^#^ MATCH ERROR\n')
-                #print('\n------LB_COLORS: qso=',qso,dx_call,match)
-                if match:
-                    t1 = datetime.strptime(now.strftime("%Y%m%d %H%M%S"), "%Y%m%d %H%M%S") 
-                    t2 = datetime.strptime( qso['qso_date_off']+" "+qso["time_off"] , "%Y%m%d %H%M%S")
-                    delta=(t1-t2).total_seconds() / 3600
-                    match = delta < self.P.MAX_HOURS_DUPE
-                    if VERBOSITY>=2:
-                        print('--- Possible dupe ',tag,' for',dx_call,'\tt12=',t1,t2,'\tdelta=',
-                              delta,match)
-                    if match:
-                        if VERBOSITY>=2:
-                            print('MATCHED!!!')
-                        break
-
+        age = (now - x.time).total_seconds()/60      # In minutes
         dx_call=x.dx_call.upper()
         dx_station = Station(dx_call)
         if dx_station.country=='United States' and len(dx_station.appendix)>=2:
@@ -630,10 +540,8 @@ class BandMapGUI:
             home_call = dx_station.homecall
         else:
             home_call = dx_call
-            
-        age=None
+        
         if match:
-            print('*** Dupe ***',qso['call'],qso['band'])
             c="red"
             c2='r'
         elif x.needed:
@@ -662,7 +570,6 @@ class BandMapGUI:
                 c='orange'
                 c2='o'
         else:
-            age = (now - x.time).total_seconds()/60      # In minutes
             if age<2:
                 c="yellow"
                 c2='y'
@@ -670,6 +577,89 @@ class BandMapGUI:
                 c="lightgreen"
                 c2='g'
 
+        return c,c2,age
+    
+    
+    # Why is this still around? - see cluster_feed.py
+    def lb_update(self):
+        b = self.band.get()
+        print('LB_UPDATE: b=',b)
+        now = datetime.utcnow().replace(tzinfo=UTC)
+        idx=-1
+        if len(self.current)==0:
+            print('LB_UPDATE - Nothing to do.',self.current)
+            return
+        for x in self.current:
+            idx+=1
+            for qso in self.qsos:
+                match = self.match_qsos(qso,x,b,now)
+                call=qso['call']
+                #print('LB_UPDATE:',call,x.dx_call,match)
+                #match |= call==self.P.MY_CALL
+                if match:
+                    break
+        #else:
+        #    print('LB_UPDATE - Nothing to do.',self.current)
+        #    return
+
+        if idx>=0:
+            c,c2,age=self.spot_color(match,x)
+            self.lb.itemconfigure(idx, background=c)
+            print('LB_UPDATE:',dx_call,c)
+                
+
+    # Function to check if we've already worked a spotted station
+    def B4(self,x,b):
+            
+        now = datetime.utcnow().replace(tzinfo=UTC)
+        dx_call=x.dx_call.upper()
+        nqsos=len(self.qsos)
+        if VERBOSITY>0:
+            print('B4: ... call=',dx_call,'\tband=',b,'nqsos=',nqsos)
+        
+        match=False
+        if nqsos>0:
+            for qso in self.qsos:
+                #print('QSO=',qso)
+                if self.P.CW_SS:
+                    # Can only work each station once regardless of band in this contest
+                    match = dx_call==qso['call']
+                else:
+                    try:
+                        match = (dx_call==qso['call']) and (b==qso['band'])
+                    except Exception as e: 
+                        print(e)
+                        match=False
+                        print('\n!@#$%^!&&*#^#^ MATCH ERROR',dx_call)
+                        print('qso=',qso)
+                        print('!@#$%^!&&*#^#^ MATCH ERROR\n')
+                #print('\n------B4: qso=',qso,dx_call,match)
+                if match:
+                    t1 = datetime.strptime(now.strftime("%Y%m%d %H%M%S"), "%Y%m%d %H%M%S") 
+                    t2 = datetime.strptime( qso['qso_date_off']+" "+qso["time_off"] , "%Y%m%d %H%M%S")
+                    delta=(t1-t2).total_seconds() / 3600
+                    match = delta < self.P.MAX_HOURS_DUPE
+                    if VERBOSITY>=2:
+                        print('--- Possible dupe ',tag,' for',dx_call,'\tt12=',t1,t2,'\tdelta=',
+                              delta,match)
+                    if match:
+                        print('*** Dupe ***',qso['call'],qso['band'])
+                        break
+
+        return match
+
+            
+
+    # Change background colors on each list entry
+    def lb_colors(self,tag,idx,now,band,x):
+
+        if isinstance(band,int):
+            print('LB_COLORS: ******** Missing m ********',band)
+            band = str(band)+'m'
+
+        match = self.B4(x,band)
+        c,c2,age=self.spot_color(match,x)
+        
         #print('@@@@@@@@@@@@@@@@ LB_COLORS: tag=',tag,'\tcall=',dx_call,
         #      '\tc=',c,'\tage=',age)
         self.lb.itemconfigure(idx, background=c)

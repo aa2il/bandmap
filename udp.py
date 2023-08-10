@@ -64,13 +64,18 @@ def udp_msg_handler(self,sock,msg):
                 if not hasattr(self.P,'gui'):
                     continue
                 a=[]
-                for x in self.P.gui.current:
+                # spots = self.P.gui.current
+                spots = self.P.gui.collect_spots(band)
+                for x in spots:
                     a.append(x.dx_call)
                     a.append(x.frequency)
                     try:
                         a.append(x.color)
                     except:
-                        a.append('white')
+                        #a.append('white')
+                        match = self.P.gui.B4(x,band)
+                        c,c2,age=self.P.gui.spot_color(match,x)
+                        a.append(c2)
                 a=str(a)
                 msg2='SpotList:'+band+':'+a+'\n'
                 #print('\nReply:',msg2)
