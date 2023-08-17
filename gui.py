@@ -605,7 +605,7 @@ class BandMapGUI:
         if idx>=0:
             c,c2,age=self.spot_color(match,x)
             self.lb.itemconfigure(idx, background=c)
-            print('LB_UPDATE:',dx_call,c)
+            #print('LB_UPDATE:',dx_call,c)
                 
 
     # Function to check if we've already worked a spotted station

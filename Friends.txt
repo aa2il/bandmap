@@ -43,6 +43,12 @@ N5GG,Colin,Former Student
 N6GV,Gary,Former Student
 WB0RLJ,Jim,Former Student
 
+# CWA 4
+AC7FX,John,Student
+NN7O,Tom,Student
+AE5JT,Jeff,Student
+W0ABE,Justin,Student
+
 # Locals
 k6pa,Troy, Bought Army Tower from him
 n6utc,Efram,VHFer
@@ -54,8 +60,8 @@ N6GP,Tim,VHFer
 
 # Clubs
 n6ror,ROARS
-W5LVC,Dallas Club
-K4HTA,VA Club
+#W5LVC,Dallas Club
+#K4HTA,VA Club
 
 # 13 Colonies
 K2A
