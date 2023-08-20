@@ -22,6 +22,7 @@
 from tcp_server import *
 from pprint import pprint
 import zlib
+from utilities import freq2band
 
 #########################################################################################
 
@@ -48,6 +49,37 @@ def udp_msg_handler(self,sock,msg):
                 sock.send(msg2.encode())
             else:
                 print('UDP MSG HANDLER: Server name is',mm[1])
+            return
+                
+        elif mm[0]=='RunFreq' and mm[1] in ['UP','DOWN'] and False:
+
+            # Sift through spots an find a gap to run in
+            frq=float(mm[2])
+            band = freq2band(1e-3*frq)
+            print('UDP MSG HANDLER: RunFreq - frq=',frq,'\tband=',band)
+            spots = self.P.gui.collect_spots(band,not mm[1]=='UP')
+            print('spots=',spots)
+
+            flast=None
+            MIN_DF=1e-3*500
+            for x in spots:
+                f  = x.frequency
+                if not flast:
+                    flast = f
+                df = abs( f - flast )
+                print(x.dx_call,'\t',flast,'\t',f,'\t',df)
+                if df>MIN_DF:
+                    if (mm[1]=='UP' and flast>frq and f>frq) or \
+                       (mm[1]=='DOWN' and flast<frq and f<frq):
+                        frq2=0.5*(f+flast)
+                        msg='RunFreq:TRY:'+str(frq2)
+                        print('UDP MSG HANDLER: RunFreq - Suggested freq=',frq2,
+                              '\nSending msg=',msg)
+                        #self.P.udp_server.Broadcast(msg)
+                        sock.send(msg.encode())
+                        return
+                flast = f
+            print('UDP MSG HANDLER: RunFreq - Unable to suggest a freq')
             return
                 
         elif mm[0]=='SpotList':

@@ -360,7 +360,7 @@ class BandMapGUI:
                 self.sock.set_if_shift(0)
 
     #Function to collect spots for a particular band
-    def collect_spots(self,band):
+    def collect_spots(self,band,REVERSE=False):
 
         if 'cm' in band:
             iband=int( band.replace('cm','') )
@@ -393,7 +393,7 @@ class BandMapGUI:
                 idx = [i for i,x in enumerate(self.SpotList) if x and x.band == iband]
             
         spots = [self.SpotList[i] for i in idx]
-        spots.sort(key=lambda x: x.frequency, reverse=False)
+        spots.sort(key=lambda x: x.frequency, reverse=REVERSE)
 
         return spots
 
