@@ -51,7 +51,11 @@ def udp_msg_handler(self,sock,msg):
                 print('UDP MSG HANDLER: Server name is',mm[1])
             return
                 
-        elif mm[0]=='RunFreq' and mm[1] in ['UP','DOWN'] and False:
+        elif mm[0]=='RunFreq' and mm[1] in ['UP','DOWN']:
+
+            # Do nothing - this is too slow so its handled in the SDR for now
+            print('UDP MSG HANDLER: RunFreq - Move along, Nothing to see here')
+            return
 
             # Sift through spots an find a gap to run in
             frq=float(mm[2])

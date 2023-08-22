@@ -334,8 +334,9 @@ def digest_spot(self,line):
             if len(idx1)>0:
 
                 # Call already in list - Update spot info
-                if VERBOSITY>=2:
-                    print("CLUSTER FEED - Found call:",idx1,dx_call)
+                #if VERBOSITY>=2:
+                print("CLUSTER FEED: Dupe call =",dx_call,'\tfreq=',freq,
+                      '\tmode=',mode,'\tband=',band,'\tidx1=',idx1)
                 for i in idx1:
                     if VERBOSITY>=2:
                         print('CLUSTER FEED A i=',i,self.SpotList[i].dx_call,
@@ -375,7 +376,7 @@ def digest_spot(self,line):
             else:
                     
                 # New call - maintain a list of all spots sorted by freq 
-                print("CLUSTER FEED: New call =",dx_call,'\tfreq=',freq,
+                print("CLUSTER FEED: New call  =",dx_call,'\tfreq=',freq,
                       '\tmode=',mode,'\tband=',band)
                 self.SpotList.append( obj )
                 #                self.SpotList.sort(key=lambda x: x.frequency, reverse=False)
@@ -441,7 +442,7 @@ def digest_spot(self,line):
 #########################################################################################
 
 # Debug routine for scrolling issues
-def scrolling(self,txt,verbosity=1):
+def scrolling(self,txt,verbosity=0):
     #print('SCROLLING:',txt,verbosity)
 
     sb=self.scrollbar.get()
@@ -466,7 +467,7 @@ def cull_old_spots(self):
     print("CULL OLD SPOTS - Rig freq=",frq,'\tnspots=',self.nspots,len(self.SpotList),len(self.current),
           '\nmax age=',self.P.MAX_AGE,'\tnow=',now)
 
-    #scrolling(self,'CULL OLD SPOTS A')
+    scrolling(self,'CULL OLD SPOTS A')
 
     NewList=[];
     BAND = int( self.band.get().replace('m','') )
@@ -495,11 +496,11 @@ def cull_old_spots(self):
                 self.lb.delete(idx2[0])
 
     # Update gui display
-    #scrolling(self,'CULL OLD SPOTS B')
+    scrolling(self,'CULL OLD SPOTS B')
     self.SpotList=NewList
     if OLD_WAY:
         self.SelectBands()
-    #scrolling(self,'CULL OLD SPOTS C')
+    scrolling(self,'CULL OLD SPOTS C')
     print("CULL OLD SPOTS - New nspots=",self.nspots,len(self.SpotList),len(self.current))
     self.last_check=datetime.now()
 #    print self.last_check

@@ -221,10 +221,10 @@ class BandMapGUI:
                    command=lambda: self.SetSubBand(3) ).pack(side=LEFT,anchor=W)
 
         # List box
-        LBframe = Frame(self.root)
-        LBframe.pack(side=LEFT,fill=BOTH,expand=1)
+        self.LBframe = Frame(self.root)
+        self.LBframe.pack(side=LEFT,fill=BOTH,expand=1)
 
-        self.scrollbar = Scrollbar(LBframe, orient=VERTICAL)
+        self.scrollbar = Scrollbar(self.LBframe, orient=VERTICAL)
 
         # Select a fixed-space font
         if platform.system()=='Linux':
@@ -243,7 +243,7 @@ class BandMapGUI:
             self.lb_font = tkinter.font.Font(family=FAMILY,size=SIZE,weight="bold")
         else:
             self.lb_font = tkFont.Font(family=FAMILY,size=SIZE,weight="bold")
-        self.lb   = Listbox(LBframe, yscrollcommand=self.scrollbar.set,font=self.lb_font)
+        self.lb   = Listbox(self.LBframe, yscrollcommand=self.scrollbar.set,font=self.lb_font)
         self.scrollbar.config(command=self.lb.yview)
         self.scrollbar.pack(side=RIGHT, fill=Y)
         self.lb.pack(side=LEFT, fill=BOTH, expand=1)
@@ -252,12 +252,30 @@ class BandMapGUI:
         self.lb.bind('<Button-2>',self.LBCenterClick)
         self.lb.bind('<Button-3>',self.LBRightClick)
 
+        # Trap the mouse wheel pseudo-events so we can handle them properly
+        self.lb.bind('<Button-4>',self.scroll_updown)
+        self.lb.bind('<Button-5>',self.scroll_updown)          
+        self.scrollbar.bind('<Button-4>',self.scroll_updown)   
+        self.scrollbar.bind('<Button-5>',self.scroll_updown)   
+
         # And away we go
         self.SelectBands(True)
         self.Scheduler()
         self.WatchDog()
 
 
+    # Callback to handle mouse wheel scrolling since Tk doesn't seem to do a very good job of it
+    # The jumps in Tk are much to big and I can't figure out how to adjust so do this instead
+    def scroll_updown(self, event):
+        if event.num==4:
+            n=-1   # int(-1*(event.delta/120))
+        else:
+            n=1   # int(-1*(event.delta/120))
+        #print('MOUSE WHEEL ...........................................................................................',
+        #      n,event.num,event.delta,'\n',event)
+        self.lb.yview_scroll(n, "units")
+        return "break"
+        
     # Adjust rig freq 
     def FreqAdjust(self,df):
         if VERBOSITY>0:
@@ -451,7 +469,8 @@ class BandMapGUI:
             
         # Extract a list of spots that are in the desired band
         self.current = self.collect_spots(band)
-
+        y=scrolling(self,'SELECT BANDS B')
+        
         # Get latest logbook
         now = datetime.utcnow().replace(tzinfo=UTC)
         if self.P.PARSE_LOG:
@@ -499,6 +518,9 @@ class BandMapGUI:
             self.current[n].color=self.lb_colors('A',END,now,band,x)
             n+=1
 
+        # Reset lb view
+        self.lb.yview_moveto(y)
+        scrolling(self,'SELECT BANDS C')
         if VERBOSITY>0:
             print('SELECT BANDS B: nspots=',self.nspots,len(self.SpotList),len(self.current))
 
@@ -674,6 +696,53 @@ class BandMapGUI:
         #print(" ")
 
         return c2
+
+
+    # Function to set list box view
+    def set_lbview(self,frq,MIDDLE=False):
+        
+        dfbest=1e9
+        ibest=-1
+        idx=0
+
+        # Keep track of entry that is closest to current rig freq
+        for x in self.current:
+            df=abs( x.frequency-frq )
+            #            print idx,x.frequency,frq,df,ibest
+            if df<dfbest:
+                dfbest=df
+                ibest=idx
+            idx=idx+1
+
+        # Make sure its visible and highlight it
+        if ibest>-1:
+
+            sb=self.scrollbar.get()
+            sz=self.lb.size()
+            yview=self.lb.yview()
+            """
+            print("LBSANITY: Closest=",ibest,
+                  '\tf=',self.current[ibest].frequency,
+                  '\tsize=',sz,
+                  '\tsb=',sb,
+                  '\tyview',yview)
+            """
+            #print('hght:',self.lb['height'])
+
+            # Use to scrollbar to determine how many lines are visible
+            d = yview[1]-yview[0]             # Fraction of list in view
+            n = d*sz                          # No. line in view
+            if MIDDLE:
+                y = max( ibest*d/n - d/2. , 0)    # Top coord so view will be centered around ibest
+            else:
+                y = max( ibest*d/n , 0)           # Top coord will be centered around ibest
+            self.lb.yview_moveto(y)
+
+            self.lb.selection_clear(0,END)
+            if False:
+                # This was problematic
+                self.lb.selection_set(ibest)
+    
             
     # Make sure the entry closest to the rig freq is visible
     def LBsanity(self):
@@ -705,45 +774,9 @@ class BandMapGUI:
             
             return
 
-        # Get rig freq
+        # Set lb view so its centered around the rig rig freq
         frq = self.rig_freq
-        dfbest=1e9
-        ibest=-1
-        idx=0
-
-        # Keep track of entry that is closest to current rig freq
-        for x in self.current:
-            df=abs( x.frequency-frq )
-            #            print idx,x.frequency,frq,df,ibest
-            if df<dfbest:
-                dfbest=df
-                ibest=idx
-            idx=idx+1
-
-        # Make sure its visible and highlight it
-        if ibest>-1:
-            sb=self.scrollbar.get()
-            sz=self.lb.size()
-            yview=self.lb.yview()
-            """
-            print("LBSANITY: Closest=",ibest,
-                  '\tf=',self.current[ibest].frequency,
-                  '\tsize=',sz,
-                  '\tsb=',sb,
-                  '\tyview',yview)
-            """
-            #print('hght:',self.lb['height'])
-
-            # Use to scrollbar to determine how many lines are visible
-            d = yview[1]-yview[0]             # Fraction of list in view
-            n = d*sz                          # No. line in view
-            y = max( ibest*d/n - d/2. , 0)    # Top coord so view will be centered around ibest
-            self.lb.yview_moveto(y)
-
-            self.lb.selection_clear(0,END)
-            if False:
-                # This was problematic
-                self.lb.selection_set(ibest)
+        self.set_lbview(frq,True)
 
 
     # Callback to reset telnet connection
