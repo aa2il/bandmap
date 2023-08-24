@@ -112,6 +112,8 @@ class PARAMS:
                               help='Use FT4 freqs instead of FT8')
         arg_proc.add_argument('-small', action='store_true',
                               help='Use small font')
+        arg_proc.add_argument('-center', action='store_true',
+                              help='Keep list centered on rig freq')
         arg_proc.add_argument("-vfo", help="VFO to follow",
                               type=str,default="A",
                               choices=['A','B'] )
@@ -241,7 +243,7 @@ class PARAMS:
         if not os.path.isfile(self.NODES_FNAME):
             self.NODES_FNAME = 'nodes.xls'
 
-        self.KEEP_FREQ_CENTERED=True
+        self.KEEP_FREQ_CENTERED=args.center
         self.SMALL_FONT = args.small
         
         

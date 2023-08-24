@@ -562,7 +562,10 @@ class BandMapGUI:
             home_call = dx_station.homecall
         else:
             home_call = dx_call
-        
+
+        # Set color depending criteria
+        # c2 is the abbreviated version used to shorten the inter-process messages 
+        # These need to be matched in pySDR/gui.py
         if match:
             c="red"
             c2='r'
