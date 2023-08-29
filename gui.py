@@ -380,21 +380,26 @@ class BandMapGUI:
     #Function to collect spots for a particular band
     def collect_spots(self,band,REVERSE=False):
 
+        print('COLLECT_SPOTS: band=',band,'\tReverse=',REVERSE,'\tCONTEST_MODE=', self.P.CONTEST_MODE)
+
         if 'cm' in band:
             iband=int( band.replace('cm','') )
         else:
             iband=int( band.replace('m','') )
             
         if self.P.CONTEST_MODE:
-            
+
+            m = self.mode.get()
+            print('COLLECT_SPOTS: m=',m)
             if self.P.DX_ONLY:
                 idx = [i for i,x in enumerate(self.SpotList) if x.band == iband and \
-                       x.dx_station.country!='United States' and x.mode not in ['FT8','FT4'] ] 
+                       x.dx_station.country!='United States' and (m not in ['CW'] or x.mode not in ['FT8','FT4','DIGITAL']) ] 
             elif self.P.NA_ONLY:
                 idx = [i for i,x in enumerate(self.SpotList) if x.band == iband and \
-                       x.dx_station.continent=='NA' and x.mode not in ['FT8','FT4'] ] 
+                       x.dx_station.continent=='NA' and (m not in ['CW'] or x.mode not in ['FT8','FT4','DIGITAL']) ] 
             else:
-                idx = [i for i,x in enumerate(self.SpotList) if x.band == iband and x.mode not in ['FT8','FT4'] ]
+                idx = [i for i,x in enumerate(self.SpotList) if x.band == iband and \
+                       (m not in ['CW'] or x.mode not in ['FT8','FT4','DIGITAL']) ]
                 
         else:
             
@@ -421,8 +426,11 @@ class BandMapGUI:
     def SelectBands(self,allow_change=False):
 
         VERBOSITY = self.P.DEBUG
+        VERBOSITY = 1
         if VERBOSITY>0:
-            print('SELECT BANDS A: nspots=',self.nspots,len(self.SpotList),len(self.current))
+            print('SELECT BANDS A: nspots=',self.nspots,
+                  '\tlen SpotList=',len(self.SpotList),
+                  '\tlen Current=',len(self.current))
 
         scrolling(self,'SELECT BANDS A')
         
@@ -522,8 +530,11 @@ class BandMapGUI:
         self.lb.yview_moveto(y)
         scrolling(self,'SELECT BANDS C')
         if VERBOSITY>0:
-            print('SELECT BANDS B: nspots=',self.nspots,len(self.SpotList),len(self.current))
+            print('SELECT BANDS B: nspots=',self.nspots,
+                  '\tlen SpotList=',len(self.SpotList),
+                  '\tlen Current=',len(self.current))
 
+            
     def match_qsos(self,qso,x,b,now):
         if self.P.CW_SS:
             # Can only work each station once regardless of band in this contest

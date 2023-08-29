@@ -113,6 +113,9 @@ def cluster_feed(self):
         line = tn.convert_spot(spot)
         if line:
             print('Cluster Feed: line=',line)
+        else:
+            print('Cluster Feed: Blank line=',line)
+            print('spot=',spot)
 
         # Check for band changes
         if tn.nsleep>=1 and True:
@@ -187,9 +190,10 @@ def cluster_feed(self):
             return 0
 
     # Process the spot
-    scrolling(self,'DIGEST SPOT A')
-    digest_spot(self,line)
-    scrolling(self,'DIGEST SPOT B')
+    if len(line)>0:
+        scrolling(self,'DIGEST SPOT A')
+        digest_spot(self,line)
+        scrolling(self,'DIGEST SPOT B')
     return 1
 
         
@@ -208,7 +212,9 @@ def digest_spot(self,line):
         self.qsos.append( qso[0] )
         #print('self.qsos=',self.qsos)
         self.lb_update()
-            
+
+    if self.P.CLUSTER=='WSJT':
+        print('SPOT:',line,len(line))
     obj = Spot(line)
     if self.P.ECHO_ON and True:
         #print('OBJ:')
@@ -225,7 +231,10 @@ def digest_spot(self,line):
         dx_call=obj.dx_call
 
         # Fix common mistakes
-        if dx_call==None or len(dx_call)<3:
+        if dx_call==None:
+            print('CLUSTER_FEED: *** CORRECTION - blank call?????',dx_call)
+            pprint(vars(obj))
+        elif len(dx_call)<3:
             print('CLUSTER_FEED: *** CORRECTION but dont know what to do - call=',dx_call)            
         elif dx_call in self.corrections:
             print('CLUSTER_FEED: *** NEED A CORRECTION ***',dx_call)
@@ -237,8 +246,9 @@ def digest_spot(self,line):
 
         # Reject FT8/4 spots if we're in a contest
         keep=True
+        m = self.mode.get()
         if self.P.CONTEST_MODE:
-            if obj.mode in ['FT4','FT8']:
+            if m=='CW' and obj.mode in ['FT4','FT8','DIGITAL']:
                 keep=False
 
         # Reject calls that really aren't calls
@@ -345,6 +355,8 @@ def digest_spot(self,line):
                     self.SpotList[i].time=obj.time
                     self.SpotList[i].frequency=obj.frequency
                     self.SpotList[i].snr=obj.snr
+                    if self.P.CLUSTER=='WSJT':
+                        self.SpotList[i].df=obj.df
                     if VERBOSITY>=2:
                         print('CLUSTER FEED B i=',i,self.SpotList[i].dx_call,
                               '\ttime=',self.SpotList[i].time,obj.time,
@@ -364,6 +376,12 @@ def digest_spot(self,line):
                             #print('Insert3')
                             lb.insert(idx2[0], "%4d  %-10.10s  %+6.6s %-17.17s %+4.4s" % \
                                       (df,dx_call,mode,cleanup(dxcc),obj.snr))
+                            
+                            i=idx[0]
+                            self.current[i].time=obj.time
+                            self.current[i].frequency=obj.frequency
+                            self.current[i].snr=obj.snr
+                            self.current[i].df=obj.df
                         except:
                             pass
                     else:
@@ -464,8 +482,15 @@ def cull_old_spots(self):
     #logging.info("Calling Get_Freq ...")
     now = datetime.utcnow().replace(tzinfo=UTC)
     frq = self.sock.get_freq(VFO=self.VFO)
-    print("CULL OLD SPOTS - Rig freq=",frq,'\tnspots=',self.nspots,len(self.SpotList),len(self.current),
-          '\nmax age=',self.P.MAX_AGE,'\tnow=',now)
+    #print('SpotList=',self.SpotList)
+    #print("CULL OLD SPOTS - Rig freq=",frq,'\tnspots=',self.nspots,len(self.SpotList),len(self.current),
+    #      '\nmax age=',self.P.MAX_AGE,'\tnow=',now)
+    print("CULL OLD SPOTS - Rig freq=",frq,
+          '\tnspots=',self.nspots,
+          '\tlen SpotList=',len(self.SpotList),
+          '\tlen Current=',len(self.current),
+          '\n\tmax age=',self.P.MAX_AGE,
+          '\tnow=',now)
 
     scrolling(self,'CULL OLD SPOTS A')
 
@@ -501,7 +526,9 @@ def cull_old_spots(self):
     if OLD_WAY:
         self.SelectBands()
     scrolling(self,'CULL OLD SPOTS C')
-    print("CULL OLD SPOTS - New nspots=",self.nspots,len(self.SpotList),len(self.current))
+    print("CULL OLD SPOTS - New nspots=",self.nspots,
+          '\tlen SpotList=',len(self.SpotList),
+          '\tlen Current=',len(self.current))
     self.last_check=datetime.now()
 #    print self.last_check
 

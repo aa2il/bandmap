@@ -48,6 +48,7 @@ AC7FX,John,Student
 NN7O,Tom,Student
 AE5JT,Jeff,Student
 W0ABE,Justin,Student
+W0MN,Gill, Student
 
 # Locals
 k6pa,Troy, Bought Army Tower from him
@@ -64,20 +65,20 @@ n6ror,ROARS
 #K4HTA,VA Club
 
 # 13 Colonies
-K2A
-K2B
-K2C
-K2D
-K2E
-K2F
-K2G
-K2H
-K2I
-K2J
-K2K
-K2L
-K2M
-WM3PEN
-GB13COL
-TM13COL
+#K2A
+#K2B
+#K2C
+#K2D
+#K2E
+#K2F
+#K2G
+#K2H
+#K2I
+#K2J
+#K2K
+#K2L
+#K2M
+#WM3PEN
+#GB13COL
+#TM13COL
 
