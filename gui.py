@@ -327,7 +327,7 @@ class BandMapGUI:
                 elif b in ['40m','20m','15m']:
                     ant=1
                 elif b in ['30m','17m','12m','10m','6m']:
-                    ant=3    # Ant 2 is broken
+                    ant=2
                 else:
                     ant=1
                 self.P.sock.set_ant(ant,VFO=self.VFO)
