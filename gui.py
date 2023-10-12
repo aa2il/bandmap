@@ -110,6 +110,18 @@ class BandMapGUI:
         else:
             self.fp=-1
 
+        # Read "regular" logbook 
+        if self.P.CWOPS:
+            if '_6' in self.P.LOG_NAME:
+                fname99=self.P.LOG_NAME.replace('_6','')
+                print('GUI: Reading regular log file',fname99)
+                logbook = parse_adif(fname99)
+                self.calls1 = [ qso['call'] for qso in logbook ]
+                self.calls1 =list( set( self.calls1) )
+            else:
+                self.calls1 = []
+            print('GUI: CALLS1=',self.calls1,len(self.calls1))
+            
         # Create the GUI - need to be able to distinguish between multiple copies of bandmap 
         self.root = Tk()
         if P.SERVER=="WSJT":
@@ -482,6 +494,7 @@ class BandMapGUI:
         # Get latest logbook
         now = datetime.utcnow().replace(tzinfo=UTC)
         if self.P.PARSE_LOG:
+            print('GUI: Reading log file',self.P.LOG_NAME)
             logbook = parse_adif(self.P.LOG_NAME,REVISIT=True)
             self.qsos += logbook
             print('################################# QSOs in log=',
@@ -493,7 +506,7 @@ class BandMapGUI:
             #sys.exit(0)
 
         if self.P.CWOPS:
-            self.calls = [ qso['call'] for qso in self.qsos ]
+            self.calls = self.calls1 + [ qso['call'] for qso in self.qsos ]
             self.calls=list( set( self.calls) )
             print('No. unique calls works:',len(self.calls))
             #print(self.calls)
