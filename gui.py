@@ -110,10 +110,22 @@ class BandMapGUI:
         else:
             self.fp=-1
 
-        # Read "regular" logbook 
+        # Read "regular" logbook - need to update this
         if self.P.CWOPS:
-            if '_6' in self.P.LOG_NAME:
+            if True:
+                print('\nCWops members worked:\n',self.P.data.cwops_worked)
+                self.calls1 = []
+                #sys.exit(0)
+            elif '_6' in self.P.LOG_NAME:
+                # For CQP
                 fname99=self.P.LOG_NAME.replace('_6','')
+                print('GUI: Reading regular log file',fname99)
+                logbook = parse_adif(fname99)
+                self.calls1 = [ qso['call'] for qso in logbook ]
+                self.calls1 =list( set( self.calls1) )
+            elif True:
+                # After the CQP
+                fname99=self.P.LOG_NAME.replace('.','_6.')
                 print('GUI: Reading regular log file',fname99)
                 logbook = parse_adif(fname99)
                 self.calls1 = [ qso['call'] for qso in logbook ]
@@ -612,9 +624,10 @@ class BandMapGUI:
             c="deepskyblue" 
             c2='b'
         elif self.P.CWOPS and ( (dx_call in self.members) or (home_call in self.members) ):
-            if dx_call in self.calls:
+            #if dx_call in self.calls:
+            if dx_call in self.P.data.cwops_worked:
                 c="gold"
-                c2='g'
+                c2='d'
             else:
                 c='orange'
                 c2='o'
