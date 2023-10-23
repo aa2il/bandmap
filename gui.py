@@ -1076,15 +1076,31 @@ class BandMapGUI:
         self.lb.configure(font=self.lb_font)
 
         # Need to force a refresh to get the correct no. of rows in the list box
-        geom=self.root.geometry()
-        h=self.root.winfo_height()
-        w=self.root.winfo_width()
-        print('TOGGLE SMALL FONT: size=',SIZE,'\tgeom=',geom,h,w)
-        sz=str(w)+'x'+str(int(h+1))
-        self.root.geometry(sz)
-        sz=str(w)+'x'+str(h)
-        self.root.geometry(sz)
-        
+        # I haven't found a simple way to do this so we slightly change the window size,
+        # refresh and change the size back
+        """
+        # This method causes the window to move slightly - dont know why???!!!
+        #window.geometry("{}x{}+{}+{}".format(window_width, window_height, x-coord, y-coord))
+        #root.geometry('%dx%d+%d+%d' % (w, h, x, y))
+
+        geom  = self.root.geometry()
+        geom1 = geom.split('x')
+        geom2 = str( int(geom1[0])+1 ) +'x'+geom1[1]
+        self.root.geometry(geom2)
+        self.root.update()
+        self.root.geometry(geom)
+        self.root.update()
+        geom3  = self.root.geometry()
+        print('TOGGLE SMALL FONT: size=',SIZE,'\tgeom=',geom,geom2,geom3)
+        """
+        # The window doesn't move with this method but there is a momentary flash - ugh!
+        #self.root.state('withdrawn')
+        self.root.attributes('-zoomed', True)
+        self.root.update()
+        self.root.attributes('-zoomed', False)
+        #self.root.state('normal')
+        self.root.update()
+
     # Toggle showing of needs for this year
     def toggle_need_year(self):
         self.P.SHOW_NEED_YEAR=self.show_need_year.get()
