@@ -898,7 +898,19 @@ class BandMapGUI:
         self.SelectAnt(-1)
         self.SelectMode('')
 
-        #self.root.update()
+        # Try to connect to the keyer
+        if self.P.UDP_CLIENT:
+            if not self.P.udp_client:
+                self.P.udp_ntries+=1
+                if self.P.udp_ntries<=10:
+                    self.P.udp_client=open_udp_client(self.P,KEYER_UDP_PORT,
+                                                      udp_msg_handler)
+                    if self.P.udp_client:
+                        print('GUI->WatchDog: Opened connection to KEYER.')
+                        self.P.udp_ntries=0
+                else:
+                    print('GUI->WatchDogUnable to open UDP client - too many attempts',self.P.udp_ntries)
+
         self.root.update_idletasks()
         self.root.after(1*1000, self.WatchDog)
 
@@ -942,20 +954,8 @@ class BandMapGUI:
         self.SelectAnt(-2,band)
 
         # Send spot info to keyer
-        if self.P.UDP_CLIENT:
-            if not self.P.udp_client:
-                self.P.udp_ntries+=1
-                if self.P.udp_ntries<=10:
-                    self.P.udp_client=open_udp_client(self.P,KEYER_UDP_PORT,
-                                                      udp_msg_handler)
-                    if self.P.udp_client:
-                        print('GUI->LBSelect: Opened connection to KEYER.')
-                        self.P.udp_ntries=0
-                else:
-                    print('Unable to open UDP client - too many attempts',self.P.udp_ntries)
-
-            if self.P.udp_client:
-                self.P.udp_client.Send('Call:'+b[1]+':'+vfo)
+        if self.P.UDP_CLIENT and self.P.udp_client:
+            self.P.udp_client.Send('Call:'+b[1]+':'+vfo)
 
             
     def LBLeftClick(self,event):

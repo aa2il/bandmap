@@ -23,6 +23,9 @@ from tcp_server import *
 from pprint import pprint
 import zlib
 from utilities import freq2band
+from datetime import datetime
+from cluster_feed import digest_spot
+import pytz
 
 #########################################################################################
 
@@ -43,6 +46,7 @@ def udp_msg_handler(self,sock,msg):
 
         if mm[0]=='Name':
             
+            # Name:Client_name
             if mm[1]=='?':
                 print('UDP MSG HANDLER: Server name query')
                 msg2='Name:BANDMAP\n'
@@ -86,6 +90,23 @@ def udp_msg_handler(self,sock,msg):
             print('UDP MSG HANDLER: RunFreq - Unable to suggest a freq')
             return
                 
+        elif mm[0]=='SPOT':
+
+            # SPOT:CALL:FREQ
+            print('\nUDP: Received SPOT:',mm)
+            call=mm[1]
+            freq=float(mm[2])
+            mode=mm[3]
+            print(call,freq,mode)
+            UTC = pytz.utc
+            now = datetime.utcnow().replace(tzinfo=UTC)
+            line = 'DX de %-9s %8.1f  %-12s %-30s %4sZ' % \
+                ('AA2IL'+'-#:',freq,call,mode+' 0 dB',
+                 now.strftime("%H%M") )
+            print(line)
+            digest_spot(self.P.gui,line)
+            return
+     
         elif mm[0]=='SpotList':
             
             if mm[1]=='Refresh':

@@ -296,7 +296,7 @@ def digest_spot(self,line):
                             bg=0
                     except:
                         bg=0
-                    tn.highlight_spot(dx_call,fg,bg)
+                    self.tn.highlight_spot(dx_call,fg,bg)
                     #print('CLUSTER FEED: call=',obj.dx_call,'\tsnr=',obj.snr,'\tfg/bg=',fg,bg,'\t',obj.snr.isnumeric(),int(obj.snr),len(obj.snr))
 
             # Pull out info from the spot
