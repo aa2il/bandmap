@@ -286,6 +286,9 @@ class BandMapGUI:
         self.SelectBands(True)
         self.Scheduler()
         self.WatchDog()
+        if P.DESKTOP!=None:
+            cmd='wmctrl -r "'+self.root.title()+'" -t '+str(P.DESKTOP)
+            os.system(cmd)
 
 
     # Callback to handle mouse wheel scrolling since Tk doesn't seem to do a very good job of it

@@ -125,6 +125,8 @@ class PARAMS:
                               type=float,default=2*24)
         arg_proc.add_argument("-age", help="Max no. minutes to keep a spot around",
                               type=int,default=None)
+        arg_proc.add_argument('-desktop',type=int,default=None,
+                              help='Desk Top Work Space No.')
         arg_proc.add_argument("-debug", help="Debug Level",
                               type=int,default=0)
         args = arg_proc.parse_args()
@@ -139,6 +141,7 @@ class PARAMS:
         self.MAX_HOURS_DUPE = args.hours
 
         self.CONTEST_MODE = args.contest
+        self.DESKTOP       = args.desktop
         
         self.PARSE_LOG    = self.CONTEST_MODE and True
         self.PARSE_LOG    = True
