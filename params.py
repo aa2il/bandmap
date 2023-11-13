@@ -62,6 +62,7 @@ NODES['K6EXO']  = 'k6exo.dyndns.org:7300'           # Doesn't work?
 NODES['N6WS']   = 'n6ws.no-ip.org:7300'             # Not sure how to log on?
 NODES['N7OD']   = 'n7od.pentux.net'                  # Not sure how to log on?
 NODES['ANY']    = ''
+NODES['NONE']   = ''
 
 ################################################################################
 

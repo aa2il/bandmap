@@ -44,6 +44,7 @@ from fileio import read_text_file
 from get_node_list import *
 from tcp_server import *
 from udp import *
+from load_history import load_history
 
 #########################################################################################
 
@@ -60,6 +61,10 @@ if __name__ == "__main__":
 
     # Process command line params
     P=PARAMS()
+    
+    # Create GUI 
+    gui = BandMapGUI(P)
+    P.gui=gui
     
     # Read list of nodes - work in progress
     if False:
@@ -95,6 +100,8 @@ if __name__ == "__main__":
             print('\n*** Unable to connect to any node - no internet? - giving up! ***\n')
             sys.exit(0)
                 
+    elif P.SERVER=='NONE':
+        P.tn = None
     else:
         P.tn = connection(P.TEST_MODE,P.CLUSTER,P.MY_CALL,P.WSJT_FNAME, \
                              ip_addr=P.WSJT_IP_ADDRESS,port=P.WSJT_PORT)
@@ -105,12 +112,22 @@ if __name__ == "__main__":
             if not OK:
                 sys.exit(0)
         else:
-            print('Giving up')
-            sys.exit(0)
+            if P.SERVER!='NONE':
+                print('Giving up')
+                sys.exit(0)
     
     # Read challenge data
     P.data = ChallengeData(P.CHALLENGE_FNAME)
 
+    # Load data for highlighting CW ops members
+    if P.CWOPS:
+        fname='~/Python/history/data/Shareable CWops data.xlsx'
+        HIST,fname2 = load_history(fname)
+        P.gui.members=list( set( HIST.keys() ) )
+        print('No. CW Ops Members:',len(P.gui.members))
+        #print(self.members)
+        #sys.exit(0)
+    
     # Start thread with UDP server
     if P.UDP_CLIENT:
         P.udp_server = TCP_Server(P,None,BANDMAP_UDP_PORT,Server=True,
@@ -121,10 +138,6 @@ if __name__ == "__main__":
         worker.start()
         P.threads.append(worker)
         
-    # Create GUI 
-    gui = BandMapGUI(P)
-    P.gui=gui
-    
     # Read list of friends
     P.gui.friends = []
     lines = read_text_file('Friends.txt',
@@ -152,12 +165,12 @@ if __name__ == "__main__":
         P.gui.corrections[y[0]] = y[1]
     print('Corrections=',P.gui.corrections)
 
+    # Let's go!
+    P.gui.run()
     if True:
         print("P=")
         pprint(vars(P))
         print(' ')
-
-    # Let's go!
     P.gui.root.mainloop()
 
 

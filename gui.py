@@ -44,7 +44,6 @@ from rig_io.ft_tables import bands
 from cluster_feed import *
 from settings import *
 import logging               
-from load_history import load_history
 from utilities import freq2band
 from udp import *
 
@@ -73,8 +72,6 @@ class BandMapGUI:
         self.current=[]
         self.last_check=datetime.now()
         self.qsos=[]
-        self.sock=P.sock
-        self.tn = P.tn
         self.VFO = P.RIG_VFO
         if self.P.FT4:
             self.FT_MODE='FT4'
@@ -84,25 +81,15 @@ class BandMapGUI:
         self.nerrors=0
         self.enable_scheduler=True
         self.last_error=''
-        self.rig_freq = self.sock.get_freq(VFO=self.VFO) / 1000.
         self.friends=[]
         self.most_wanted=[]
         self.corrections=[]
+        self.members=[]
+        self.calls1 = []
 
         # UDP stuff
         P.udp_client=None
         P.udp_ntries=0
-        
-        # Load data for highlighting CW ops members
-        if self.P.CWOPS:
-            fname='~/Python/history/data/Shareable CWops data.xlsx'
-            HIST,fname2 = load_history(fname)
-            self.members=list( set( HIST.keys() ) )
-            print('No. CW Ops Members:',len(self.members))
-            #print(self.members)
-            #sys.exit(0)
-        else:
-            self.members=[]
         
         # Open a file to save all of the spots
         if P.SAVE_SPOTS:
@@ -111,7 +98,8 @@ class BandMapGUI:
             self.fp=-1
 
         # Read "regular" logbook - need to update this
-        if self.P.CWOPS:
+        # Might need to bring this out to bandmap.py
+        if self.P.CWOPS and False:
             if True:
                 print('\nCWops members worked:\n',self.P.data.cwops_worked)
                 self.calls1 = []
@@ -163,19 +151,7 @@ class BandMapGUI:
         self.ant.set(-1)
         self.mode   = StringVar(self.root)
         self.mode.set('')
-        if self.sock.active:
-            if VERBOSITY>0:
-                logging.info("Calling Get band ...")
-            f = 1e-6*self.sock.get_freq(VFO=self.VFO)     # Query rig at startup
-            b = freq2band(f)
-        else:
-            f = 0
-            b = DEFAULT_BAND              # No conenction so just default
-        print('BM_GUI: BAND.SET band=',b,'\tf=',f)
-        self.band.set(b)
-        self.rig_band=b
-        print("Initial band=",b)
-
+        
         # Buttons
         BUTframe = Frame(self.root)
         BUTframe.pack()
@@ -212,7 +188,6 @@ class BandMapGUI:
                         variable=self.mode, 
                         command=lambda: self.SelectMode(),
                         value=m).pack(side=LEFT,anchor=W)
-        self.SelectMode('')
 
         #subFrame2 = Frame(ModeFrame)
         subFrame2 = Frame(self.toolbar,relief=FLAT,borderwidth=2,bg='green')
@@ -224,7 +199,6 @@ class BandMapGUI:
                         variable=self.ant, 
                         command=lambda: self.SelectAnt(),
                         value=a).pack(side=LEFT,anchor=W)
-        self.SelectAnt(-1)
 
         if False:
             frm=ModeFrame
@@ -282,13 +256,42 @@ class BandMapGUI:
         self.scrollbar.bind('<Button-4>',self.scroll_updown)   
         self.scrollbar.bind('<Button-5>',self.scroll_updown)   
 
-        # And away we go
+        # Make what we have so far visible
+        self.root.update_idletasks()
+        self.root.update()
+        
+
+    # Function to actually get things going        
+    def run(self):
+    
+        self.tn   = self.P.tn
+        self.sock = self.P.sock
+
+        # Put gui on proper desktop
+        if self.P.DESKTOP!=None:
+            cmd='wmctrl -r "'+self.root.title()+'" -t '+str(self.P.DESKTOP)
+            os.system(cmd)
+        
+        if self.sock.active:
+            if VERBOSITY>0:
+                logging.info("Calling Get band ...")
+            f = 1e-6*self.sock.get_freq(VFO=self.VFO)     # Query rig at startup
+            b = freq2band(f)
+            self.rig_freq = 1e-3*f
+        else:
+            f = 0
+            b = DEFAULT_BAND              # No conenction so just default
+        print('BM_GUI: BAND.SET band=',b,'\tf=',f)
+        self.band.set(b)
+        self.rig_band=b
+        print("Initial band=",b)
+        
+        self.SelectMode('')
+        self.SelectAnt(-1)
         self.SelectBands(True)
+        
         self.Scheduler()
         self.WatchDog()
-        if P.DESKTOP!=None:
-            cmd='wmctrl -r "'+self.root.title()+'" -t '+str(P.DESKTOP)
-            os.system(cmd)
 
 
     # Callback to handle mouse wheel scrolling since Tk doesn't seem to do a very good job of it
@@ -905,16 +908,17 @@ class BandMapGUI:
         if self.P.UDP_CLIENT:
             if not self.P.udp_client:
                 self.P.udp_ntries+=1
-                if self.P.udp_ntries<=10:
+                if self.P.udp_ntries<=100:
                     self.P.udp_client=open_udp_client(self.P,KEYER_UDP_PORT,
                                                       udp_msg_handler)
                     if self.P.udp_client:
                         print('GUI->WatchDog: Opened connection to KEYER.')
                         self.P.udp_ntries=0
                 else:
-                    print('GUI->WatchDogUnable to open UDP client - too many attempts',self.P.udp_ntries)
+                    print('GUI->WatchDogUnable to open UDP client (keyer) - too many attempts',self.P.udp_ntries)
 
         self.root.update_idletasks()
+        self.root.update()
         self.root.after(1*1000, self.WatchDog)
 
     #########################################################################################
