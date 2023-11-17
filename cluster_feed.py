@@ -243,6 +243,9 @@ def digest_spot(self,line):
         elif dx_call[0]=='T' and dx_call[1:] in self.members:
             dx_call = dx_call[1:]
             obj.dx_call = dx_call
+        elif len(dx_call)>=7 and dx_call[-3:] in ['CWT','SST','MST']:
+            dx_call = dx_call[:-3]
+            obj.dx_call = dx_call
 
         # Reject FT8/4 spots if we're in a contest
         keep=True
