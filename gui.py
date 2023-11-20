@@ -407,7 +407,7 @@ class BandMapGUI:
             if m=='CW':
                 self.sock.set_if_shift(0)
 
-    #Function to collect spots for a particular band
+    # Function to collect spots for a particular band
     def collect_spots(self,band,REVERSE=False):
 
         print('COLLECT_SPOTS: band=',band,'\tReverse=',REVERSE,'\tCONTEST_MODE=', self.P.CONTEST_MODE)
@@ -416,36 +416,65 @@ class BandMapGUI:
             iband=int( band.replace('cm','') )
         else:
             iband=int( band.replace('m','') )
-            
+
+        """
         if self.P.CONTEST_MODE:
 
             m = self.mode.get()
             print('COLLECT_SPOTS: m=',m)
             if self.P.DX_ONLY:
+                # Retain only stations outside US or SESs
                 idx = [i for i,x in enumerate(self.SpotList) if x.band == iband and \
                        x.dx_station.country!='United States' and (m not in ['CW'] or x.mode not in ['FT8','FT4','DIGITAL']) ] 
             elif self.P.NA_ONLY:
+                # Retain only stations in North America
                 idx = [i for i,x in enumerate(self.SpotList) if x.band == iband and \
                        x.dx_station.continent=='NA' and (m not in ['CW'] or x.mode not in ['FT8','FT4','DIGITAL']) ] 
             else:
                 idx = [i for i,x in enumerate(self.SpotList) if x.band == iband and \
                        (m not in ['CW'] or x.mode not in ['FT8','FT4','DIGITAL']) ]
-                
+
         else:
-            
+
             if self.P.DX_ONLY:
                 # Retain only stations outside US or SESs
                 idx = [i for i,x in enumerate(self.SpotList) if x and x.band == iband and \
                        (x.dx_station.country!='United States' or len(x.dx_call)==3 or \
-                        x.dx_call=='WM3PEN')] 
+                        x.dx_call=='WM3PEN')]
             elif self.P.NA_ONLY:
                 # Retain only stations in North America
                 idx = [i for i,x in enumerate(self.SpotList) if x and x.band == iband and \
                        x.dx_station.continent=='NA']
             else:
                 idx = [i for i,x in enumerate(self.SpotList) if x and x.band == iband]
-            
+
         spots = [self.SpotList[i] for i in idx]
+        """
+
+        spots=[]
+        for x in self.SpotList:
+            keep= x and x.band == iband
+            if self.P.DX_ONLY:
+                # Retain only stations outside US or SESs
+                keep = keep and (x.dx_station.country!='United States' or len(x.dx_call)==3 or \
+                                 x.dx_call=='WM3PEN') 
+            if self.P.NA_ONLY:
+                # Retain only stations in North America
+                keep = keep and x.dx_station.continent=='NA'
+                
+            xm = x.mode
+            if xm in ['FT8','FT4','DIGITAL','JT65']:
+                xm='DIGI'
+            elif xm in ['SSB','LSB','USB','FM']:
+                xm='PH'
+            #if keep and (xm not in self.P.SHOW_MODES):
+            #    print('COLLECT_SPOTS: Culling',xm,'spot - ', self.P.SHOW_MODES)
+            keep = keep and (xm in self.P.SHOW_MODES)
+
+            if keep:
+                spots.append(x)
+                
+            
         spots.sort(key=lambda x: x.frequency, reverse=REVERSE)
 
         return spots
@@ -1061,6 +1090,44 @@ class BandMapGUI:
         self.P.NA_ONLY=self.na_only.get()
         print('TOGGLE BOGGLE',self.P.NA_ONLY)
 
+    # Toggle showing CW spots
+    def toggle_cw(self):
+        if self.show_cw:
+            self.P.SHOW_MODES.remove('CW')
+        else:
+            self.P.SHOW_MODES.append('CW')
+        self.show_cw = not self.show_cw
+        print('TOGGLE_CW:',self.show_cw,self.P.SHOW_MODES)
+        self.SelectBands()
+        
+    # Toggle showing RTTY spots
+    def toggle_rtty(self):
+        if self.show_rtty:
+            self.P.SHOW_MODES.remove('RTTY')
+        else:
+            self.P.SHOW_MODES.append('RTTY')
+        self.show_rtty = not self.show_rtty
+        self.SelectBands()
+        
+    # Toggle showing DIGI spots
+    def toggle_digi(self):
+        if self.show_digi:
+            self.P.SHOW_MODES.remove('DIGI')
+        else:
+            self.P.SHOW_MODES.append('DIGI')
+        self.show_digi = not self.show_digi
+        self.SelectBands()
+        
+    # Toggle showing PHONE spots
+    def toggle_phone(self):
+        if self.show_phone:
+            self.P.SHOW_MODES.remove('PH')
+        else:
+            self.P.SHOW_MODES.append('PH')
+        self.show_phone = not self.show_phone
+        print('TOGGLE_PHONE:',self.show_phone,self.P.SHOW_MODES)
+        self.SelectBands()
+        
     # Toggle showing of needs for mode
     def toggle_need_mode(self):
         self.P.SHOW_NEED_MODE=self.show_need_mode.get()
@@ -1186,6 +1253,39 @@ class BandMapGUI:
             command=self.toggle_na_only
         )
         
+        self.show_cw = BooleanVar(value='CW' in self.P.SHOW_MODES)
+        Menu1.add_checkbutton(
+            label="Show CW",
+            underline=0,
+            variable=self.show_cw,
+            command=self.toggle_cw
+        )
+        
+        self.show_rtty = BooleanVar(value='RTTY' in self.P.SHOW_MODES)
+        Menu1.add_checkbutton(
+            label="Show RTTY",
+            underline=0,
+            variable=self.show_rtty,
+            command=self.toggle_rtty
+        )
+        
+        self.show_digi = BooleanVar(value='DIGI' in self.P.SHOW_MODES)
+        Menu1.add_checkbutton(
+            label="Show DIGI",
+            underline=0,
+            variable=self.show_digi,
+            command=self.toggle_digi
+        )
+        
+        self.show_phone = BooleanVar(value='PH' in self.P.SHOW_MODES)
+        Menu1.add_checkbutton(
+            label="Show PHONE",
+            underline=0,
+            variable=self.show_phone,
+            command=self.toggle_phone
+        )
+        
+        Menu1.add_separator()
         self.contest_mode = BooleanVar(value=self.P.CONTEST_MODE)
         Menu1.add_checkbutton(
             label="Contest Mode",

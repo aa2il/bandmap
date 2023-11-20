@@ -421,6 +421,16 @@ def digest_spot(self,line):
                     #print('cont=',cont)
                     if self.P.NA_ONLY and cont!='NA':
                         return True
+
+                    # Cull out modes we are not interested in
+                    xm = obj.mode
+                    if xm in ['FT8','FT4','DIGITAL','JT65']:
+                        xm='DIGI'
+                    elif xm in ['SSB','LSB','USB','FM']:
+                        xm='PH'
+                    if xm not in self.P.SHOW_MODES:
+                        #print('CLUSTER_FEED: Culling',xm,'spot - ', self.P.SHOW_MODES)
+                        return True
                     
                     # Find insertion point - This might be where the sorting problem is - if two stations have same freq?
                     #self.current.append( obj )

@@ -95,6 +95,8 @@ class PARAMS:
                               #default="")    #,nargs='+')
         arg_proc.add_argument('-dx', action='store_true',
                               help='Show only DX spots')
+        arg_proc.add_argument("-modes", help="Show only these modes",
+                              type=str,default='ANY',nargs='*')
         arg_proc.add_argument('-na_only', action='store_true',
                               help='Show only spots from North America')
         arg_proc.add_argument('-buttons', action='store_true',
@@ -162,7 +164,19 @@ class PARAMS:
         self.SHOW_NEED_MODE = args.show_mode
         self.SHOW_NEED_YEAR = args.show_year
 
-        # See     http://www.ng3k.com/misc/cluster.html            for a list 
+        valid_modes=['CW','RTTY','DIGI','PH']
+        if type(args.modes) is list:
+            self.SHOW_MODES = args.modes
+        elif args.modes=='ANY':
+            self.SHOW_MODES = valid_modes
+        else:
+            self.SHOW_MODES = [args.modes]
+        for m in self.SHOW_MODES:
+            if m not in valid_modes:
+                print('PARAMS ERROR - Unrecognized mode:',m,'\nValid modes are',valid_modes)
+                sys.exit(0)
+
+        # See     http://www.ng3k.com/misc/cluster.html       for a list 
         self.SERVER=args.server.upper()
         self.WSJT_FNAME=None
 
