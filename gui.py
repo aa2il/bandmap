@@ -1084,11 +1084,13 @@ class BandMapGUI:
     def toggle_dx_only(self):
         self.P.DX_ONLY=self.dx_only.get()
         print('TOGGLE BOGGLE',self.P.DX_ONLY)
+        self.SelectBands()
 
     # Toggle NA ONLY mode
     def toggle_na_only(self):
         self.P.NA_ONLY=self.na_only.get()
         print('TOGGLE BOGGLE',self.P.NA_ONLY)
+        self.SelectBands()
 
     # Toggle showing CW spots
     def toggle_cw(self):
@@ -1253,6 +1255,15 @@ class BandMapGUI:
             command=self.toggle_na_only
         )
         
+        self.contest_mode = BooleanVar(value=self.P.CONTEST_MODE)
+        Menu1.add_checkbutton(
+            label="Contest Mode",
+            underline=0,
+            variable=self.contest_mode,
+            command=self.toggle_contest_mode
+        )
+        
+        Menu1.add_separator()
         self.show_cw = BooleanVar(value='CW' in self.P.SHOW_MODES)
         Menu1.add_checkbutton(
             label="Show CW",
@@ -1286,14 +1297,6 @@ class BandMapGUI:
         )
         
         Menu1.add_separator()
-        self.contest_mode = BooleanVar(value=self.P.CONTEST_MODE)
-        Menu1.add_checkbutton(
-            label="Contest Mode",
-            underline=0,
-            variable=self.contest_mode,
-            command=self.toggle_contest_mode
-        )
-        
         self.show_need_year = BooleanVar(value=self.P.SHOW_NEED_YEAR)
         Menu1.add_checkbutton(
             label="Show This Year",
