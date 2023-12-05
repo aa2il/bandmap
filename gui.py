@@ -289,6 +289,7 @@ class BandMapGUI:
         self.SelectMode('')
         self.SelectAnt(-1)
         self.SelectBands(True)
+        self.node.set(self.P.SERVER)
         
         self.Scheduler()
         self.WatchDog()
@@ -485,7 +486,7 @@ class BandMapGUI:
     def SelectBands(self,allow_change=False):
 
         VERBOSITY = self.P.DEBUG
-        VERBOSITY = 1
+        #VERBOSITY = 1
         if VERBOSITY>0:
             print('SELECT BANDS A: nspots=',self.nspots,
                   '\tlen SpotList=',len(self.SpotList),
@@ -517,18 +518,20 @@ class BandMapGUI:
                 time.sleep(.1)
                 try:
                     new_frq = bands[b][self.FT_MODE] + 1
-                except Exception as e: 
+                except Exception as e:
+                    print('SELECT BANDS: Problem getting freq')
                     print(e)
                     return
                 print('BM_GUI - Config WSJT ...',b,self.FT_MODE,new_frq)
                 if VERBOSITY>0:
                     logging.info("Calling Set Freq and Mode ...")
+                print('SELECT BANDS: Setting freq=',new_frq,'and mode=',self.FT_MODE)
                 self.sock.set_freq(new_frq,VFO=self.VFO)
                 self.sock.set_mode(self.FT_MODE,VFO=self.VFO)
             else:
                 if band != band2:
                     if VERBOSITY>0:
-                        logging.info("Calling Set Mode ...")
+                        logging.info("Calling Set Band ...")
                     self.sock.set_band(band,VFO=self.VFO)
 
             # Make sure antenna selection is correct also
@@ -1343,13 +1346,12 @@ class BandMapGUI:
         # Sub-menu to pick server
         Menu2 = Menu(menubar2, tearoff=0)
         self.node = StringVar(self.root)
-        self.node.set(self.P.SERVER)
+        #self.node.set(self.P.SERVER)
         for node in list(self.P.NODES.keys()):
             Menu2.add_radiobutton(label=node,
                                      value=node,
                                      variable=self.node,
                                      command=self.SelectNode )
-
         if MENU_ITEMS==1:
             Menu1.add_separator()
             Menu1.add_cascade(label="Cluster", menu=Menu2)

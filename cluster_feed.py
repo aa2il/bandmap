@@ -112,9 +112,9 @@ def cluster_feed(self):
         spot = tn.get_spot2(None,0)
         line = tn.convert_spot(spot)
         if line:
-            print('Cluster Feed: line=',line)
+            print('\nCluster Feed: line=',line)
         else:
-            print('Cluster Feed: Blank line=',line)
+            print('\nCluster Feed: Blank line=',line)
             print('spot=',spot)
 
         # Check for band changes
@@ -251,8 +251,10 @@ def digest_spot(self,line):
         keep=True
         m = self.mode.get()
         if self.P.CONTEST_MODE:
+            print('CLUSTER_FEED: Keep 0=',keep,m,obj.mode)
             if m=='CW' and obj.mode in ['FT4','FT8','DIGITAL']:
                 keep=False
+        print('CLUSTER_FEED: Keep 1=',keep)
 
         # Reject calls that really aren't calls
         b = self.band.get()
@@ -267,7 +269,8 @@ def digest_spot(self,line):
                 if VERBOSITY>=1:
                     print('Ignoring BEACON:',line.strip())
                 keep=False
-
+        print('CLUSTER_FEED: Keep 2=',keep)
+        
         if False:
             print('CLUSTER FEED:',line.strip())
             print('keep=',keep,'\tb=',b)
@@ -307,6 +310,7 @@ def digest_spot(self,line):
             mode=obj.mode
             band=obj.band
             self.nspots+=1
+            print('CLUSTER FEED: call=',obj.dx_call,'\tfreq=',freq,'\tmode=',mode,'\tband=',band,'\tnspots=',self.nspots)
 
             dxcc=obj.dx_station.country
             if dxcc==None and False:

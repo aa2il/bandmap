@@ -58,11 +58,12 @@ n6vi,Marty,VHF guru
 wa7bnm,Bruce
 n6ki,Dennis
 N6GP,Tim,VHFer
+w6sx,Hank
 
 # Clubs
 n6ror,ROARS
-#W5LVC,Dallas Club
-#K4HTA,VA Club
+W5LVC,Colin Dallas Club
+#K4HTA,Sean VA Club
 
 # 13 Colonies
 #K2A
