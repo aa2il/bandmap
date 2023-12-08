@@ -1012,9 +1012,11 @@ class BandMapGUI:
         value = event.widget.get(index)
         print('You selected item %d: "%s"' % (index, value))
 
-        if False:
+        #print(self.P.RIGHT_CLICK_TUNES_VFOB,self.P.SERVER)
+
+        if not self.P.RIGHT_CLICK_TUNES_VFOB or self.P.SERVER=="WSJT":
+
             # This used to trigger a qrz call lookup
-            # Keep this for now in case we want this capability later
             b=value.strip().split()
             print("Looking up call: ",b[1])
         
@@ -1022,8 +1024,9 @@ class BandMapGUI:
             webbrowser.open_new_tab(link)
 
         else:
-            # Now is tunes VFO-B
-            # Perhaps we can have a flag to select which action we want??
+
+            # Tune VFO-B to spot freq
+            print("Tuning VFO B to ",value)
             self.LBSelect(value,'B')
     
 
@@ -1143,6 +1146,11 @@ class BandMapGUI:
         self.P.KEEP_FREQ_CENTERED=self.center_freq.get()
         print('TOGGLE BOGGLE',self.P.KEEP_FREQ_CENTERED)
 
+    # Toggle right click tunes VFO B
+    def toggle_right_click_tunes_vfob(self):
+        self.P.RIGHT_CLICK_TUNES_VFOB=self.right_click_tunes_vfob.get()
+        print('TOGGLE BOGGLE',self.P.RIGHT_CLICK_TUNES_VOFB)
+
     # Toggle font used in list box
     def toggle_small_font(self):
         self.P.SMALL_FONT=self.small_font.get()
@@ -1207,13 +1215,6 @@ class BandMapGUI:
             self.FT_MODE='FT8'
         print('TOGGLE BOGGLE',self.P.FT4,self.FT_MODE)
     """
-
-    def click_bait(self):
-        try:
-            self.n+=1
-        except:
-            self.n=0
-        print('CLICK BAIT',self.n)
 
     #########################################################################################
 
@@ -1332,6 +1333,14 @@ class BandMapGUI:
             command=self.toggle_small_font
         )
         
+        self.right_click_tunes_vfob = BooleanVar(value=self.P.RIGHT_CLICK_TUNES_VFOB)
+        Menu1.add_checkbutton(
+            label="Right Click Tunes VFO B",
+            underline=0,
+            variable=self.right_click_tunes_vfob,
+            command=self.toggle_right_click_tunes_vfob
+        )
+        
         """
         # Not quite done with this yet
         self.ft4 = BooleanVar(value=self.P.FT4)
@@ -1363,17 +1372,10 @@ class BandMapGUI:
         Menu1.add_separator()
         Menu1.add_command(label="Exit", command=self.root.quit)        
         
-        if OLD_WAY:
-            menubar.add_cascade(label="Options", menu=Menu1)
-            if MENU_ITEMS==2:
-                menubar.add_cascade(label="Cluster", menu=Menu2)
-            #menubar.add_command(label="Click Me", command=self.click_bait)
-            self.root.config(menu=menubar)
-        else:
-            menubar.menu =  Menu1
-            menubar["menu"]= menubar.menu  
-            if MENU_ITEMS==2:
-                menubar2.menu =  Menu2
-                menubar2["menu"]= menubar2.menu  
+        menubar.menu =  Menu1
+        menubar["menu"]= menubar.menu  
+        if MENU_ITEMS==2:
+            menubar2.menu =  Menu2
+            menubar2["menu"]= menubar2.menu  
 
 

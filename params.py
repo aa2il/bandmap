@@ -263,5 +263,4 @@ class PARAMS:
 
         self.KEEP_FREQ_CENTERED=args.center
         self.SMALL_FONT = args.small
-        
-        
+        self.RIGHT_CLICK_TUNES_VFOB = self.SERVER!="WSJT"

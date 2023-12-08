@@ -45,6 +45,7 @@ from get_node_list import *
 from tcp_server import *
 from udp import *
 from load_history import load_history
+from utilities import get_Host_Name_IP
 
 #########################################################################################
 
@@ -77,11 +78,34 @@ if __name__ == "__main__":
         print('*** No connection to rig ***')
         #sys,exit(0)
 
+    # Test internet connection - to be continued ...
+    if P.SERVER!='NONE' and P.SERVER!="WSJT":
+        print('Checking internet connection ...')
+        P.host_name,P.host_ip=get_Host_Name_IP()
+        print("\nHostname :  ", P.host_name)
+        print("IP : ", P.host_ip,'\n')
+        if P.host_ip=='127.0.0.1':
+            P.INTERNET=False
+            print('No internet connection :-(')
+            #sys.exit(0)
+        else:
+            print('Local Internet connection appears to be alive ...')
+            # Next try pinging something outside LAN
+            P.INTERNET=True
+    #sys.exit(0)
+
     # Open telnet connection to spot server
     logger = get_logger(P.rootlogger)
     print('SERVER=',P.SERVER,'\tMY_CALL=',P.MY_CALL)
     #sys,exit(0)
-    if P.SERVER=='ANY':
+    if P.SERVER=='NONE' or (P.SERVER!="WSJT" and not P.INTERNET):
+
+        # No cluster node
+        P.tn = None
+        
+    elif P.SERVER=='ANY':
+
+        # Go down list of known nodes until we find one we can connect to
         KEYS=list(NODES.keys())
         print('NODES=',NODES)
         print('KEYS=',KEYS)
@@ -100,9 +124,9 @@ if __name__ == "__main__":
             print('\n*** Unable to connect to any node - no internet? - giving up! ***\n')
             sys.exit(0)
                 
-    elif P.SERVER=='NONE':
-        P.tn = None
     else:
+
+        # Connect to specified node 
         P.tn = connection(P.TEST_MODE,P.CLUSTER,P.MY_CALL,P.WSJT_FNAME, \
                              ip_addr=P.WSJT_IP_ADDRESS,port=P.WSJT_PORT)
 
