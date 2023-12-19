@@ -145,6 +145,7 @@ class PARAMS:
 
         self.CONTEST_MODE = args.contest
         self.DESKTOP       = args.desktop
+        self.SMALL_FONT    = args.small or self.CONTEST_MODE
         
         self.PARSE_LOG    = self.CONTEST_MODE and True
         self.PARSE_LOG    = True
@@ -262,5 +263,4 @@ class PARAMS:
             self.NODES_FNAME = 'nodes.xls'
 
         self.KEEP_FREQ_CENTERED=args.center
-        self.SMALL_FONT = args.small
         self.RIGHT_CLICK_TUNES_VFOB = self.SERVER!="WSJT"

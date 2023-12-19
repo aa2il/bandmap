@@ -289,6 +289,7 @@ class BandMapGUI:
         self.SelectMode('')
         self.SelectAnt(-1)
         self.SelectBands(True)
+        print('Initial server=',self.P.SERVER)
         self.node.set(self.P.SERVER)
         
         self.Scheduler()
@@ -1085,6 +1086,7 @@ class BandMapGUI:
             self.P.CLUSTER = self.P.NODES[SERVER]
             self.root.title("Band Map by AA2IL - Server " + SERVER)
             self.Reset()
+            self.node.set(self.P.SERVER)
 
     # Toggle DX ONLY mode
     def toggle_dx_only(self):
@@ -1223,7 +1225,6 @@ class BandMapGUI:
         print('Creating Menubar ...')
         OLD_WAY=True
         OLD_WAY=False
-        MENU_ITEMS=1
 
         self.toolbar = Frame(self.root, bd=1, relief=RAISED)
         self.toolbar.pack(side=TOP, fill=X)
@@ -1233,16 +1234,24 @@ class BandMapGUI:
         else:
             menubar  = Menubutton(self.toolbar,text='Options',relief='flat')
             menubar.pack(side=LEFT, padx=2, pady=2)
-            if MENU_ITEMS==1:
-                menubar2 = menubar
-            else:
-                menubar2 = Menubutton(self.toolbar,text='Cluster',relief='flat')
-                menubar2.pack(side=LEFT, padx=2, pady=2)
+            menubar2 = menubar
 
         Menu1 = Menu(menubar, tearoff=0)
         Menu1.add_command(label="Clear", command=self.Clear_Spot_List)
         Menu1.add_command(label="Reset", command=self.Reset)
 
+        # Sub-menu to pick server
+        Menu2 = Menu(menubar2, tearoff=0)
+        self.node = StringVar(self.root)
+        #self.node.set(self.P.SERVER)
+        for node in list(self.P.NODES.keys()):
+            Menu2.add_radiobutton(label=node,
+                                     value=node,
+                                     variable=self.node,
+                                     command=self.SelectNode )
+        Menu1.add_cascade(label="Cluster", menu=Menu2)
+        Menu1.add_separator()
+        
         self.dx_only = BooleanVar(value=self.P.DX_ONLY)
         Menu1.add_checkbutton(
             label="DX Only",
@@ -1352,19 +1361,6 @@ class BandMapGUI:
         )
         """
 
-        # Sub-menu to pick server
-        Menu2 = Menu(menubar2, tearoff=0)
-        self.node = StringVar(self.root)
-        #self.node.set(self.P.SERVER)
-        for node in list(self.P.NODES.keys()):
-            Menu2.add_radiobutton(label=node,
-                                     value=node,
-                                     variable=self.node,
-                                     command=self.SelectNode )
-        if MENU_ITEMS==1:
-            Menu1.add_separator()
-            Menu1.add_cascade(label="Cluster", menu=Menu2)
-        
         Menu1.add_separator()
         Menu1.add_command(label="Settings ...", command=self.Settings)
         Menu1.add_separator()
@@ -1374,8 +1370,3 @@ class BandMapGUI:
         
         menubar.menu =  Menu1
         menubar["menu"]= menubar.menu  
-        if MENU_ITEMS==2:
-            menubar2.menu =  Menu2
-            menubar2["menu"]= menubar2.menu  
-
-

@@ -251,10 +251,8 @@ def digest_spot(self,line):
         keep=True
         m = self.mode.get()
         if self.P.CONTEST_MODE:
-            print('CLUSTER_FEED: Keep 0=',keep,m,obj.mode)
             if m=='CW' and obj.mode in ['FT4','FT8','DIGITAL']:
                 keep=False
-        print('CLUSTER_FEED: Keep 1=',keep)
 
         # Reject calls that really aren't calls
         b = self.band.get()
@@ -269,7 +267,6 @@ def digest_spot(self,line):
                 if VERBOSITY>=1:
                     print('Ignoring BEACON:',line.strip())
                 keep=False
-        print('CLUSTER_FEED: Keep 2=',keep)
         
         if False:
             print('CLUSTER FEED:',line.strip())

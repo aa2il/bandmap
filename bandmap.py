@@ -98,7 +98,7 @@ if __name__ == "__main__":
     logger = get_logger(P.rootlogger)
     print('SERVER=',P.SERVER,'\tMY_CALL=',P.MY_CALL)
     #sys,exit(0)
-    if P.SERVER=='NONE' or (P.SERVER!="WSJT" and not P.INTERNET):
+    if P.SERVER=='NONE': # or (P.SERVER!="WSJT" and not P.INTERNET):
 
         # No cluster node
         P.tn = None
