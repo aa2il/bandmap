@@ -1102,40 +1102,46 @@ class BandMapGUI:
 
     # Toggle showing CW spots
     def toggle_cw(self):
-        if self.show_cw:
-            self.P.SHOW_MODES.remove('CW')
-        else:
+        self.P.SHOW_CW=self.show_cw.get()
+        print('TOGGLE CW: BEFORE show_cw=',self.P.SHOW_CW,'\t',self.P.SHOW_MODES)
+        if self.P.SHOW_CW:
             self.P.SHOW_MODES.append('CW')
-        self.show_cw = not self.show_cw
-        print('TOGGLE_CW:',self.show_cw,self.P.SHOW_MODES)
+        else:
+            self.P.SHOW_MODES.remove('CW')
+        print('TOGGLE CW: AFTER  show_cw=',self.P.SHOW_CW,'\t',self.P.SHOW_MODES)
         self.SelectBands()
         
     # Toggle showing RTTY spots
     def toggle_rtty(self):
-        if self.show_rtty:
-            self.P.SHOW_MODES.remove('RTTY')
-        else:
+        self.P.SHOW_RTTY=self.show_rtty.get()
+        print('TOGGLE RTTY: BEFORE show_rtty=',self.P.SHOW_RTTY,'\t',self.P.SHOW_MODES)
+        if self.P.SHOW_RTTY:
             self.P.SHOW_MODES.append('RTTY')
-        self.show_rtty = not self.show_rtty
+        else:
+            self.P.SHOW_MODES.remove('RTTY')
+        print('TOGGLE RTTY: AFTER  show_rtty=',self.P.SHOW_RTTY,'\t',self.P.SHOW_MODES)
         self.SelectBands()
         
     # Toggle showing DIGI spots
     def toggle_digi(self):
-        if self.show_digi:
-            self.P.SHOW_MODES.remove('DIGI')
-        else:
+        self.P.SHOW_DIGI=self.show_digi.get()
+        print('TOGGLE DIGI: BEFORE show_digi=',self.P.SHOW_DIGI,'\t',self.P.SHOW_MODES)
+        if self.P.SHOW_DIGI:
             self.P.SHOW_MODES.append('DIGI')
-        self.show_digi = not self.show_digi
+        else:
+            self.P.SHOW_MODES.remove('DIGI')
+        print('TOGGLE DIGI: AFTER  show_digi=',self.P.SHOW_DIGI,'\t',self.P.SHOW_MODES)
         self.SelectBands()
         
     # Toggle showing PHONE spots
     def toggle_phone(self):
-        if self.show_phone:
-            self.P.SHOW_MODES.remove('PH')
-        else:
+        self.P.SHOW_PHONE=self.show_phone.get()
+        print('TOGGLE PHONE: BEFORE show_phone=',self.P.SHOW_PHONE,'\t',self.P.SHOW_MODES)
+        if self.P.SHOW_PHONE:
             self.P.SHOW_MODES.append('PH')
-        self.show_phone = not self.show_phone
-        print('TOGGLE_PHONE:',self.show_phone,self.P.SHOW_MODES)
+        else:
+            self.P.SHOW_MODES.remove('PH')
+        print('TOGGLE PHONE: AFTER  show_phone=',self.P.SHOW_PHONE,'\t',self.P.SHOW_MODES)
         self.SelectBands()
         
     # Toggle showing of needs for mode
@@ -1277,7 +1283,8 @@ class BandMapGUI:
         )
         
         Menu1.add_separator()
-        self.show_cw = BooleanVar(value='CW' in self.P.SHOW_MODES)
+        self.P.SHOW_CW = 'CW' in self.P.SHOW_MODES
+        self.show_cw   = BooleanVar(value=self.P.SHOW_CW)
         Menu1.add_checkbutton(
             label="Show CW",
             underline=0,
@@ -1285,7 +1292,8 @@ class BandMapGUI:
             command=self.toggle_cw
         )
         
-        self.show_rtty = BooleanVar(value='RTTY' in self.P.SHOW_MODES)
+        self.P.SHOW_RTTY = 'RTTY' in self.P.SHOW_MODES
+        self.show_rtty = BooleanVar(value=self.P.SHOW_RTTY)
         Menu1.add_checkbutton(
             label="Show RTTY",
             underline=0,
@@ -1293,7 +1301,8 @@ class BandMapGUI:
             command=self.toggle_rtty
         )
         
-        self.show_digi = BooleanVar(value='DIGI' in self.P.SHOW_MODES)
+        self.P.SHOW_DIGI = 'DIGI' in self.P.SHOW_MODES
+        self.show_digi = BooleanVar(value=self.P.SHOW_DIGI)
         Menu1.add_checkbutton(
             label="Show DIGI",
             underline=0,
@@ -1301,7 +1310,8 @@ class BandMapGUI:
             command=self.toggle_digi
         )
         
-        self.show_phone = BooleanVar(value='PH' in self.P.SHOW_MODES)
+        self.P.SHOW_PHONE = 'PH' in self.P.SHOW_MODES
+        self.show_phone = BooleanVar(value=self.P.SHOW_PHONE)
         Menu1.add_checkbutton(
             label="Show PHONE",
             underline=0,

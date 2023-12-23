@@ -58,6 +58,7 @@ KC7TAK,Ryan,Student
 SV8ANW,Dimitris,,Student
 WE7DW,Dave,Student
 WI6X,Jim,,Student
+VA4ADM,Pavel,,Student
 
 # Locals
 k6pa,Troy, Bought Army Tower from him
