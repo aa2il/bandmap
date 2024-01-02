@@ -1,7 +1,7 @@
 #########################################################################################
 #
 # gui.py - Rev. 1.0
-# Copyright (C) 2021-3 by Joseph B. Attili, aa2il AT arrl DOT net
+# Copyright (C) 2021-4 by Joseph B. Attili, aa2il AT arrl DOT net
 #
 # Gui for dx cluster bandmap.
 #
@@ -870,10 +870,17 @@ class BandMapGUI:
             self.tn.close()
             self.enable_scheduler=False
             time.sleep(.1)
-        self.tn = connection(self.P.TEST_MODE,self.P.CLUSTER, \
-                             self.P.MY_CALL,self.P.WSJT_FNAME)
-        print("--- Reset --- Connected to",self.P.CLUSTER, self.enable_scheduler)
-        OK=test_telnet_connection(self.tn)
+            
+        try:
+            self.tn = connection(self.P.TEST_MODE,self.P.CLUSTER, \
+                                 self.P.MY_CALL,self.P.WSJT_FNAME)
+            print("--- Reset --- Connected to",self.P.CLUSTER, self.enable_scheduler)
+            OK=test_telnet_connection(self.tn)
+        except Exception as e:
+            print('RESET: Problem connecting to node',self.P.CLUSTER)
+            print(e)
+            OK=False
+            
         if not OK:
             print('--- Reset --- Now what Sherlock?!')
         if not self.enable_scheduler or True:
