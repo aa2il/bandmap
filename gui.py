@@ -40,7 +40,7 @@ else:
     from Tkinter import *
     import tkFont
 
-from rig_io.ft_tables import bands
+from rig_io import bands
 from cluster_feed import *
 from settings import *
 import logging               

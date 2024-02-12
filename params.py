@@ -2,7 +2,7 @@
 ################################################################################
 #
 # Params.py - Rev 1.0
-# Copyright (C) 2021-3 by Joseph B. Attili, aa2il AT arrl DOT net
+# Copyright (C) 2021-4 by Joseph B. Attili, aa2il AT arrl DOT net
 #
 # Command line param parser for bandmap
 #
@@ -24,7 +24,7 @@ import sys
 import os
 import argparse
 from collections import OrderedDict 
-from rig_io.ft_tables import CONNECTIONS,RIGS
+from rig_io  import CONNECTIONS,RIGS
 from settings import *
 
 ################################################################################
