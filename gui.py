@@ -410,9 +410,10 @@ class BandMapGUI:
                 self.sock.set_if_shift(0)
 
     # Function to collect spots for a particular band
-    def collect_spots(self,band,REVERSE=False):
+    def collect_spots(self,band,REVERSE=False,OVERRIDE=False):
 
-        print('COLLECT_SPOTS: band=',band,'\tReverse=',REVERSE,'\tCONTEST_MODE=', self.P.CONTEST_MODE)
+        print('COLLECT_SPOTS: band=',band,'\tReverse=',REVERSE,
+              '\tOVERRIDE=',OVERRIDE,'\tCONTEST_MODE=', self.P.CONTEST_MODE)
 
         if 'cm' in band:
             iband=int( band.replace('cm','') )
@@ -463,7 +464,8 @@ class BandMapGUI:
             if self.P.NA_ONLY:
                 # Retain only stations in North America
                 keep = keep and x.dx_station.continent=='NA'
-                
+
+            # Retain only modes we are interested in
             xm = x.mode
             if xm in ['FT8','FT4','DIGITAL','JT65']:
                 xm='DIGI'
@@ -473,7 +475,18 @@ class BandMapGUI:
             #    print('COLLECT_SPOTS: Culling',xm,'spot - ', self.P.SHOW_MODES)
             keep = keep and (xm in self.P.SHOW_MODES)
 
+            # Check for dupes
             if keep:
+                match = self.B4(x,band)
+                c,c2,age=self.spot_color(match,x)
+                if not (self.P.SHOW_DUPES or OVERRIDE):
+                    keep = keep and (c2!='r')
+                #print('COLLECT SPOTS:',x.dx_call,c,c2,keep,band,match)
+                #print('\tx.color=',x.color)
+
+            # Keep spots that haven't been culled
+            if keep:
+                x.color=c
                 spots.append(x)
                 
             
@@ -1098,13 +1111,11 @@ class BandMapGUI:
     # Toggle DX ONLY mode
     def toggle_dx_only(self):
         self.P.DX_ONLY=self.dx_only.get()
-        print('TOGGLE BOGGLE',self.P.DX_ONLY)
         self.SelectBands()
 
     # Toggle NA ONLY mode
     def toggle_na_only(self):
         self.P.NA_ONLY=self.na_only.get()
-        print('TOGGLE BOGGLE',self.P.NA_ONLY)
         self.SelectBands()
 
     # Toggle showing CW spots
@@ -1154,17 +1165,14 @@ class BandMapGUI:
     # Toggle showing of needs for mode
     def toggle_need_mode(self):
         self.P.SHOW_NEED_MODE=self.show_need_mode.get()
-        print('TOGGLE BOGGLE',self.P.SHOW_NEED_MODE)
 
     # Toggle keep freq centered
     def toggle_keep_centered(self):
         self.P.KEEP_FREQ_CENTERED=self.center_freq.get()
-        print('TOGGLE BOGGLE',self.P.KEEP_FREQ_CENTERED)
 
     # Toggle right click tunes VFO B
     def toggle_right_click_tunes_vfob(self):
         self.P.RIGHT_CLICK_TUNES_VFOB=self.right_click_tunes_vfob.get()
-        print('TOGGLE BOGGLE',self.P.RIGHT_CLICK_TUNES_VOFB)
 
     # Toggle font used in list box
     def toggle_small_font(self):
@@ -1173,7 +1181,6 @@ class BandMapGUI:
             SIZE=8
         else:
             SIZE=10 
-        print('TOGGLE BOGGLE',self.P.SMALL_FONT,SIZE)
         self.lb_font.configure(size=SIZE)
         self.lb.configure(font=self.lb_font)
 
@@ -1203,15 +1210,18 @@ class BandMapGUI:
         #self.root.state('normal')
         self.root.update()
 
+    # Toggle showing already worked stations
+    def toggle_dupes(self):
+        self.P.SHOW_DUPES=self.show_dupes.get()
+        self.SelectBands()
+
     # Toggle showing of needs for this year
     def toggle_need_year(self):
         self.P.SHOW_NEED_YEAR=self.show_need_year.get()
-        print('TOGGLE BOGGLE',self.P.SHOW_NEED_YEAR)
 
     # Toggle contest mode
     def toggle_contest_mode(self):
         self.P.CONTEST_MODE=self.contest_mode.get()
-        print('TOGGLE BOGGLE',self.P.CONTEST_MODE)
 
         for but,bb in zip( self.Band_Buttons , bands.keys()):
             #print('bb=',bb)
@@ -1327,6 +1337,14 @@ class BandMapGUI:
         )
         
         Menu1.add_separator()
+        self.show_dupes = BooleanVar(value=self.P.SHOW_DUPES)
+        Menu1.add_checkbutton(
+            label="Show Dupes",
+            underline=0,
+            variable=self.show_dupes,
+            command=self.toggle_dupes
+        )
+        
         self.show_need_year = BooleanVar(value=self.P.SHOW_NEED_YEAR)
         Menu1.add_checkbutton(
             label="Show This Year",

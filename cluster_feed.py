@@ -1,7 +1,7 @@
 #########################################################################################
 #
 # cluster_feed.py - Rev. 1.0
-# Copyright (C) 2021-3 by Joseph B. Attili, aa2il AT arrl DOT net
+# Copyright (C) 2021-4 by Joseph B. Attili, aa2il AT arrl DOT net
 #
 # Routines to grab spots from the dx cluster.
 #
@@ -319,6 +319,7 @@ def digest_spot(self,line):
             obj.needed = self.P.data.needed_challenge(dxcc,str(band)+'M',0)
             obj.need_this_year = self.P.data.needed_challenge(dxcc,year,0) and self.P.SHOW_NEED_YEAR
 
+            # Reconcile mode
             if mode in ['CW']:
                 mode2='CW'
             elif mode in ['SSB','LSB','USB','FM','PH']:
@@ -327,7 +328,6 @@ def digest_spot(self,line):
                 mode2='Data'
             else:
                 mode2='Unknown'
-            #print('BURP: call=',dx_call,'\tmode=',mode,mode2)
             obj.need_mode = self.P.data.needed_challenge(dxcc,mode2,0) and self.P.SHOW_NEED_MODE
                 
             # Check if this call is already there
@@ -432,6 +432,14 @@ def digest_spot(self,line):
                     if xm not in self.P.SHOW_MODES:
                         #print('CLUSTER_FEED: Culling',xm,'spot - ', self.P.SHOW_MODES)
                         return True
+
+                    # Cull out dupes
+                    match = self.B4(obj,str(band)+'m')
+                    c,c2,age=self.spot_color(match,obj)
+                    if not self.P.SHOW_DUPES:
+                        if c2=='r':
+                            return True
+                    obj.color=c
                     
                     # Find insertion point - This might be where the sorting problem is - if two stations have same freq?
                     #self.current.append( obj )
@@ -454,7 +462,7 @@ def digest_spot(self,line):
                     else:
                         lb.insert(idx2[0], "%-6.1f  %-10.10s  %+6.6s %-15.15s %+4.4s" % \
                                   (freq,dx_call,mode,cleanup(dxcc),obj.snr))
-
+                    
                     # Change background colors on each list entry
                     if VERBOSITY>=1:
                         print('CLUSTER_FEED: Calling LB_COLORS ... band=',band)

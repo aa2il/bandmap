@@ -164,6 +164,7 @@ class PARAMS:
         self.DEBUG        = args.debug
         self.SHOW_NEED_MODE = args.show_mode
         self.SHOW_NEED_YEAR = args.show_year
+        self.SHOW_DUPES   = True
 
         valid_modes=['CW','RTTY','DIGI','PH']
         if type(args.modes) is list:

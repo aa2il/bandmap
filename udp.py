@@ -1,7 +1,7 @@
 #########################################################################################
 #
 # udp.py - Rev. 1.0
-# Copyright (C) 2022-3 by Joseph B. Attili, aa2il AT arrl DOT net
+# Copyright (C) 2022-4 by Joseph B. Attili, aa2il AT arrl DOT net
 #
 # UDP messaging for bandmap.
 #
@@ -65,7 +65,7 @@ def udp_msg_handler(self,sock,msg):
             frq=float(mm[2])
             band = freq2band(1e-3*frq)
             print('UDP MSG HANDLER: RunFreq - frq=',frq,'\tband=',band)
-            spots = self.P.gui.collect_spots(band,not mm[1]=='UP')
+            spots = self.P.gui.collect_spots(band,not mm[1]=='UP',OVERRIDE=True)
             print('spots=',spots)
 
             flast=None
@@ -122,7 +122,7 @@ def udp_msg_handler(self,sock,msg):
                     continue
                 a=[]
                 # spots = self.P.gui.current
-                spots = self.P.gui.collect_spots(band)
+                spots = self.P.gui.collect_spots(band,OVERRIDE=True)
                 for x in spots:
                     a.append(x.dx_call)
                     a.append(x.frequency)
