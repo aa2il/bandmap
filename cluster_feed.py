@@ -329,6 +329,11 @@ def digest_spot(self,line):
             else:
                 mode2='Unknown'
             obj.need_mode = self.P.data.needed_challenge(dxcc,mode2,0) and self.P.SHOW_NEED_MODE
+            
+            # Determine color for this spot
+            match = self.B4(obj,str(band)+'m')
+            c,c2,age=self.spot_color(match,obj)
+            obj.color=c
                 
             # Check if this call is already there
             # Need some error trapping here bx we seem to get confused sometimes
@@ -359,6 +364,7 @@ def digest_spot(self,line):
                     self.SpotList[i].time=obj.time
                     self.SpotList[i].frequency=obj.frequency
                     self.SpotList[i].snr=obj.snr
+                    self.SpotList[i].color=obj.color
                     if self.P.CLUSTER=='WSJT':
                         self.SpotList[i].df=obj.df
                     if VERBOSITY>=2:
@@ -386,14 +392,16 @@ def digest_spot(self,line):
                             self.current[i].frequency=obj.frequency
                             self.current[i].snr=obj.snr
                             self.current[i].df=obj.df
+                            self.current[i].color=obj.color
                         except:
                             pass
                     else:
                         #print('Insert4')
                         lb.insert(idx2[0], "%-6.1f  %-10.19s  %+6.6s %-15.16s %+4.4s" % \
                                   (freq,dx_call,mode,cleanup(dxcc),obj.snr))
-                    lb.itemconfigure(idx2[0], background=bgc)
-                    scrolling(self,'DIGEST SPOT C')
+                    #lb.itemconfigure(idx2[0], background=bgc)
+                    lb.itemconfigure(idx2[0], background=obj.color)
+                    #scrolling(self,'DIGEST SPOT C')
                     
             else:
                     
@@ -433,13 +441,10 @@ def digest_spot(self,line):
                         #print('CLUSTER_FEED: Culling',xm,'spot - ', self.P.SHOW_MODES)
                         return True
 
-                    # Cull out dupes
-                    match = self.B4(obj,str(band)+'m')
-                    c,c2,age=self.spot_color(match,obj)
+                    # Cull dupes
                     if not self.P.SHOW_DUPES:
-                        if c2=='r':
+                        if obj.color=='red':
                             return True
-                    obj.color=c
                     
                     # Find insertion point - This might be where the sorting problem is - if two stations have same freq?
                     #self.current.append( obj )
@@ -464,12 +469,11 @@ def digest_spot(self,line):
                                   (freq,dx_call,mode,cleanup(dxcc),obj.snr))
                     
                     # Change background colors on each list entry
-                    if VERBOSITY>=1:
-                        print('CLUSTER_FEED: Calling LB_COLORS ... band=',band)
-                    self.current[idx2[0]].color = self.lb_colors('B',idx2[0],now,str(band)+'m',obj)
-                    scrolling(self,'DIGEST SPOT D')
+                    lb.itemconfigure(idx2[0], background=obj.color)
+                    #scrolling(self,'DIGEST SPOT D')
 
     # Check if we need to cull old spots
+    self.LBsanity()
     dt = (datetime.now() - self.last_check).total_seconds()/60      # In minutes
     # print "dt=",dt
     if dt>1:

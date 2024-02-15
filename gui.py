@@ -46,6 +46,7 @@ from settings import *
 import logging               
 from utilities import freq2band
 from udp import *
+from widgets_tk import StatusBar
 
 #########################################################################################
 
@@ -218,10 +219,10 @@ class BandMapGUI:
             Button(frm,text=">",
                    command=lambda: self.SetSubBand(3) ).pack(side=LEFT,anchor=W)
 
-        # List box
+        # List box with a scrool bar
         self.LBframe = Frame(self.root)
-        self.LBframe.pack(side=LEFT,fill=BOTH,expand=1)
-
+        #self.LBframe.pack(side=LEFT,fill=BOTH,expand=1)
+        self.LBframe.pack(fill=BOTH,expand=1)
         self.scrollbar = Scrollbar(self.LBframe, orient=VERTICAL)
 
         # Select a fixed-space font
@@ -256,6 +257,11 @@ class BandMapGUI:
         self.scrollbar.bind('<Button-4>',self.scroll_updown)   
         self.scrollbar.bind('<Button-5>',self.scroll_updown)   
 
+        # Status bar along the bottom
+        self.status_bar = StatusBar(self.root)
+        self.status_bar.setText("Howdy Ho!")
+        self.status_bar.pack(fill=X,side=BOTTOM)
+        
         # Make what we have so far visible
         self.root.update_idletasks()
         self.root.update()
@@ -479,6 +485,7 @@ class BandMapGUI:
             if keep:
                 match = self.B4(x,band)
                 c,c2,age=self.spot_color(match,x)
+                x.color=c
                 if not (self.P.SHOW_DUPES or OVERRIDE):
                     keep = keep and (c2!='r')
                 #print('COLLECT SPOTS:',x.dx_call,c,c2,keep,band,match)
@@ -486,9 +493,7 @@ class BandMapGUI:
 
             # Keep spots that haven't been culled
             if keep:
-                x.color=c
                 spots.append(x)
-                
             
         spots.sort(key=lambda x: x.frequency, reverse=REVERSE)
 
@@ -598,12 +603,11 @@ class BandMapGUI:
                                (x.frequency,x.dx_call,x.mode,cleanup(dxcc),val))
 
             # JBA - Change background colors on each list entry
-            if VERBOSITY>0:
-                print('SELECT BANDS: Calling LB_COLORS ... band=',band)
-            self.current[n].color=self.lb_colors('A',END,now,band,x)
+            self.lb.itemconfigure(END, background=self.current[n].color)
             n+=1
 
         # Reset lb view
+        self.LBsanity()
         self.lb.yview_moveto(y)
         scrolling(self,'SELECT BANDS C')
         if VERBOSITY>0:
@@ -763,32 +767,6 @@ class BandMapGUI:
         return match
 
             
-
-    # Change background colors on each list entry
-    def lb_colors(self,tag,idx,now,band,x):
-
-        if isinstance(band,int):
-            print('LB_COLORS: ******** Missing m ********',band)
-            band = str(band)+'m'
-
-        match = self.B4(x,band)
-        c,c2,age=self.spot_color(match,x)
-        
-        #print('@@@@@@@@@@@@@@@@ LB_COLORS: tag=',tag,'\tcall=',dx_call,
-        #      '\tc=',c,'\tage=',age)
-        self.lb.itemconfigure(idx, background=c)
-        if VERBOSITY>0:
-            print('... LB_COLORS: tag=',tag,'\tcall=',dx_call,'\tcolor=',c,
-                  '\tage=',age,'\tmatch=',match)
-                
-        # Make sure the entry closest to the rig freq is visible
-        #print '... Repopulated'
-        #logging.info("Calling LBsanity - band="+str(band)+" ...")
-        self.LBsanity()
-        #print(" ")
-
-        return c2
-
 
     # Function to set list box view
     def set_lbview(self,frq,MIDDLE=False):
