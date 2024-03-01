@@ -1193,6 +1193,10 @@ class BandMapGUI:
         self.P.SHOW_DUPES=self.show_dupes.get()
         self.SelectBands()
 
+    # Toggle logging of raw spots
+    def toggle_echo(self):
+        self.P.ECHO_ON=self.echo_raw_spots.get()
+        
     # Toggle showing of needs for this year
     def toggle_need_year(self):
         self.P.SHOW_NEED_YEAR=self.show_need_year.get()
@@ -1315,6 +1319,14 @@ class BandMapGUI:
         )
         
         Menu1.add_separator()
+        self.echo_raw_spots = BooleanVar(value=self.P.ECHO_ON)
+        Menu1.add_checkbutton(
+            label="Echo Raw Spots",
+            underline=0,
+            variable=self.echo_raw_spots,
+            command=self.toggle_echo
+        )
+        
         self.show_dupes = BooleanVar(value=self.P.SHOW_DUPES)
         Menu1.add_checkbutton(
             label="Show Dupes",
@@ -1323,6 +1335,7 @@ class BandMapGUI:
             command=self.toggle_dupes
         )
         
+        Menu1.add_separator()
         self.show_need_year = BooleanVar(value=self.P.SHOW_NEED_YEAR)
         Menu1.add_checkbutton(
             label="Show This Year",

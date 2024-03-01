@@ -216,8 +216,8 @@ def digest_spot(self,line):
     if self.P.CLUSTER=='WSJT':
         print('SPOT:',line,len(line))
     obj = Spot(line)
-    if self.P.ECHO_ON and True:
-        #print('OBJ:')
+    if self.P.ECHO_ON:
+        print('OBJ:')
         pprint(vars(obj))
     sys.stdout.flush()
 
@@ -263,7 +263,7 @@ def digest_spot(self,line):
                 keep=False
 
             # Filter out NCDXF beacons
-            elif 'NCDXF' in line or '/B' in dx_call:
+            elif 'NCDXF' in line or 'BEACON' in line or '/B' in dx_call:
                 if VERBOSITY>=1:
                     print('Ignoring BEACON:',line.strip())
                 keep=False

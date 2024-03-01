@@ -45,7 +45,7 @@ from get_node_list import *
 from tcp_server import *
 from udp import *
 from load_history import load_history
-from utilities import get_Host_Name_IP
+from utilities import get_Host_Name_IP,ping_test
 
 #########################################################################################
 
@@ -66,7 +66,7 @@ if __name__ == "__main__":
     # Create GUI 
     gui = BandMapGUI(P)
     P.gui=gui
-    
+
     # Read list of nodes - work in progress
     if False:
         get_node_list(P)
@@ -91,8 +91,12 @@ if __name__ == "__main__":
         else:
             print('Local Internet connection appears to be alive ...')
             # Next try pinging something outside LAN
-            P.INTERNET=True
-    #sys.exit(0)
+            P.INTERNET=ping_test('8.8.8.8')
+            if P.INTERNET:
+                print('\n... Outside Internet Connection appears to be alive also.')
+            else:
+                print('\n... No internet connection :-(')
+                #sys.exit(0)
 
     # Open telnet connection to spot server
     logger = get_logger(P.rootlogger)
@@ -114,6 +118,7 @@ if __name__ == "__main__":
         inode=0
         while not P.tn and inode<len(KEYS):
             key = KEYS[inode]
+            P.gui.status_bar.setText("Attempting to open node "+NODES[key]+' ...')
             P.tn = connection(P.TEST_MODE,NODES[key],P.MY_CALL,P.WSJT_FNAME, \
                                  ip_addr=P.WSJT_IP_ADDRESS,port=P.WSJT_PORT)
             inode += 1
@@ -127,6 +132,7 @@ if __name__ == "__main__":
     else:
 
         # Connect to specified node 
+        P.gui.status_bar.setText("Attempting to open node "+CLUSTER+' ...')
         P.tn = connection(P.TEST_MODE,P.CLUSTER,P.MY_CALL,P.WSJT_FNAME, \
                              ip_addr=P.WSJT_IP_ADDRESS,port=P.WSJT_PORT)
 
@@ -141,10 +147,12 @@ if __name__ == "__main__":
                 sys.exit(0)
     
     # Read challenge data
+    P.gui.status_bar.setText('Reading DX Challenge data ...')
     P.data = ChallengeData(P.CHALLENGE_FNAME)
 
     # Load data for highlighting CW ops members
     if P.CWOPS:
+        P.gui.status_bar.setText('Reading CWops data ...')
         fname='~/Python/history/data/Shareable CWops data.xlsx'
         HIST,fname2 = load_history(fname)
         P.gui.members=list( set( HIST.keys() ) )
@@ -154,6 +162,7 @@ if __name__ == "__main__":
     
     # Start thread with UDP server
     if P.UDP_CLIENT:
+        P.gui.status_bar.setText('Opening UDP client ...')
         P.udp_server = TCP_Server(P,None,BANDMAP_UDP_PORT,Server=True,
                                   Handler=udp_msg_handler)
         worker = Thread(target=P.udp_server.Listener, args=(),
@@ -163,6 +172,7 @@ if __name__ == "__main__":
         P.threads.append(worker)
         
     # Read list of friends
+    P.gui.status_bar.setText('Reading misc data ...')
     P.gui.friends = []
     lines = read_text_file('Friends.txt',
                                 KEEP_BLANKS=False,UPPER=True)
@@ -190,6 +200,7 @@ if __name__ == "__main__":
     print('Corrections=',P.gui.corrections)
 
     # Let's go!
+    P.gui.status_bar.setText('And away we go!')
     P.gui.run()
     if True:
         print("P=")

@@ -46,19 +46,17 @@ N6GV,Gary,Former Student
 WB0RLJ,Jim,Former Student
 
 # CWA 4
-AC7FX,John,Student
-NN7O,Tom,Student
-AE5JT,Jeff,Student
-W0ABE,Justin,Student
-W0MN,Gill,Student
+AC7FX,John,Former Student
+NN7O,Tom,Former Student
+AE5JT,Jeff,Former Student
+W0ABE,Justin,Former Student
 
 # CWA 5
 KC6EOA,Brad,Student
 KC7TAK,Ryan,Student
-SV8ANW,Dimitris,,Student
 WE7DW,Dave,Student
-WI6X,Jim,,Student
-VA4ADM,Pavel,,Student
+WB3ERS,Nat,Student
+VA4ADM,Pavel,Student
 
 # Locals
 k6pa,Troy, Bought Army Tower from him
