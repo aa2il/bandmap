@@ -132,7 +132,7 @@ if __name__ == "__main__":
     else:
 
         # Connect to specified node 
-        P.gui.status_bar.setText("Attempting to open node "+CLUSTER+' ...')
+        P.gui.status_bar.setText("Attempting to open "+P.CLUSTER+' ...')
         P.tn = connection(P.TEST_MODE,P.CLUSTER,P.MY_CALL,P.WSJT_FNAME, \
                              ip_addr=P.WSJT_IP_ADDRESS,port=P.WSJT_PORT)
 
