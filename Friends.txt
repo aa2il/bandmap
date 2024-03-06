@@ -13,7 +13,6 @@ nj7v,Charlie,Former Student
 SV2HUD,Vas,Former Student
 N7AUE,Jim,Muley
 WB7UKC,Marty Mueller
-N7AAE,Marty Mueller
 KM6GOX,Derek,Former Student
 
 # CWops
@@ -70,8 +69,12 @@ w6sx,Hank
 
 # Clubs
 n6ror,ROARS
-W5LVC,Colin Dallas Club
-#K4HTA,Sean VA Club
+W5LVC,Colin,Dallas Club
+#K4HTA,Sean,VA Club
+
+# Other
+N7AAE,Marty Mueller, Jim's brother
+VE3INE,Mary,Prospective student 
 
 # 13 Colonies
 #K2A

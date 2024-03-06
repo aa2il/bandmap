@@ -44,7 +44,7 @@ from rig_io import bands
 from cluster_feed import *
 from settings import *
 import logging               
-from utilities import freq2band
+from utilities import freq2band, error_trap
 from udp import *
 from widgets_tk import StatusBar
 
@@ -516,7 +516,8 @@ class BandMapGUI:
         try:
             band  = self.band.get()
         except:
-            print('SELECT BANDS Error - band=',self.band)
+            error_trap('GUI->SELECT BANDS: ????')
+            print('band=',self.band)
             return
         
         if VERBOSITY>0:
@@ -537,9 +538,8 @@ class BandMapGUI:
                 time.sleep(.1)
                 try:
                     new_frq = bands[b][self.FT_MODE] + 1
-                except Exception as e:
-                    print('SELECT BANDS: Problem getting freq')
-                    print(e)
+                except:
+                    error_trap('GUI->SELECT BANDS: Problem getting freq')
                     return
                 print('BM_GUI - Config WSJT ...',b,self.FT_MODE,new_frq)
                 if VERBOSITY>0:
@@ -624,10 +624,10 @@ class BandMapGUI:
             try:
                 match = (x.dx_call==qso['call']) and (b==qso['band'])
             except:
+                error_trap('GUI->MATCH QSOS: ?????')
                 match=False
-                print('\n!@#$%^!&&*#^#^ MATCH ERROR',x.dx_call)
+                print('dx_call=',x.dx_call)
                 print('qso=',qso)
-                print('!@#$%^!&&*#^#^ MATCH ERROR\n')
                 
         #print('\n------MATCH_QSOS: qso=',qso,x.dx_call,match)
         if match:
@@ -745,13 +745,12 @@ class BandMapGUI:
                 else:
                     try:
                         match = (dx_call==qso['call']) and (b==qso['band'])
-                    except Exception as e: 
-                        print(e)
+                    except: 
+                        error_trap('GUI->MATCH QSOS: ?????')
                         match=False
-                        print('\n!@#$%^!&&*#^#^ MATCH ERROR',dx_call)
+                        print('dx_call=',dx_call)
                         print('qso=',qso)
-                        print('!@#$%^!&&*#^#^ MATCH ERROR\n')
-                #print('\n------B4: qso=',qso,dx_call,match)
+
                 if match:
                     t1 = datetime.strptime(now.strftime("%Y%m%d %H%M%S"), "%Y%m%d %H%M%S") 
                     t2 = datetime.strptime( qso['qso_date_off']+" "+qso["time_off"] , "%Y%m%d %H%M%S")
@@ -867,9 +866,8 @@ class BandMapGUI:
                                  self.P.MY_CALL,self.P.WSJT_FNAME)
             print("--- Reset --- Connected to",self.P.CLUSTER, self.enable_scheduler)
             OK=test_telnet_connection(self.tn)
-        except Exception as e:
-            print('RESET: Problem connecting to node',self.P.CLUSTER)
-            print(e)
+        except:
+            error_trap('GUI->RESET: Problem connecting to node'+self.P.CLUSTER)
             OK=False
             
         if not OK:

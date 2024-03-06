@@ -29,7 +29,7 @@ from pprint import pprint
 from fileio import parse_adif
 import logging               
 from pywsjtx.simple_server import SimpleServer 
-from utilities import freq2band
+from utilities import freq2band, error_trap
 
 #########################################################################################
 
@@ -145,10 +145,8 @@ def cluster_feed(self):
         if self.tn:
             try:
                 line = self.tn.read_until(b"\n",self.P.TIME_OUT).decode("utf-8")
-            except Exception as e:
-                print('*** Error in CLUSTER_FEED ***')
-                #print('Error msg:\t',getattr(e, 'message', repr(e)))
-                print(e)
+            except:
+                error_trap('CLUSTER_FEED:   ??????')
                 line = ''
                 self.nerrors+=1
                 self.last_error=str(e)
@@ -168,10 +166,8 @@ def cluster_feed(self):
                 #line2 = tn.read_until(b"\n")
                 line2 = tn.read_until(b"\n",timeout=10).decode("utf-8") 
                 line = line+line2
-            except Exception as e:
-                print(e)
-                print('*** TIME_OUT2 or other issue on CLUSTER_FEED ***')
-                print(getattr(e, 'message', repr(e)))
+            except:
+                error_trap('CLUSTER_FEED: TIME_OUT2 or other issue ???')
                 print('line  =',line,type(line))
                 #print('line2 =',line2,type(line2))
                 return 0
@@ -394,7 +390,7 @@ def digest_spot(self,line):
                             self.current[i].df=obj.df
                             self.current[i].color=obj.color
                         except:
-                            pass
+                            error_trap('DIGEST SPOT: ?????')
                     else:
                         #print('Insert4')
                         lb.insert(idx2[0], "%-6.1f  %-10.19s  %+6.6s %-15.16s %+4.4s" % \
@@ -415,7 +411,8 @@ def digest_spot(self,line):
                 try:
                     BAND = int( self.band.get().replace('m','') )
                 except:
-                    print('CLUSTERFEDD Error - band=',self.band)
+                    error_trap('DIGEST SPOT: ?????')
+                    print('band=',self.band)
                     return
                 now = datetime.utcnow().replace(tzinfo=UTC)
                 if band==BAND:
@@ -526,7 +523,7 @@ def cull_old_spots(self):
         try:
             age = (now - x.time).total_seconds()/60      # In minutes
         except:
-            print("ERROR in CULL_OLD_SPOTS:")
+            error_trap('CULL_OLD_SPOTS: ????')
             age=0
             print('x=',x)
             #pprint(vars(x))

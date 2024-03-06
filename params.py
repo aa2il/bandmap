@@ -95,6 +95,8 @@ class PARAMS:
                               #default="")    #,nargs='+')
         arg_proc.add_argument('-dx', action='store_true',
                               help='Show only DX spots')
+        arg_proc.add_argument('-nodupes', action='store_true',
+                              help='Dont show dupes')
         arg_proc.add_argument("-modes", help="Show only these modes",
                               type=str,default='ANY',nargs='*')
         arg_proc.add_argument('-na_only', action='store_true',
@@ -151,20 +153,20 @@ class PARAMS:
         self.PARSE_LOG    = True
         #self.PARSE_LOG    = self.CONTEST_MODE or len(args.log)>0
         
-        self.GEO          = args.geo
-        self.TEST_MODE    = args.test
-        self.CW_SS        = args.ss
-        self.CWOPS        = args.cwops
-        self.DX_ONLY      = args.dx
-        self.NA_ONLY      = args.na_only
-        self.UDP_CLIENT   = args.udp
-        self.SAVE_SPOTS   = args.save
-        self.RIG_VFO      = args.vfo
-        self.FT4          = args.ft4
-        self.DEBUG        = args.debug
+        self.GEO            = args.geo
+        self.TEST_MODE      = args.test
+        self.CW_SS          = args.ss
+        self.CWOPS          = args.cwops
+        self.DX_ONLY        = args.dx
+        self.NA_ONLY        = args.na_only
+        self.UDP_CLIENT     = args.udp
+        self.SAVE_SPOTS     = args.save
+        self.RIG_VFO        = args.vfo
+        self.FT4            = args.ft4
+        self.DEBUG          = args.debug
         self.SHOW_NEED_MODE = args.show_mode
         self.SHOW_NEED_YEAR = args.show_year
-        self.SHOW_DUPES   = True
+        self.SHOW_DUPES     = not args.nodupes
 
         valid_modes=['CW','RTTY','DIGI','PH']
         if type(args.modes) is list:
