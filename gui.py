@@ -680,8 +680,7 @@ class BandMapGUI:
             c="deepskyblue" 
             c2='b'
         elif self.P.CWOPS and ( (dx_call in self.members) or (home_call in self.members) ):
-            #if dx_call in self.calls:
-            if dx_call in self.P.data.cwops_worked:
+            if (dx_call in self.P.data.cwops_worked) or (home_call in self.P.data.cwops_worked):
                 c="gold"
                 c2='d'
             else:
