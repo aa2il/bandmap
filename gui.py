@@ -152,6 +152,8 @@ class BandMapGUI:
         self.ant.set(-1)
         self.mode   = StringVar(self.root)
         self.mode.set('')
+        self.mode2   = StringVar(self.root)
+        self.mode2.set(self.FT_MODE)
         
         # Buttons
         BUTframe = Frame(self.root)
@@ -180,15 +182,23 @@ class BandMapGUI:
         #subFrame1 = Frame(ModeFrame,relief=RIDGE,borderwidth=2)
         subFrame1 = Frame(self.toolbar,relief=FLAT,borderwidth=2,bg='red')
         subFrame1.pack(side=LEFT)
-        #for m in modes:
-        #for m in ['CW','Data','SSB','LSB','USB']:
-        for m in ['CW','Data','SSB']:
-            Radiobutton(subFrame1, 
-                        text=m,
-                        indicatoron = 0,
-                        variable=self.mode, 
-                        command=lambda: self.SelectMode(),
-                        value=m).pack(side=LEFT,anchor=W)
+        if P.SERVER=="WSJT":
+            for m in ['FT8','FT4','MSK144']:
+                Radiobutton(subFrame1, 
+                            text=m,
+                            indicatoron = 0,
+                            variable=self.mode2, 
+                            command=lambda: self.SelectMode2(),
+                            value=m).pack(side=LEFT,anchor=W)
+
+        else:
+            for m in ['CW','Data','SSB']:
+                Radiobutton(subFrame1, 
+                            text=m,
+                            indicatoron = 0,
+                            variable=self.mode, 
+                            command=lambda: self.SelectMode(),
+                            value=m).pack(side=LEFT,anchor=W)
 
         #subFrame2 = Frame(ModeFrame)
         subFrame2 = Frame(self.toolbar,relief=FLAT,borderwidth=2,bg='green')
@@ -219,7 +229,7 @@ class BandMapGUI:
             Button(frm,text=">",
                    command=lambda: self.SetSubBand(3) ).pack(side=LEFT,anchor=W)
 
-        # List box with a scrool bar
+        # List box with a scroll bar
         self.LBframe = Frame(self.root)
         #self.LBframe.pack(side=LEFT,fill=BOTH,expand=1)
         self.LBframe.pack(fill=BOTH,expand=1)
@@ -376,8 +386,29 @@ class BandMapGUI:
                 logging.info("Calling Set Ant  ...")
             self.sock.set_ant(a,VFO=self.VFO)
 
-    # Callback to handle mode changes
+    # Callback to handle mode changes for WSJT-X
+    def SelectMode2(self):
+        VERBOSITY=0
+        if VERBOSITY>0:
+            print('\nSelectMode2: mode=',self.FT_MODE)
+
+        try:
+            self.FT_MODE=self.mode2.get()
+            band = self.band.get()
+            frq = bands[band][self.FT_MODE] + 1
+        except:
+            error_trap('GUI->SELECT MODE2: Problem setting new config')
+            return
+            
+        print('\n***************************************** Well well well ...',self.FT_MODE,band,frq)
+        self.P.tn.configure_wsjt(NewMode=self.FT_MODE)
+        time.sleep(.1)
+        self.sock.set_freq(frq,VFO=self.VFO)
+        return
+
+    # Callback to handle mode changes for rig
     def SelectMode(self,m=None):
+        #VERBOSITY=1
         if VERBOSITY>0:
             print('\nSelectMode: mode=',m)
         if m==None:
@@ -541,7 +572,6 @@ class BandMapGUI:
                 except:
                     error_trap('GUI->SELECT BANDS: Problem getting freq')
                     return
-                print('BM_GUI - Config WSJT ...',b,self.FT_MODE,new_frq)
                 if VERBOSITY>0:
                     logging.info("Calling Set Freq and Mode ...")
                 print('SELECT BANDS: Setting freq=',new_frq,'and mode=',self.FT_MODE)
@@ -979,7 +1009,6 @@ class BandMapGUI:
         self.sock.set_freq(float(b[0]),VFO=vfo)
         if not self.P.CONTEST_MODE:
             print("LBSelect: Setting mode ",b[2])
-            #self.sock.mode.set(b[2],VFO=vfo)
             self.SelectMode(b[2])
             self.sock.set_freq(float(b[0]),VFO=vfo)            
         self.sock.set_call(b[1])
