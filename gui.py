@@ -87,6 +87,7 @@ class BandMapGUI:
         self.corrections=[]
         self.members=[]
         self.calls1 = []
+        self.sock = None
 
         # UDP stuff
         P.udp_client=None
@@ -543,6 +544,10 @@ class BandMapGUI:
                   '\tlen Current=',len(self.current))
 
         scrolling(self,'SELECT BANDS A')
+
+        if not self.sock:
+            print('GUI->SELECT BANDS: Not sure why but no socket yet ????')
+            return
         
         try:
             band  = self.band.get()
