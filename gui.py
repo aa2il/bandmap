@@ -358,15 +358,19 @@ class BandMapGUI:
         self.sock.set_freq(float(frq/1000.),VFO=self.VFO)
 
     # Callback to select antenna
-    def SelectAnt(self,a=None,b=None):
+    def SelectAnt(self,a=None,b=None,VERBOSITY=0):
         if not a:
             a  = self.ant.get()
         if a==-1:
+            
             if VERBOSITY>0:
                 logging.info("Calling Get Ant ...")
+                print("SELECT ANT: Calling Get Ant ...")
             a = self.sock.get_ant()
             self.ant.set(a)
-            #print "\n%%%%%%%%%% Select Antenna: Got Antenna =",a,"%%%%%%%%"
+            if VERBOSITY>0:
+                print("SELECT ANT: Got Antenna =",a)
+                
         elif a==-2:
             if VERBOSITY>0:
                 logging.info("Checking Ant matches Band ...")
@@ -388,8 +392,7 @@ class BandMapGUI:
             self.sock.set_ant(a,VFO=self.VFO)
 
     # Callback to handle mode changes for WSJT-X
-    def SelectMode2(self):
-        VERBOSITY=0
+    def SelectMode2(self,VERBOSITY=0):
         if VERBOSITY>0:
             print('\nSelectMode2: mode=',self.FT_MODE)
 
@@ -408,10 +411,10 @@ class BandMapGUI:
         return
 
     # Callback to handle mode changes for rig
-    def SelectMode(self,m=None):
-        #VERBOSITY=1
+    def SelectMode(self,m=None,VERBOSITY=0):
         if VERBOSITY>0:
             print('\nSelectMode: mode=',m)
+            
         if m==None:
             m = self.mode.get()
             print('SelectMode-a: mode2=',m)
@@ -939,12 +942,15 @@ class BandMapGUI:
         if self.enable_scheduler:
             self.root.after(dt, self.Scheduler)        # Was 100
 
+    #########################################################################################
+
     # Watch Dog 
     def WatchDog(self):
-        #print 'Watch Dog...'
+        print('WATCH DOG ...')
         
         # Check for antenna or mode or band changes
         # Should combine these two
+        ERR=False
         if VERBOSITY>0:
             logging.info("Calling Get Band & Freq ...")
         if self.P.SERVER=="WSJT":
@@ -961,13 +967,33 @@ class BandMapGUI:
                 self.FT_MODE  = tmp[2]
             
         else:
-            self.rig_freq = 1e-3*self.sock.get_freq(VFO=self.VFO)
-            self.rig_band = freq2band(1e-3*self.rig_freq)
+            try:
+                self.rig_freq = 1e-3*self.sock.get_freq(VFO=self.VFO)
+                self.rig_band = freq2band(1e-3*self.rig_freq)
+            except:
+                error_trap('WATCHDOG: Problem reading rig freq/band',True)
+                ERR=True
+                print('dit dit')
 
-        self.SelectAnt(-1)
-        self.SelectMode('')
+        if ERR:
+            print('dit dah')            
 
-        # Try to connect to the keyer
+        try:
+            if ERR:
+                print('dit dah dit')            
+            self.SelectAnt(-1,VERBOSITY=1)
+            if ERR:
+                print('dit dah dit dah')            
+            self.SelectMode('',VERBOSITY=1)
+        except:
+            error_trap('WATCHDOG: Problem reading rig antenna/mode',True)
+            ERR=True
+            print('dah dah')
+
+        if ERR:
+            print('dah dit')            
+
+       # Try to connect to the keyer
         if self.P.UDP_CLIENT:
             if not self.P.udp_client:
                 self.P.udp_ntries+=1
@@ -978,11 +1004,14 @@ class BandMapGUI:
                         print('GUI->WatchDog: Opened connection to KEYER.')
                         self.P.udp_ntries=0
                 else:
-                    print('GUI->WatchDogUnable to open UDP client (keyer) - too many attempts',self.P.udp_ntries)
+                    print('WATCHDOG: Unable to open UDP client (keyer) - too many attempts',self.P.udp_ntries)
 
         self.root.update_idletasks()
         self.root.update()
         self.root.after(1*1000, self.WatchDog)
+
+        if ERR:
+            print('dah dah dah dah dah')            
 
     #########################################################################################
 

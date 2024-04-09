@@ -28,6 +28,8 @@ w7zdx,Bog
 w7brs,Jeff,OR
 NQ2W,Will,NY
 K4PQC,PHIL,GA
+k9uiy,Vic,IL
+W5LXS,Roger,TX
 
 # CWA 2
 KE7MPO,Skip,WA,Former Student
