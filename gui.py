@@ -950,7 +950,6 @@ class BandMapGUI:
         
         # Check for antenna or mode or band changes
         # Should combine these two
-        ERR=False
         if VERBOSITY>0:
             logging.info("Calling Get Band & Freq ...")
         if self.P.SERVER=="WSJT":
@@ -972,26 +971,12 @@ class BandMapGUI:
                 self.rig_band = freq2band(1e-3*self.rig_freq)
             except:
                 error_trap('WATCHDOG: Problem reading rig freq/band',True)
-                ERR=True
-                print('dit dit')
-
-        if ERR:
-            print('dit dah')            
 
         try:
-            if ERR:
-                print('dit dah dit')            
             self.SelectAnt(-1,VERBOSITY=1)
-            if ERR:
-                print('dit dah dit dah')            
             self.SelectMode('',VERBOSITY=1)
         except:
             error_trap('WATCHDOG: Problem reading rig antenna/mode',True)
-            ERR=True
-            print('dah dah')
-
-        if ERR:
-            print('dah dit')            
 
        # Try to connect to the keyer
         if self.P.UDP_CLIENT:
@@ -1006,12 +991,15 @@ class BandMapGUI:
                 else:
                     print('WATCHDOG: Unable to open UDP client (keyer) - too many attempts',self.P.udp_ntries)
 
+        # Check if socket is dead
+        if self.sock.ntimeouts>=10:
+            print('\tWATCHDOG: *** Too many socket timeouts - port is probably closed - giving up -> sys.exit ***\n')
+            sys.exit(0)
+
+        # Re-schedule to do it all over again in 1-second
         self.root.update_idletasks()
         self.root.update()
         self.root.after(1*1000, self.WatchDog)
-
-        if ERR:
-            print('dah dah dah dah dah')            
 
     #########################################################################################
 

@@ -466,8 +466,15 @@ def digest_spot(self,line):
                                   (freq,dx_call,mode,cleanup(dxcc),obj.snr))
                     
                     # Change background colors on each list entry
-                    lb.itemconfigure(idx2[0], background=obj.color)
-                    #scrolling(self,'DIGEST SPOT D')
+                    try:
+                        # This triggered an error sometime
+                        lb.itemconfigure(idx2[0], background=obj.color)
+                        #scrolling(self,'DIGEST SPOT D')
+                    except:
+                        error_trap('DIGET SPOT: Error in configuring item bg color ????')
+                        print('idx=',idx)
+                        print('OBJ:')
+                        pprint(vars(obj))
 
     # Check if we need to cull old spots
     self.LBsanity()
