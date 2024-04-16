@@ -390,6 +390,7 @@ class BandMapGUI:
             if VERBOSITY>0:
                 logging.info("Calling Set Ant  ...")
             self.sock.set_ant(a,VFO=self.VFO)
+            self.status_bar.setText("Selecting Antenna "+str(a))
 
     # Callback to handle mode changes for WSJT-X
     def SelectMode2(self,VERBOSITY=0):
@@ -427,6 +428,7 @@ class BandMapGUI:
             if m=='RTTY' or m=='FT8' or m=='FT4' or m[0:3]=='PKT' or m=='DIGITIAL':
                 m='Data'
             self.mode.set(m)
+            self.status_bar.setText("Mode Select: "+str(m))
             return
 
         # Translate mode request into something that FLDIGI understands
@@ -563,6 +565,7 @@ class BandMapGUI:
             logging.info("Calling Get Band ...")
         frq2 = 1e-6*self.sock.get_freq(VFO=self.VFO)
         band2 = freq2band(frq2)
+        self.status_bar.setText("Band Select: "+str(band))
         
         print("You've selected ",band,' - Current rig band=',band2,\
               ' - allow_change=',allow_change,' - mode=',self.FT_MODE, \
@@ -888,6 +891,7 @@ class BandMapGUI:
     # Callback to reset telnet connection
     def Reset(self):
         print("\n------------- Reset -------------",self.P.CLUSTER,'\n')
+        self.status_bar.setText("RESET - "+self.P.CLUSTER)
         self.Clear_Spot_List()
         if self.P.UDP_CLIENT and self.P.udp_client and False:
             self.P.udp_client.StartServer()
@@ -1006,6 +1010,7 @@ class BandMapGUI:
     # Callback when an item in the listbox is selected
     def LBSelect(self,value,vfo):
         print('LBSelect: Tune rig to a spot - vfo=',vfo,value)
+        self.status_bar.setText("Spot Select "+value)
         scrolling(self,'LBSelect')
 
         # Examine item that was selected
@@ -1058,6 +1063,7 @@ class BandMapGUI:
         index = event.widget.nearest(event.y)
         value = event.widget.get(index)
         print('You selected item %d: "%s"' % (index, value))
+        self.status_bar.setText("Right Click "+value)
 
         #print(self.P.RIGHT_CLICK_TUNES_VFOB,self.P.SERVER)
 
@@ -1085,6 +1091,7 @@ class BandMapGUI:
         b=value.strip().split()
         call=b[1]
         print('You selected item %d: %s - %s' % (index,value,call))
+        self.status_bar.setText("Spot Delete "+value)
 
         del self.current[index]
         self.lb.delete(index)
@@ -1154,6 +1161,7 @@ class BandMapGUI:
             self.P.SHOW_MODES.remove('CW')
         print('TOGGLE CW: AFTER  show_cw=',self.P.SHOW_CW,'\t',self.P.SHOW_MODES)
         self.SelectBands()
+        self.status_bar.setText("Showing modes "+' '.join(self.P.SHOW_MODES))
         
     # Toggle showing RTTY spots
     def toggle_rtty(self):
@@ -1165,6 +1173,7 @@ class BandMapGUI:
             self.P.SHOW_MODES.remove('RTTY')
         print('TOGGLE RTTY: AFTER  show_rtty=',self.P.SHOW_RTTY,'\t',self.P.SHOW_MODES)
         self.SelectBands()
+        self.status_bar.setText("Showing modes "+' '.join(self.P.SHOW_MODES))
         
     # Toggle showing DIGI spots
     def toggle_digi(self):
@@ -1176,6 +1185,7 @@ class BandMapGUI:
             self.P.SHOW_MODES.remove('DIGI')
         print('TOGGLE DIGI: AFTER  show_digi=',self.P.SHOW_DIGI,'\t',self.P.SHOW_MODES)
         self.SelectBands()
+        self.status_bar.setText("Showing modes "+' '.join(self.P.SHOW_MODES))
         
     # Toggle showing PHONE spots
     def toggle_phone(self):
@@ -1187,6 +1197,7 @@ class BandMapGUI:
             self.P.SHOW_MODES.remove('PH')
         print('TOGGLE PHONE: AFTER  show_phone=',self.P.SHOW_PHONE,'\t',self.P.SHOW_MODES)
         self.SelectBands()
+        self.status_bar.setText("Showing modes "+' '.join(self.P.SHOW_MODES))
         
     # Toggle showing of needs for mode
     def toggle_need_mode(self):
