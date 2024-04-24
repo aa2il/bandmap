@@ -56,7 +56,7 @@ def cleanup(dxcc):
 def test_telnet_connection(tn):
     #print('tn=',tn,type(tn),isinstance(tn,SimpleServer))
     if not tn:
-        print('File cluster_feed.py')
+        print('CLUSTER_FEED.PY -> TEST TELNET CONNECTION')
         print('TEST_TELNET_CONNECTION: *** ERROR *** Unexpected null connection')
         return False
     elif isinstance(tn,SimpleServer):

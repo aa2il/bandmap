@@ -88,6 +88,7 @@ class BandMapGUI:
         self.members=[]
         self.calls1 = []
         self.sock = None
+        self.old_mode = None
 
         # UDP stuff
         P.udp_client=None
@@ -424,11 +425,15 @@ class BandMapGUI:
             if VERBOSITY>0:
                 logging.info("Calling Get Mode ...")
             m = self.sock.get_mode(VFO=self.VFO)
-            #print('SelectMode-b:',m)
+            #print('SelectMode:',m)
+            if m==None:
+                return
             if m=='RTTY' or m=='FT8' or m=='FT4' or m[0:3]=='PKT' or m=='DIGITIAL':
                 m='Data'
             self.mode.set(m)
-            self.status_bar.setText("Mode Select: "+str(m))
+            if m!=self.old_mode:
+                self.status_bar.setText("Mode Select: "+str(m))
+                self.old_mode=m
             return
 
         # Translate mode request into something that FLDIGI understands
@@ -913,6 +918,7 @@ class BandMapGUI:
             
         if not OK:
             print('--- Reset --- Now what Sherlock?!')
+            self.status_bar.setText('Lost telnet connection?!')
         if not self.enable_scheduler or True:
             self.enable_scheduler=True
             self.nerrors=0
@@ -1263,6 +1269,10 @@ class BandMapGUI:
     # Toggle contest mode
     def toggle_contest_mode(self):
         self.P.CONTEST_MODE=self.contest_mode.get()
+        if self.P.CONTEST_MODE:
+            self.status_bar.setText("Contest Mode ON")
+        else:
+            self.status_bar.setText("Contest Mode OFF")
 
         for but,bb in zip( self.Band_Buttons , bands.keys()):
             #print('bb=',bb)
