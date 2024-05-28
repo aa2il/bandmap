@@ -124,12 +124,19 @@ def udp_msg_handler(self,sock,msg):
                 # spots = self.P.gui.current
                 spots = self.P.gui.collect_spots(band,OVERRIDE=True)
                 for x in spots:
+                    color=x.color
+                    if color=='lightgreen':
+                        #continue
+                        color='lg'
+                    elif color=='yellow':
+                        color='y'
+                    elif color=='red':
+                        color='r'
                     a.append(x.dx_call)
                     a.append(x.frequency)
                     try:
-                        a.append(x.color)
+                        a.append(color)
                     except:
-                        #a.append('white')
                         match = self.P.gui.B4(x,band)
                         c,c2,age=self.P.gui.spot_color(match,x)
                         a.append(c2)
@@ -137,17 +144,16 @@ def udp_msg_handler(self,sock,msg):
                 msg2='SpotList:'+band+':'+a+'\n'
                 #print('\nReply:',msg2)
 
-                if len(msg)>1000:
-                    # Check size of text
-                    #a_size=sys.getsizeof(msg2)
-                    #print('msg2=',msg2,'\nSize of original msg',a_size)
-
+                if len(msg2)>1000:
                     # Compress text
                     msg22 = zlib.compress(msg2.encode())
 
-                    # Check size of text after compression
-                    #a2_size=sys.getsizeof(msg22)
-                    #print("Ssize of compressed msg:",a2_size)
+                    # Check size of text b4 and after compression
+                    if True:
+                        a_size=sys.getsizeof(msg2)
+                        print('msg2=',msg2,'\nSize of original msg',a_size)
+                        a2_size=sys.getsizeof(msg22)
+                        print("Size of compressed msg:",a2_size)
 
                     # Decompressing text
                     #a3=zlib.decompress(msg22)

@@ -410,6 +410,11 @@ class BandMapGUI:
         self.P.tn.configure_wsjt(NewMode=self.FT_MODE)
         time.sleep(.1)
         self.sock.set_freq(frq,VFO=self.VFO)
+
+        # Make sure monitor is turned on also
+        GAIN=25
+        self.sock.set_monitor_gain(25)
+        
         return
 
     # Callback to handle mode changes for rig
