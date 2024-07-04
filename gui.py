@@ -41,6 +41,7 @@ else:
     import tkFont
 
 from rig_io import bands
+from rig_io.ft_tables import THIRTEEN_COLONIES
 from cluster_feed import *
 from settings import *
 import logging               
@@ -737,6 +738,9 @@ class BandMapGUI:
             else:
                 c='orange'
                 c2='o'
+        elif dx_call in THIRTEEN_COLONIES:
+            c="lightskyblue" 
+            c2='lb'
         else:
             if age<2:
                 c="yellow"
@@ -988,8 +992,8 @@ class BandMapGUI:
                 error_trap('WATCHDOG: Problem reading rig freq/band',True)
 
         try:
-            self.SelectAnt(-1,VERBOSITY=1)
-            self.SelectMode('',VERBOSITY=1)
+            self.SelectAnt(-1,VERBOSITY=0)
+            self.SelectMode('',VERBOSITY=0)
         except:
             error_trap('WATCHDOG: Problem reading rig antenna/mode',True)
 
