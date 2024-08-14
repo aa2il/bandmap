@@ -26,6 +26,7 @@ ky4gs,Amanda,SC
 ko4vw,Steve,GA
 w7zdx,Bog
 w7brs,Jeff,OR
+vk2/w7brs,Jeff,Lord Howe Island
 NQ2W,Will,NY
 K4PQC,PHIL,GA
 k9uiy,Vic,IL

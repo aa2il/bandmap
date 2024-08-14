@@ -474,40 +474,6 @@ class BandMapGUI:
         else:
             iband=int( band.replace('m','') )
 
-        """
-        if self.P.CONTEST_MODE:
-
-            m = self.mode.get()
-            print('COLLECT_SPOTS: m=',m)
-            if self.P.DX_ONLY:
-                # Retain only stations outside US or SESs
-                idx = [i for i,x in enumerate(self.SpotList) if x.band == iband and \
-                       x.dx_station.country!='United States' and (m not in ['CW'] or x.mode not in ['FT8','FT4','DIGITAL']) ] 
-            elif self.P.NA_ONLY:
-                # Retain only stations in North America
-                idx = [i for i,x in enumerate(self.SpotList) if x.band == iband and \
-                       x.dx_station.continent=='NA' and (m not in ['CW'] or x.mode not in ['FT8','FT4','DIGITAL']) ] 
-            else:
-                idx = [i for i,x in enumerate(self.SpotList) if x.band == iband and \
-                       (m not in ['CW'] or x.mode not in ['FT8','FT4','DIGITAL']) ]
-
-        else:
-
-            if self.P.DX_ONLY:
-                # Retain only stations outside US or SESs
-                idx = [i for i,x in enumerate(self.SpotList) if x and x.band == iband and \
-                       (x.dx_station.country!='United States' or len(x.dx_call)==3 or \
-                        x.dx_call=='WM3PEN')]
-            elif self.P.NA_ONLY:
-                # Retain only stations in North America
-                idx = [i for i,x in enumerate(self.SpotList) if x and x.band == iband and \
-                       x.dx_station.continent=='NA']
-            else:
-                idx = [i for i,x in enumerate(self.SpotList) if x and x.band == iband]
-
-        spots = [self.SpotList[i] for i in idx]
-        """
-
         spots=[]
         for x in self.SpotList:
             keep= x and x.band == iband
@@ -518,6 +484,10 @@ class BandMapGUI:
             if self.P.NA_ONLY:
                 # Retain only stations in North America
                 keep = keep and x.dx_station.continent=='NA'
+
+            if self.P.NEW_CWOPS_ONLY:
+                # Retain only cwops stations not worked yet this year
+                keep = keep and self.cwops_worked_status(x.dx_call)==1
 
             # Retain only modes we are interested in
             xm = x.mode
@@ -692,6 +662,28 @@ class BandMapGUI:
 
         return match
 
+    # Function to return worked status of cwops stations
+    #   0 = call is not a cwops member
+    #   1 = call is a cwops member but hasn't been worked yet this year
+    #   2 = call is a cwops member and been worked yet this year
+    def cwops_worked_status(self,dx_call):
+        if '/' in dx_call:
+            dx_station = Station(dx_call)
+            home_call = dx_station.homecall
+        else:
+            home_call = dx_call
+
+        if (dx_call in self.members) or (home_call in self.members):
+            if (dx_call in self.P.data.cwops_worked) or (home_call in self.P.data.cwops_worked):
+                status=2
+            else:
+                status=1
+        else:
+            status=0
+
+        #print('CWops WORKED STATUS: call=',dx_call,'\thome call=',home_call,'\tworked=',status)
+        return status
+        
     # Function to determine spot color
     def spot_color(self,match,x):
 
@@ -701,11 +693,7 @@ class BandMapGUI:
         dx_station = Station(dx_call)
         if dx_station.country=='United States' and len(dx_station.appendix)>=2:
             dx_call=dx_station.homecall            # Strip out bogus appendices from state QPs
-        if self.P.CWOPS and '/' in dx_call:
-            dx_station = Station(dx_call)
-            home_call = dx_station.homecall
-        else:
-            home_call = dx_call
+        cwops_status=self.cwops_worked_status(dx_call)
 
         # Set color depending criteria
         # c2 is the abbreviated version used to shorten the inter-process messages 
@@ -731,8 +719,8 @@ class BandMapGUI:
         elif dx_call==self.P.MY_CALL:
             c="deepskyblue" 
             c2='b'
-        elif self.P.CWOPS and ( (dx_call in self.members) or (home_call in self.members) ):
-            if (dx_call in self.P.data.cwops_worked) or (home_call in self.P.data.cwops_worked):
+        elif self.P.CWOPS and cwops_status>0:
+            if cwops_status==2:
                 c="gold"
                 c2='d'
             else:
@@ -1166,6 +1154,12 @@ class BandMapGUI:
         self.P.NA_ONLY=self.na_only.get()
         self.SelectBands()
 
+    # Toggle NEW CWOPS ONLY mode
+    def toggle_new_cwops_only(self):
+        self.P.NEW_CWOPS_ONLY=self.new_cwops_only.get()
+        print('TOGGLE CWOPS: ',self.P.NEW_CWOPS_ONLY)
+        self.SelectBands()
+        
     # Toggle showing CW spots
     def toggle_cw(self):
         self.P.SHOW_CW=self.show_cw.get()
@@ -1349,6 +1343,14 @@ class BandMapGUI:
             underline=0,
             variable=self.na_only,
             command=self.toggle_na_only
+        )
+        
+        self.new_cwops_only = BooleanVar(value=self.P.NEW_CWOPS_ONLY)
+        Menu1.add_checkbutton(
+            label="New CWops Only",
+            underline=0,
+            variable=self.new_cwops_only,
+            command=self.toggle_new_cwops_only
         )
         
         self.contest_mode = BooleanVar(value=self.P.CONTEST_MODE)

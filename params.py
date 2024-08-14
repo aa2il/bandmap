@@ -159,6 +159,7 @@ class PARAMS:
         self.CWOPS          = args.cwops
         self.DX_ONLY        = args.dx
         self.NA_ONLY        = args.na_only
+        self.NEW_CWOPS_ONLY = False
         self.UDP_CLIENT     = args.udp
         self.SAVE_SPOTS     = args.save
         self.RIG_VFO        = args.vfo

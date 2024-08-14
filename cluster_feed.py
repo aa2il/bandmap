@@ -428,6 +428,11 @@ def digest_spot(self,line):
                     if self.P.NA_ONLY and cont!='NA':
                         return True
 
+                    # Cull out stations non-cwops or cwops we've worked this year - useful for ACA
+                    status=self.P.gui.cwops_worked_status(obj.dx_call)
+                    if self.P.NEW_CWOPS_ONLY and status!=1:
+                        return True                    
+
                     # Cull out modes we are not interested in
                     xm = obj.mode
                     if xm in ['FT8','FT4','DIGITAL','JT65']:
