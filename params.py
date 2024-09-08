@@ -35,15 +35,17 @@ NODES=OrderedDict()
 #NODES['NK7Z']   = 'nk7z-cluster.ddns.net:7373'      # Lots of spots! - down?
 NODES['NC7J']   = 'dxc.nc7j.com:7373'               # OK - AR cluster
 NODES['W3LPL']  = 'w3lpl.net:7373'                  # Ok - lots of spots, no FT8 dxc.w3lpl.net
-NODES['W9PA']   = 'dxc.w9pa.net:7373'               # Ok - lots of spots, no FT8 dxc.w3lpl.net
-NODES['WC2L']   = 'dxc.wc2l.com'                    # 
-NODES['K3LR']   = 'dx.k3lr.com'                     # 
-NODES['AE5E']   = 'dxspots.com'                     # 
-NODES['WS7I']   = 'ws7i.ewarg.org:7300'               # OK - need to work on filtering - uses "non AR" cluster, can show FT8
 
 #telnet telnet.reversebeacon.net 7000
 #telnet telnet.reversebeacon.net 7001
 NODES['RBN']    = 'telnet.reversebeacon.net:7000'   # RBN - 7000 for CW & RTTY, 7001 for ft8
+
+NODES['AE5E']   = 'dxspots.com'                     # 
+NODES['VE7CC']  = 'dxc.ve7cc.net'                     # 
+NODES['W9PA']   = 'dxc.w9pa.net:7373'               # Ok - lots of spots, no FT8 dxc.w3lpl.net
+NODES['WC2L']   = 'dxc.wc2l.com'                    # 
+NODES['K3LR']   = 'dx.k3lr.com'                     # 
+NODES['WS7I']   = 'ws7i.ewarg.org:7300'               # OK - need to work on filtering - uses "non AR" cluster, can show FT8
 
 NODES['W8AEF']  = 'paul.w8aef.com:7373'             # AZ - no FT8 - can turn it on
 NODES['N6WS']   = 'n6ws.no-ip.org:7300'             # Ok
