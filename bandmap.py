@@ -157,7 +157,13 @@ if __name__ == "__main__":
         HIST,fname2 = load_history(fname)
         P.gui.members=list( set( HIST.keys() ) )
         print('No. CW Ops Members:',len(P.gui.members))
-        #print(self.members)
+        #print(P.gui.members)
+
+        P.gui.cwop_nums=set([])
+        for m in P.gui.members:
+            P.gui.cwop_nums.add( int( HIST[m]['cwops'] ) )
+        P.gui.cwop_nums = list( P.gui.cwop_nums )
+        #print(P.gui.cwop_nums)
         #sys.exit(0)
     
     # Start thread with UDP server
