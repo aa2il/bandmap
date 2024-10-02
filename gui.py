@@ -585,16 +585,18 @@ class BandMapGUI:
         # Get latest logbook
         now = datetime.utcnow().replace(tzinfo=UTC)
         if self.P.PARSE_LOG:
-            print('GUI: Reading log file',self.P.LOG_NAME)
+            if self.P.LOG_NAME0:
+                # Log for operator if different from current callsign
+                print('\nGUI: Reading log file',self.P.LOG_NAME0)
+                logbook = parse_adif(self.P.LOG_NAME0,REVISIT=True)
+                self.qsos += logbook
+                print('QSOs in log=',len(logbook),len(self.qsos))
+
+            # Log for current callsign
+            print('\nGUI: Reading log file',self.P.LOG_NAME)
             logbook = parse_adif(self.P.LOG_NAME,REVISIT=True)
             self.qsos += logbook
-            print('################################# QSOs in log=',
-                  len(logbook),len(self.qsos))
-            #if len(self.qsos)==0:
-            #    self.P.PARSE_LOG=False
-            #print('qsos=',self.qsos)
-            #print('qsos[0]=',self.qsos[0])
-            #sys.exit(0)
+            print('QSOs in log=',len(logbook),len(self.qsos))
 
         if self.P.CWOPS:
             self.calls = self.calls1 + [ qso['call'] for qso in self.qsos ]

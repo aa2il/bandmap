@@ -210,7 +210,9 @@ class PARAMS:
 
         if args.log==None:
             if args.wsjt==None:
-                self.LOG_NAME = "~/logs/[MYCALL].adif"
+                #self.LOG_NAME = "~/logs/[MYCALL].adif"
+                self.LOG_NAME = "~/[OPERATOR]/[MYCALL].adif"
+                #self.LOG_NAME = "~/logs/[OPERATOR].adif"
             else:
                 self.LOG_NAME = "~/.local/share/WSJT-X"
                 if WSJT2!=None:
@@ -218,8 +220,6 @@ class PARAMS:
                 self.LOG_NAME += "/wsjtx_log.adi"
         else:
             self.LOG_NAME = args.log
-        #sys.exit(0)
-        
 
         if False:
             #print(len(args.log))
@@ -244,6 +244,12 @@ class PARAMS:
         self.SETTINGS,self.RCFILE = read_settings('.keyerrc')
 
         self.MY_CALL      = self.SETTINGS['MY_CALL']
+        self.OPERATOR     = self.SETTINGS['MY_OPERATOR']
+        self.LOG_NAME     = self.LOG_NAME.replace('[OPERATOR]',self.OPERATOR)
+        if self.OPERATOR!=self.MY_CALL:
+            self.LOG_NAME0 = os.path.expanduser( self.LOG_NAME.replace('[MYCALL]',self.OPERATOR ) )
+        else:
+            self.LOG_NAME0 = None
         MY_CALL2          = self.MY_CALL.replace('/','_')
         self.LOG_NAME     = os.path.expanduser( self.LOG_NAME.replace('[MYCALL]',MY_CALL2 ) )
         self.NODES        = NODES
@@ -256,7 +262,8 @@ class PARAMS:
             self.ALLOW_CHANGES=False
         
         # The spreadsheets with the DXCC already worked data & node info
-        MY_CALL3 = self.MY_CALL.split('/')[0]
+        #MY_CALL3 = self.MY_CALL.split('/')[0]
+        MY_CALL3 = self.OPERATOR.split('/')[0]
         self.DATA_DIR        = os.path.expanduser('~/'+MY_CALL3+'/')
         self.CHALLENGE_FNAME = self.DATA_DIR+'/states.xls'
         if not os.path.isfile(self.CHALLENGE_FNAME):
