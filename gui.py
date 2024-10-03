@@ -587,21 +587,24 @@ class BandMapGUI:
         if self.P.PARSE_LOG:
             if self.P.LOG_NAME0:
                 # Log for operator if different from current callsign
+                # We won't keep reading this file so we set REVISIT=False
                 print('\nGUI: Reading log file',self.P.LOG_NAME0)
-                logbook = parse_adif(self.P.LOG_NAME0,REVISIT=True)
+                logbook = parse_adif(self.P.LOG_NAME0,REVISIT=False,verbosity=0)
                 self.qsos += logbook
                 print('QSOs in log=',len(logbook),len(self.qsos))
 
             # Log for current callsign
+            # We will keep reading this file for new QSOs so we set REVISIT=True
             print('\nGUI: Reading log file',self.P.LOG_NAME)
-            logbook = parse_adif(self.P.LOG_NAME,REVISIT=True)
+            logbook = parse_adif(self.P.LOG_NAME,REVISIT=True,verbosity=0)
             self.qsos += logbook
             print('QSOs in log=',len(logbook),len(self.qsos))
+            #sys.exit(0)
 
         if self.P.CWOPS:
             self.calls = self.calls1 + [ qso['call'] for qso in self.qsos ]
             self.calls=list( set( self.calls) )
-            print('No. unique calls works:',len(self.calls))
+            print('No. unique calls worked:',len(self.calls))
             #print(self.calls)
             
         # Re-populate list box with spots from this band
