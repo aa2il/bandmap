@@ -94,7 +94,7 @@ class BandMapGUI:
         # UDP stuff
         P.udp_client=None
         P.udp_ntries=0
-        
+
         # Open a file to save all of the spots
         if P.SAVE_SPOTS:
             self.fp = open("all_spots.dat","w")
@@ -933,9 +933,10 @@ class BandMapGUI:
         self.SpotList=[];
         self.current=[]
         self.lb.delete(0, END)
-        
-        self.P.data = ChallengeData(self.P.CHALLENGE_FNAME)
-#        print "Howdy Ho!",self.nspots
+
+        # JBA - MEM??? - Why are we re-reading this???? Disable and see what happens
+        if False:
+            self.P.data = ChallengeData(self.P.CHALLENGE_FNAME)
 
     # Wrapper to schedule events to read the spots
     def Scheduler(self):
@@ -952,7 +953,7 @@ class BandMapGUI:
             dt=5      # We got a spot - see if there are more
             
         if self.enable_scheduler:
-            self.root.after(dt, self.Scheduler)        # Was 100
+            self.root.after(dt, self.Scheduler)   
 
     #########################################################################################
 

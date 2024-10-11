@@ -77,3 +77,4 @@ W5LVC,Colin,Dallas Club
 # Other
 N7AAE,Marty Mueller, Jim's brother
 VE3INE,Mary,Prospective student 
+N6Z,Muley,CQP

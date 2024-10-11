@@ -45,7 +45,8 @@ from get_node_list import *
 from tcp_server import *
 from udp import *
 from load_history import load_history
-from utilities import get_Host_Name_IP,ping_test
+from utilities import get_Host_Name_IP,ping_test,Memory_Monitor
+from watchdog import *
 
 #########################################################################################
 
@@ -62,6 +63,13 @@ if __name__ == "__main__":
 
     # Process command line params
     P=PARAMS()
+
+    # Memory monitor
+    if True:
+        if P.SERVER=="WSJT":
+            P.MEM = Memory_Monitor('/tmp/BANDMAP_MEMORY_WSJT.TXT')
+        else:
+            P.MEM = Memory_Monitor('/tmp/BANDMAP_MEMORY.TXT')
     
     # Create GUI 
     gui = BandMapGUI(P)
@@ -204,6 +212,13 @@ if __name__ == "__main__":
         y=x.split(' ')
         P.gui.corrections[y[0]] = y[1]
     print('Corrections=',P.gui.corrections)
+
+    # WatchDog - runs in its own thread
+    P.WATCHDOG = True
+    #P.WATCHDOG = False
+    if P.WATCHDOG:
+        P.gui.status_bar.setText("Spawning Watchdog ...")
+        P.monitor = WatchDog(P,2000)
 
     # Let's go!
     P.gui.status_bar.setText('And away we go!')
