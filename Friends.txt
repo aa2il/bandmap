@@ -19,6 +19,7 @@ KM6GOX,Derek,Former Student
 k6rb,Rob,#3,Sponsored me
 n3jt,Jim,#1,Sponsored me
 wt9u,Jim,Sponsored me
+kr2q,Doug,NJ
 k3jt,Terry,WV
 w5tm,Ed,OK
 ky4gs,Amanda,SC
@@ -77,4 +78,7 @@ W5LVC,Colin,Dallas Club
 # Other
 N7AAE,Marty Mueller, Jim's brother
 VE3INE,Mary,Prospective student 
-N6Z,Muley,CQP
+
+# DX
+PX0FF,DX,DX
+C21MM,DX,DX
