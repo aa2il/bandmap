@@ -79,6 +79,4 @@ W5LVC,Colin,Dallas Club
 N7AAE,Marty Mueller, Jim's brother
 VE3INE,Mary,Prospective student 
 
-# DX
-PX0FF,DX,DX
-C21MM,DX,DX
+# DX - should be in Most Wanted list, not here!

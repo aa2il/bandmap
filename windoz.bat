@@ -4,8 +4,11 @@ goto BUILD
 echo.
 echo Notes about how to run BANDMAP on Windoze 10
 echo.
-echo Already should have everything we need installed already
+echo Already should have almost everything we need installed already
         pip install -r requirements.txt
+echo.
+echo Also need a temp directory:
+        md ..\tmp
 echo.
 echo Run the script under python:
      bandmap.py
