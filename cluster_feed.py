@@ -60,6 +60,7 @@ def test_telnet_connection(tn):
         print('TEST_TELNET_CONNECTION: *** ERROR *** Unexpected null connection')
         return False
     elif isinstance(tn,SimpleServer):
+        print('TEST TELNET CONNECTION - Simpler server OK')
         return True    
     
     try:
@@ -69,7 +70,7 @@ def test_telnet_connection(tn):
             ntries+=1
             time.sleep(1)
             line=tn.read_very_eager().decode("utf-8")
-        print('TEST TELNET CONNECTION - line=\n',line)
+        print('TEST TELNET CONNECTION - line=\n',line,'\tlen=',len(line))
         if len(line)==0:
             print('TEST TELNET CONNECTION - No response - giving up')
             return False
@@ -77,6 +78,7 @@ def test_telnet_connection(tn):
         print("TEST TELNET CONNECTION - EOFerror: telnet connection is closed")
         return False
 
+    print('TEST TELNET CONNECTION - OK!')
     return True
 
 # Function to read spots from the telnet connection
@@ -145,7 +147,7 @@ def cluster_feed(self):
         if self.tn:
             try:
                 line = self.tn.read_until(b"\n",self.P.TIME_OUT).decode("utf-8")
-            except:
+            except Exception as ex:
                 error_trap('CLUSTER_FEED:   ??????')
                 line = ''
                 self.nerrors+=1
@@ -236,7 +238,7 @@ def digest_spot(self,line):
             print('CLUSTER_FEED: *** NEED A CORRECTION ***',dx_call)
             dx_call = self.corrections[dx_call]
             obj.dx_call = dx_call
-        elif dx_call[0]=='T' and dx_call[1:] in self.members:
+        elif dx_call[0]=='T' and dx_call[1:] in self.P.members:
             dx_call = dx_call[1:]
             obj.dx_call = dx_call
         elif len(dx_call)>=7 and dx_call[-3:] in ['CWT','SST','MST']:
@@ -429,7 +431,7 @@ def digest_spot(self,line):
                         return True
 
                     # Cull out stations non-cwops or cwops we've worked this year - useful for ACA
-                    status=self.P.gui.cwops_worked_status(obj.dx_call)
+                    status=self.cwops_worked_status(obj.dx_call)
                     if self.P.NEW_CWOPS_ONLY and status!=1:
                         return True                    
 
@@ -516,7 +518,10 @@ def scrolling(self,txt,verbosity=0):
 def cull_old_spots(self):
     #logging.info("Calling Get_Freq ...")
     now = datetime.utcnow().replace(tzinfo=UTC)
-    frq = self.sock.get_freq(VFO=self.VFO)
+    if self.sock:
+        frq = self.sock.get_freq(VFO=self.VFO)
+    else:
+        frq=0
     #print('SpotList=',self.SpotList)
     #print("CULL OLD SPOTS - Rig freq=",frq,'\tnspots=',self.nspots,len(self.SpotList),len(self.current),
     #      '\nmax age=',self.P.MAX_AGE,'\tnow=',now)

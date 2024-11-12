@@ -83,10 +83,9 @@ class PARAMS:
                               choices=CONNECTIONS+['NONE']+RIGS)
         arg_proc.add_argument("-port", help="TCPIP port",
                               type=int,default=0)
-        arg_proc.add_argument("-server", help="Server",
+        arg_proc.add_argument("-cluster", help="Server",
                               type=str,default="ANY",
                               choices=list(NODES.keys()) )
-        #                      choices=list(NODES.keys())+NODES2)
         arg_proc.add_argument("-wsjt", help="wsjt", nargs='*', 
                               type=str,default=None)
         arg_proc.add_argument("-log", help="Log file (keep track of dupes)",
@@ -95,7 +94,7 @@ class PARAMS:
                               #default=None,nargs='*')
                               #default="~/logs/[MYCALL].adif")
                               #default="")    #,nargs='+')
-        arg_proc.add_argument('-dx', action='store_true',
+        arg_proc.add_argument('-dx_only', action='store_true',
                               help='Show only DX spots')
         arg_proc.add_argument('-nodupes', action='store_true',
                               help='Dont show dupes')
@@ -105,7 +104,7 @@ class PARAMS:
                               help='Show only spots from North America')
         arg_proc.add_argument('-buttons', action='store_true',
                               help='Enable band buttons')
-        arg_proc.add_argument('-udp', action='store_true',
+        arg_proc.add_argument('-bm_udp', action='store_true',
                               help='Start UDP client')
         arg_proc.add_argument('-save', action='store_true',
                               help='Save All Spots')
@@ -125,7 +124,7 @@ class PARAMS:
                               type=str,default="A",
                               choices=['A','B'] )
         #arg_proc.add_argument('-noft8', action='store_true',help='Filter out FT8 spots')
-        arg_proc.add_argument('-geo',type=str,default=None,
+        arg_proc.add_argument('-bm_geo',type=str,default=None,
                               help='Geometry')
         arg_proc.add_argument('-test', action='store_true',help='Test Mode')
         arg_proc.add_argument("-hours", help="Max no. hours for a dupe",
@@ -153,16 +152,16 @@ class PARAMS:
         
         self.PARSE_LOG    = self.CONTEST_MODE and True
         self.PARSE_LOG    = True
-        #self.PARSE_LOG    = self.CONTEST_MODE or len(args.log)>0
+        #self.PARSE_LOG    = False
         
-        self.GEO            = args.geo
+        self.BM_GEO         = args.bm_geo
         self.TEST_MODE      = args.test
         self.CW_SS          = args.ss
         self.CWOPS          = args.cwops
-        self.DX_ONLY        = args.dx
+        self.DX_ONLY        = args.dx_only
         self.NA_ONLY        = args.na_only
         self.NEW_CWOPS_ONLY = False
-        self.UDP_CLIENT     = args.udp
+        self.BM_UDP_CLIENT     = args.bm_udp
         self.SAVE_SPOTS     = args.save
         self.RIG_VFO        = args.vfo
         self.FT4            = args.ft4
@@ -184,7 +183,7 @@ class PARAMS:
                 sys.exit(0)
 
         # See     http://www.ng3k.com/misc/cluster.html       for a list 
-        self.SERVER=args.server.upper()
+        self.SERVER=args.cluster.upper()
         self.WSJT_FNAME=None
 
         self.WSJT_IP_ADDRESS = '127.0.0.1'

@@ -30,7 +30,7 @@ from datetime import datetime
 from dx.spot_processing import ChallengeData,Station
 
 from dx.cluster_connections import *
-from fileio import parse_adif
+from fileio import parse_adif, read_text_file
 import webbrowser
 
 if sys.version_info[0]==3:
@@ -46,8 +46,9 @@ from cluster_feed import *
 from settings import *
 import logging               
 from utilities import freq2band, error_trap
-from udp import *
 from widgets_tk import StatusBar
+from tcp_server import open_udp_client,KEYER_UDP_PORT
+from bm_udp import *
 
 #########################################################################################
 
@@ -65,7 +66,7 @@ logging.basicConfig(
 
 # The GUI
 class BandMapGUI:
-    def __init__(self,P):
+    def __init__(self,root,P):
 
         # Init
         self.P = P
@@ -86,14 +87,14 @@ class BandMapGUI:
         self.friends=[]
         self.most_wanted=[]
         self.corrections=[]
-        self.members=[]
+        P.members=[]
         self.calls1 = []
         self.sock = None
         self.old_mode = None
 
         # UDP stuff
-        P.udp_client=None
-        P.udp_ntries=0
+        P.bm_udp_client=None
+        P.bm_udp_ntries=0
 
         # Open a file to save all of the spots
         if P.SAVE_SPOTS:
@@ -127,14 +128,19 @@ class BandMapGUI:
             print('GUI: CALLS1=',self.calls1,len(self.calls1))
             
         # Create the GUI - need to be able to distinguish between multiple copies of bandmap 
-        self.root = Tk()
+        if root:
+            self.root=Toplevel(root)
+            #self.hide()
+        else:
+            self.root = Tk()
+            
         if P.SERVER=="WSJT":
             self.root.title("Band Map by AA2IL - " + P.SERVER)
         else:
             self.root.title("Band Map by AA2IL - Server " + P.SERVER)
 
         # Move to lower left corner of screen
-        if P.GEO==None:
+        if P.BM_GEO==None:
             self.screen_width = self.root.winfo_screenwidth()
             self.screen_height = self.root.winfo_screenheight()
             print('Screen=',self.screen_width, self.screen_height)
@@ -143,7 +149,7 @@ class BandMapGUI:
             sz=str(w)+'x'+str(h)+'+'+str(self.screen_width-400)+'+0'
         else:
             #bandmap.py -geo 400x790+1520+240
-            sz=P.GEO
+            sz=P.BM_GEO
         self.root.geometry(sz)
 
         # Add menu bar
@@ -278,6 +284,9 @@ class BandMapGUI:
         # Make what we have so far visible
         self.root.update_idletasks()
         self.root.update()
+
+        # Open spot server
+        self.open_spot_server()
         
 
     # Function to actually get things going        
@@ -290,8 +299,8 @@ class BandMapGUI:
         if self.P.DESKTOP!=None:
             cmd='wmctrl -r "'+self.root.title()+'" -t '+str(self.P.DESKTOP)
             os.system(cmd)
-        
-        if self.sock.active:
+
+        if self.sock and self.sock.active:
             if VERBOSITY>0:
                 logging.info("Calling Get band ...")
             f = 1e-6*self.sock.get_freq(VFO=self.VFO)     # Query rig at startup
@@ -305,9 +314,11 @@ class BandMapGUI:
         self.rig_band=b
         print("Initial band=",b)
         
-        self.SelectMode('')
-        self.SelectAnt(-1)
-        self.SelectBands(True)
+        if self.sock and self.sock.active:
+            self.SelectMode('')
+            self.SelectAnt(-1)
+            self.SelectBands(True)
+        
         print('Initial server=',self.P.SERVER)
         self.node.set(self.P.SERVER)
         
@@ -338,6 +349,8 @@ class BandMapGUI:
 
     # Set rig freq to lo or hi end of mode subband
     def SetSubBand(self,iopt):
+        if self.sock==None:
+            return
 
         b = self.band.get()
         if VERBOSITY>0:
@@ -361,6 +374,10 @@ class BandMapGUI:
 
     # Callback to select antenna
     def SelectAnt(self,a=None,b=None,VERBOSITY=0):
+        if self.sock==None:
+            print('SELECT ANT - No socket!')
+            return
+        
         if not a:
             a  = self.ant.get()
         if a==-1:
@@ -399,6 +416,10 @@ class BandMapGUI:
         if VERBOSITY>0:
             print('\nSelectMode2: mode=',self.FT_MODE)
 
+        if self.sock==None:
+            print('SELECT MODE2 - No socket!')
+            return
+        
         try:
             self.FT_MODE=self.mode2.get()
             band = self.band.get()
@@ -423,6 +444,10 @@ class BandMapGUI:
         if VERBOSITY>0:
             print('\nSelectMode: mode=',m)
             
+        if self.sock==None:
+            print('SELECT MODE - No socket!')
+            return
+        
         if m==None:
             m = self.mode.get()
             print('SelectMode-a: mode2=',m)
@@ -532,19 +557,23 @@ class BandMapGUI:
         scrolling(self,'SELECT BANDS A')
 
         if not self.sock:
-            print('GUI->SELECT BANDS: Not sure why but no socket yet ????')
-            return
+            print('\nGUI->SELECT BANDS: Not sure why but no socket yet ????')
+            print('\tsock=',self.sock,'\n')
+            #return
         
         try:
             band  = self.band.get()
         except:
             error_trap('GUI->SELECT BANDS: ????')
-            print('band=',self.band)
+            print('\tband=',self.band)
             return
         
         if VERBOSITY>0:
             logging.info("Calling Get Band ...")
-        frq2 = 1e-6*self.sock.get_freq(VFO=self.VFO)
+        if self.sock:
+            frq2 = 1e-6*self.sock.get_freq(VFO=self.VFO)
+        else:
+            frq2=0
         band2 = freq2band(frq2)
         self.status_bar.setText("Band Select: "+str(band))
         
@@ -567,10 +596,11 @@ class BandMapGUI:
                 if VERBOSITY>0:
                     logging.info("Calling Set Freq and Mode ...")
                 print('SELECT BANDS: Setting freq=',new_frq,'and mode=',self.FT_MODE)
-                self.sock.set_freq(new_frq,VFO=self.VFO)
-                self.sock.set_mode(self.FT_MODE,VFO=self.VFO)
+                if self.sock:
+                    self.sock.set_freq(new_frq,VFO=self.VFO)
+                    self.sock.set_mode(self.FT_MODE,VFO=self.VFO)
             else:
-                if band != band2:
+                if band != band2 and self.sock:
                     if VERBOSITY>0:
                         logging.info("Calling Set Band ...")
                     self.sock.set_band(band,VFO=self.VFO)
@@ -584,7 +614,7 @@ class BandMapGUI:
         
         # Get latest logbook
         now = datetime.utcnow().replace(tzinfo=UTC)
-        if self.P.PARSE_LOG:
+        if self.P.PARSE_LOG and len(self.qsos)==0:
             if self.P.LOG_NAME0:
                 # Log for operator if different from current callsign
                 # We won't keep reading this file so we set REVISIT=False
@@ -678,7 +708,7 @@ class BandMapGUI:
         else:
             home_call = dx_call
 
-        if (dx_call in self.members) or (home_call in self.members):
+        if (dx_call in self.P.members) or (home_call in self.P.members):
             if (dx_call in self.P.data.cwops_worked) or (home_call in self.P.data.cwops_worked):
                 status=2
             else:
@@ -900,10 +930,10 @@ class BandMapGUI:
         print("\n------------- Reset -------------",self.P.CLUSTER,'\n')
         self.status_bar.setText("RESET - "+self.P.CLUSTER)
         self.Clear_Spot_List()
-        if self.P.UDP_CLIENT and self.P.udp_client and False:
-            self.P.udp_client.StartServer()
-        if self.P.UDP_CLIENT and self.P.udp_server and False:
-            self.P.udp_server.StartServer()
+        if self.P.BM_UDP_CLIENT and self.P.bm_udp_client and False:
+            self.P.bm_udp_client.StartServer()
+        if self.P.BM_UDP_CLIENT and self.P.bm_udp_server and False:
+            self.P.bm_udp_server.StartServer()
         if self.tn:
             self.tn.close()
             self.enable_scheduler=False
@@ -959,7 +989,7 @@ class BandMapGUI:
 
     # Watch Dog 
     def WatchDog(self):
-        print('WATCH DOG ...')
+        print('BM WATCH DOG ...')
         
         # Check for antenna or mode or band changes
         # Should combine these two
@@ -980,32 +1010,34 @@ class BandMapGUI:
             
         else:
             try:
-                self.rig_freq = 1e-3*self.sock.get_freq(VFO=self.VFO)
-                self.rig_band = freq2band(1e-3*self.rig_freq)
+                if self.sock:
+                    self.rig_freq = 1e-3*self.sock.get_freq(VFO=self.VFO)
+                    self.rig_band = freq2band(1e-3*self.rig_freq)
             except:
                 error_trap('WATCHDOG: Problem reading rig freq/band',True)
 
         try:
-            self.SelectAnt(-1,VERBOSITY=0)
-            self.SelectMode('',VERBOSITY=0)
+            if self.sock:
+                self.SelectAnt(-1,VERBOSITY=0)
+                self.SelectMode('',VERBOSITY=0)
         except:
             error_trap('WATCHDOG: Problem reading rig antenna/mode',True)
 
        # Try to connect to the keyer
-        if self.P.UDP_CLIENT:
-            if not self.P.udp_client:
-                self.P.udp_ntries+=1
-                if self.P.udp_ntries<=100:
-                    self.P.udp_client=open_udp_client(self.P,KEYER_UDP_PORT,
-                                                      udp_msg_handler)
-                    if self.P.udp_client:
-                        print('GUI->WatchDog: Opened connection to KEYER.')
-                        self.P.udp_ntries=0
+        if self.P.BM_UDP_CLIENT:
+            if not self.P.bm_udp_client:
+                self.P.bm_udp_ntries+=1
+                if self.P.bm_udp_ntries<=100:
+                    self.P.bm_udp_client=open_udp_client(self.P,KEYER_UDP_PORT,
+                                                      bm_udp_msg_handler)
+                    if self.P.bm_udp_client:
+                        print('BM GUI->WatchDog: Opened connection to KEYER.')
+                        self.P.bm_udp_ntries=0
                 else:
-                    print('WATCHDOG: Unable to open UDP client (keyer) - too many attempts',self.P.udp_ntries)
+                    print('WATCHDOG: Unable to open UDP client (keyer) - too many attempts',self.P.bm_udp_ntries)
 
         # Check if socket is dead
-        if self.sock.ntimeouts>=10:
+        if self.sock and self.sock.ntimeouts>=10:
             print('\tWATCHDOG: *** Too many socket timeouts - port is probably closed - giving up -> sys.exit ***\n')
             sys.exit(0)
 
@@ -1042,20 +1074,21 @@ class BandMapGUI:
         print("LBSelect: Setting freq=',b[0],'on VFO',vfo,'\tmode=',b[2].'\tcall ",b[1])
         if VERBOSITY>0:
             logging.info("Calling Set Freq ...")
-        self.sock.set_freq(float(b[0]),VFO=vfo)
-        if not self.P.CONTEST_MODE:
-            print("LBSelect: Setting mode ",b[2])
-            self.SelectMode(b[2])
-            self.sock.set_freq(float(b[0]),VFO=vfo)            
-        self.sock.set_call(b[1])
+        if self.sock:
+            self.sock.set_freq(float(b[0]),VFO=vfo)
+            if not self.P.CONTEST_MODE:
+                print("LBSelect: Setting mode ",b[2])
+                self.SelectMode(b[2])
+                self.sock.set_freq(float(b[0]),VFO=vfo)            
+            self.sock.set_call(b[1])
 
         # Make sure antenna selection is correct also
         band=freq2band(0.001*float(b[0]))
         self.SelectAnt(-2,band)
 
         # Send spot info to keyer
-        if self.P.UDP_CLIENT and self.P.udp_client:
-            self.P.udp_client.Send('Call:'+b[1]+':'+vfo)
+        if self.P.BM_UDP_CLIENT and self.P.bm_udp_client:
+            self.P.bm_udp_client.Send('Call:'+b[1]+':'+vfo)
 
             
     def LBLeftClick(self,event):
@@ -1482,3 +1515,113 @@ class BandMapGUI:
         
         menubar.menu =  Menu1
         menubar["menu"]= menubar.menu  
+
+
+    # Function to open spot server
+    def open_spot_server(self):
+
+        P=self.P
+
+        # Open telnet connection to spot server
+        print('SERVER=',P.SERVER,'\tMY_CALL=',P.MY_CALL)
+        #sys,exit(0)
+        if P.SERVER=='NONE': # or (P.SERVER!="WSJT" and not P.INTERNET):
+
+            # No cluster node
+            P.tn = None
+        
+        elif P.SERVER=='ANY':
+
+            # Go down list of known nodes until we find one we can connect to
+            KEYS=list(P.NODES.keys())
+            print('NODES=',P.NODES)
+            print('KEYS=',KEYS)
+            
+            P.tn=None
+            inode=0
+            while not P.tn and inode<len(KEYS):
+                key = KEYS[inode]
+                self.status_bar.setText("Attempting to open node "+P.NODES[key]+' ...')
+                P.tn = connection(P.TEST_MODE,P.NODES[key],P.MY_CALL,P.WSJT_FNAME, \
+                                  ip_addr=P.WSJT_IP_ADDRESS,port=P.WSJT_PORT)
+                inode += 1
+            if P.tn:
+                P.CLUSTER=P.NODES[key]
+                P.SERVER = key
+            else:
+                print('\n*** Unable to connect to any node - no internet? - giving up! ***\n')
+                sys.exit(0)
+                
+        else:
+
+            # Connect to specified node 
+            self.status_bar.setText("Attempting to open "+P.CLUSTER+' ...')
+            P.tn = connection(P.TEST_MODE,P.CLUSTER,P.MY_CALL,P.WSJT_FNAME, \
+                              ip_addr=P.WSJT_IP_ADDRESS,port=P.WSJT_PORT)
+
+        if not P.TEST_MODE:
+            if P.tn:
+                OK=test_telnet_connection(P.tn)
+                if not OK:
+                    print('OPEN_SPOT_SERVER: Whooops!  SERVER=',P.SERVER,'\tOK=',OK)
+                    sys.exit(0)
+            else:
+                if P.SERVER!='NONE':
+                    print('OPEN_SPOT_SERVER: Giving up!  SERVER=',P.SERVER,'\tOK=',OK)
+                    sys.exit(0)
+
+                    
+    # Function to read various auiliary data files
+    def read_aux_data(self):
+
+        P=self.P
+
+        # Read challenge data
+        self.status_bar.setText('Reading DX Challenge data ...')
+        P.data = ChallengeData(P.CHALLENGE_FNAME)
+
+        # Load data for highlighting CW ops members
+        if P.CWOPS:
+            self.status_bar.setText('Reading CWops data ...')
+            fname='~/Python/history/data/Shareable CWops data.xlsx'
+            HIST,fname2 = load_history(fname)
+            P.members=list( set( HIST.keys() ) )
+            print('No. CW Ops Members:',len(P.members))
+            #print(P.members)
+
+            P.cwop_nums=set([])
+            for m in P.members:
+                P.cwop_nums.add( int( HIST[m]['cwops'] ) )
+            P.cwop_nums = list( P.cwop_nums )
+            #print(P.cwop_nums)
+            #sys.exit(0)
+    
+        # Read list of friends
+        self.status_bar.setText('Reading misc data ...')
+        self.friends = []
+        lines = read_text_file('Friends.txt',
+                               KEEP_BLANKS=False,UPPER=True)
+        for line in lines:
+            c=line.split(',')[0]
+            if c[0]!='#':
+                self.friends.append(c)
+        print('FRIENDS=',self.friends)
+        #sys.exit(0)
+                                   
+        # Read lists of most wanted
+        self.most_wanted = read_text_file('Most_Wanted.txt',
+                                          KEEP_BLANKS=False,UPPER=True)
+        print('MOST WANTED=',self.most_wanted)
+    
+        # Read lists of common errors
+        corrections = read_text_file('Corrections.txt',
+                                     KEEP_BLANKS=False,UPPER=True)
+        print('Corrections=',corrections)
+        self.corrections={}
+        for x in corrections:
+            print(x)
+            y=x.split(' ')
+            self.corrections[y[0]] = y[1]
+        print('Corrections=',self.corrections)
+
+                    
