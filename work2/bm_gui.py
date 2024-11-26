@@ -1,6 +1,6 @@
 #########################################################################################
 #
-# gui.py - Rev. 1.0
+# gui.py - Rev. 2.0
 # Copyright (C) 2021-4 by Joseph B. Attili, aa2il AT arrl DOT net
 #
 # Gui for dx cluster bandmap.
@@ -71,9 +71,14 @@ class BandMapGUI:
 
         # Init
         self.P = P
-        self.nspots=0
-        self.SpotList=[]
-        self.current=[]
+        P.nspots=0
+        P.SpotList=[]
+        P.current=[]
+        P.friends=[]
+        P.most_wanted=[]
+        P.corrections=[]
+        P.members=[]
+
         self.last_check=datetime.now()
         self.qsos=[]
         self.VFO = P.RIG_VFO
@@ -82,13 +87,6 @@ class BandMapGUI:
         else:
             self.FT_MODE='FT8'
         self.Ready=False
-        self.nerrors=0
-        self.enable_scheduler=True
-        self.last_error=''
-        self.friends=[]
-        self.most_wanted=[]
-        self.corrections=[]
-        P.members=[]
         self.calls1 = []
         self.sock = None
         self.old_mode = None
@@ -96,12 +94,6 @@ class BandMapGUI:
         # UDP stuff
         P.bm_udp_client=None
         P.bm_udp_ntries=0
-
-        # Open a file to save all of the spots
-        if P.SAVE_SPOTS:
-            self.fp = open("all_spots.dat","w")
-        else:
-            self.fp=-1
 
         # Read "regular" logbook - need to update this
         # Might need to bring this out to bandmap.py
@@ -286,14 +278,10 @@ class BandMapGUI:
         self.root.update_idletasks()
         self.root.update()
 
-        # Open spot server
-        self.open_spot_server()
         
-
     # Function to actually get things going        
     def run(self):
     
-        self.tn   = self.P.tn
         self.sock = self.P.sock
 
         # Put gui on proper desktop
@@ -323,7 +311,6 @@ class BandMapGUI:
         print('Initial server=',self.P.SERVER)
         self.node.set(self.P.SERVER)
         
-        self.Scheduler()
         self.WatchDog()
 
 
@@ -430,7 +417,7 @@ class BandMapGUI:
             return
             
         print('\n***************************************** Well well well ...',self.FT_MODE,band,frq)
-        self.P.tn.configure_wsjt(NewMode=self.FT_MODE)
+        self.P.ClusterFeed.tn.configure_wsjt(NewMode=self.FT_MODE)
         time.sleep(.1)
         self.sock.set_freq(frq,VFO=self.VFO)
 
@@ -492,8 +479,10 @@ class BandMapGUI:
     # Function to collect spots for a particular band
     def collect_spots(self,band,REVERSE=False,OVERRIDE=False):
 
-        print('COLLECT_SPOTS: band=',band,'\tReverse=',REVERSE,
-              '\tOVERRIDE=',OVERRIDE,'\tCONTEST_MODE=', self.P.CONTEST_MODE)
+        P=self.P
+
+        print('COLLECT_SPOTS: nspots=',len(P.SpotList),'\tband=',band,
+              '\nReverse=',REVERSE,'\tOVERRIDE=',OVERRIDE,'\tCONTEST_MODE=', self.P.CONTEST_MODE)
 
         if 'cm' in band:
             iband=int( band.replace('cm','') )
@@ -501,7 +490,7 @@ class BandMapGUI:
             iband=int( band.replace('m','') )
 
         spots=[]
-        for x in self.SpotList:
+        for x in P.SpotList:
             keep= x and x.band == iband
             if self.P.DX_ONLY:
                 # Retain only stations outside US or SESs
@@ -527,7 +516,7 @@ class BandMapGUI:
 
             # Check for dupes
             if keep:
-                match = self.B4(x,band)
+                match = self.P.ClusterFeed.B4(x,band)
                 c,c2,age=self.spot_color(match,x)
                 x.color=c
                 if not (self.P.SHOW_DUPES or OVERRIDE):
@@ -541,6 +530,7 @@ class BandMapGUI:
             
         spots.sort(key=lambda x: x.frequency, reverse=REVERSE)
 
+        print('\tNo. Collect spots=',len(spots))
         return spots
 
 
@@ -548,14 +538,15 @@ class BandMapGUI:
     # Callback to handle band changes
     def SelectBands(self,allow_change=False):
 
+        P=self.P
         VERBOSITY = self.P.DEBUG
         #VERBOSITY = 1
         if VERBOSITY>0:
-            print('SELECT BANDS A: nspots=',self.nspots,
-                  '\tlen SpotList=',len(self.SpotList),
-                  '\tlen Current=',len(self.current))
+            print('SELECT BANDS A: nspots=',P.nspots,
+                  '\tlen SpotList=',len(P.SpotList),
+                  '\tlen Current=',len(P.current))
 
-        scrolling(self,'SELECT BANDS A')
+        self.scrolling('SELECT BANDS A')
 
         if not self.sock:
             print('\nGUI->SELECT BANDS: Not sure why but no socket yet ????')
@@ -578,7 +569,7 @@ class BandMapGUI:
         band2 = freq2band(frq2)
         self.status_bar.setText("Band Select: "+str(band))
         
-        print("You've selected ",band,' - Current rig band=',band2,\
+        print("\nYou've selected ",band,' - Current rig band=',band2,\
               ' - allow_change=',allow_change,' - mode=',self.FT_MODE, \
               flush=True)
 
@@ -587,7 +578,7 @@ class BandMapGUI:
             b=band
             if self.P.CLUSTER=='WSJT':
                 print('BM_GUI - Config WSJT ...',b,self.FT_MODE)
-                self.P.tn.configure_wsjt(NewMode=self.FT_MODE)
+                self.P.ClusterFeed.tn.configure_wsjt(NewMode=self.FT_MODE)
                 time.sleep(.1)
                 try:
                     new_frq = bands[b][self.FT_MODE] + 1
@@ -610,8 +601,8 @@ class BandMapGUI:
             self.SelectAnt(-2,band)
             
         # Extract a list of spots that are in the desired band
-        self.current = self.collect_spots(band)
-        y=scrolling(self,'SELECT BANDS B')
+        P.current = self.collect_spots(band)
+        y=self.scrolling('SELECT BANDS B')
         
         # Get latest logbook
         now = datetime.utcnow().replace(tzinfo=UTC)
@@ -640,10 +631,10 @@ class BandMapGUI:
             
         # Re-populate list box with spots from this band
         # This seems to be the slow part
-        #print 'Repopulate ...',len(self.current),len(self.qsos)
+        #print 'Repopulate ...',len(P.current),len(self.qsos)
         self.lb.delete(0, END)
         n=0
-        for x in self.current:
+        for x in P.current:
             #pprint(vars(x))
             dxcc=x.dx_station.country
             if self.P.CLUSTER=='WSJT':
@@ -661,17 +652,17 @@ class BandMapGUI:
                                (x.frequency,x.dx_call,x.mode,cleanup(dxcc),val))
 
             # JBA - Change background colors on each list entry
-            self.lb.itemconfigure(END, background=self.current[n].color)
+            self.lb.itemconfigure(END, background=P.current[n].color)
             n+=1
 
         # Reset lb view
         self.LBsanity()
         self.lb.yview_moveto(y)
-        scrolling(self,'SELECT BANDS C')
+        self.scrolling('SELECT BANDS C')
         if VERBOSITY>0:
-            print('SELECT BANDS B: nspots=',self.nspots,
-                  '\tlen SpotList=',len(self.SpotList),
-                  '\tlen Current=',len(self.current))
+            print('SELECT BANDS B: nspots=',P.nspots,
+                  '\tlen SpotList=',len(P.SpotList),
+                  '\tlen Current=',len(P.current))
 
             
     def match_qsos(self,qso,x,b,now):
@@ -722,6 +713,7 @@ class BandMapGUI:
         
     # Function to determine spot color
     def spot_color(self,match,x):
+        P=self.P
 
         now = datetime.utcnow().replace(tzinfo=UTC)
         age = (now - x.time).total_seconds()/60      # In minutes
@@ -746,10 +738,10 @@ class BandMapGUI:
         elif x.need_mode:
             c="pink"
             c2='p'
-        elif dx_call in self.friends:
+        elif dx_call in P.friends:
             c="lightskyblue" 
             c2='lb'
-        elif dx_call in self.most_wanted:
+        elif dx_call in P.most_wanted:
             c="turquoise"
             c2='t'
         elif dx_call==self.P.MY_CALL:
@@ -782,10 +774,10 @@ class BandMapGUI:
         print('LB_UPDATE: b=',b)
         now = datetime.utcnow().replace(tzinfo=UTC)
         idx=-1
-        if len(self.current)==0:
-            print('LB_UPDATE - Nothing to do.',self.current)
+        if len(P.current)==0:
+            print('LB_UPDATE - Nothing to do.',P.current)
             return
-        for x in self.current:
+        for x in P.current:
             idx+=1
             for qso in self.qsos:
                 match = self.match_qsos(qso,x,b,now)
@@ -795,7 +787,7 @@ class BandMapGUI:
                 if match:
                     break
         #else:
-        #    print('LB_UPDATE - Nothing to do.',self.current)
+        #    print('LB_UPDATE - Nothing to do.',P.current)
         #    return
 
         if idx>=0:
@@ -803,45 +795,6 @@ class BandMapGUI:
             self.lb.itemconfigure(idx, background=c)
             #print('LB_UPDATE:',dx_call,c)
                 
-
-    # Function to check if we've already worked a spotted station
-    def B4(self,x,b):
-            
-        now = datetime.utcnow().replace(tzinfo=UTC)
-        dx_call=x.dx_call.upper()
-        nqsos=len(self.qsos)
-        if VERBOSITY>0:
-            print('B4: ... call=',dx_call,'\tband=',b,'nqsos=',nqsos)
-        
-        match=False
-        if nqsos>0:
-            for qso in self.qsos:
-                #print('QSO=',qso)
-                if self.P.CW_SS:
-                    # Can only work each station once regardless of band in this contest
-                    match = dx_call==qso['call']
-                else:
-                    try:
-                        match = (dx_call==qso['call']) and (b==qso['band'])
-                    except: 
-                        error_trap('GUI->MATCH QSOS: ?????')
-                        match=False
-                        print('dx_call=',dx_call)
-                        print('qso=',qso)
-
-                if match:
-                    t1 = datetime.strptime(now.strftime("%Y%m%d %H%M%S"), "%Y%m%d %H%M%S") 
-                    t2 = datetime.strptime( qso['qso_date_off']+" "+qso["time_off"] , "%Y%m%d %H%M%S")
-                    delta=(t1-t2).total_seconds() / 3600
-                    match = delta < self.P.MAX_HOURS_DUPE
-                    if VERBOSITY>=2:
-                        print('--- Possible dupe ',tag,' for',dx_call,'\tt12=',t1,t2,'\tdelta=',
-                              delta,match)
-                    if match:
-                        print('*** Dupe ***',qso['call'],qso['band'])
-                        break
-
-        return match
 
             
 
@@ -853,7 +806,7 @@ class BandMapGUI:
         idx=0
 
         # Keep track of entry that is closest to current rig freq
-        for x in self.current:
+        for x in P.current:
             df=abs( x.frequency-frq )
             #            print idx,x.frequency,frq,df,ibest
             if df<dfbest:
@@ -869,7 +822,7 @@ class BandMapGUI:
             yview=self.lb.yview()
             """
             print("LBSANITY: Closest=",ibest,
-                  '\tf=',self.current[ibest].frequency,
+                  '\tf=',P.current[ibest].frequency,
                   '\tsize=',sz,
                   '\tsb=',sb,
                   '\tyview',yview)
@@ -916,7 +869,7 @@ class BandMapGUI:
             #if VERBOSITY>0:
             #    print('LBSANITY - DONT KEEP CENTERED - nothing to do')
 
-            y=scrolling(self,'LBSANITY',verbosity=0)
+            y=self.scrolling('LBSANITY',verbosity=0)
             self.lb.yview_moveto(y)
             
             return
@@ -925,84 +878,50 @@ class BandMapGUI:
         frq = self.rig_freq
         self.set_lbview(frq,True)
 
-
-    # Callback to reset telnet connection
-    def Reset(self):
-        print("\n------------- Reset -------------",self.P.CLUSTER,'\n')
-        self.status_bar.setText("RESET - "+self.P.CLUSTER)
-        self.Clear_Spot_List()
-        if self.P.BM_UDP_CLIENT and self.P.bm_udp_client and False:
-            self.P.bm_udp_client.StartServer()
-        if self.P.BM_UDP_CLIENT and self.P.bm_udp_server and False:
-            self.P.bm_udp_server.StartServer()
-        if self.tn:
-            self.tn.close()
-            self.enable_scheduler=False
-            time.sleep(.1)
-            
-        try:
-            self.tn = connection(self.P.TEST_MODE,self.P.CLUSTER, \
-                                 self.P.MY_CALL,self.P.WSJT_FNAME)
-            print("--- Reset --- Connected to",self.P.CLUSTER, self.enable_scheduler)
-            OK=test_telnet_connection(self.tn)
-        except:
-            error_trap('GUI->RESET: Problem connecting to node'+self.P.CLUSTER)
-            OK=False
-            
-        if not OK:
-            print('--- Reset --- Now what Sherlock?!')
-            self.status_bar.setText('Lost telnet connection?!')
-        if not self.enable_scheduler or True:
-            self.enable_scheduler=True
-            self.nerrors=0
-            self.Scheduler()
-
     # Callback to clear all spots
     def Clear_Spot_List(self):
+        P=self.P
         print("\n------------- Clear Spot List -------------",self.P.CLUSTER,'\n')
-        self.nspots=0
-        self.SpotList=[];
-        self.current=[]
+        P.nspots=0
+        P.SpotList=[];
+        P.current=[]
         self.lb.delete(0, END)
-
-        # JBA - MEM??? - Why are we re-reading this???? Disable and see what happens
-        if False:
-            self.P.data = ChallengeData(self.P.CHALLENGE_FNAME)
-
-    # Wrapper to schedule events to read the spots
-    def Scheduler(self):
-        n = cluster_feed(self)
-        if n==0:
-            if "telent connection closed" in self.last_error:
-                self.enable_scheduler=False
-                print('SCHEDULER - Attempting to reopen node ...')
-                self.SelectNode()
-            else:
-                #print('SCHEDULER - Nothing returned')
-                dt=200          # Wait a bit before querying cluster again
-        else:
-            dt=5      # We got a spot - see if there are more
-            
-        if self.enable_scheduler:
-            self.root.after(dt, self.Scheduler)   
 
     #########################################################################################
 
     # Watch Dog 
     def WatchDog(self):
-        print('BM WATCH DOG ...')
+        #print('BM WATCH DOG ...')
+
+        # Check if we have any new spots
+        nspots=self.P.q.qsize()
+        #print('BM WATCH DOG - There are',nspots,'new spots in the queue ...')
+        while nspots>0:
+            entry=self.P.q.get()
+            #print('\tentry=',entry,len(entry))
+            if len(entry)==1:
+                self.lb.delete(entry[0])
+            else:
+                self.lb.insert(entry[0], entry[1])
+                try:
+                    self.lb.itemconfigure(entry[0], background=entry[2])
+                except:
+                    error_trap('WATCH DOG: Error in configuring item bg color ????')
+                    print('entry=',entry)
+            self.P.q.task_done()
+            nspots=self.P.q.qsize()
         
         # Check for antenna or mode or band changes
         # Should combine these two
         if VERBOSITY>0:
             logging.info("Calling Get Band & Freq ...")
         if self.P.SERVER=="WSJT":
-            tmp = self.tn.wsjt_status()
+            tmp = self.P.ClusterFeed.tn.wsjt_status()
             #print('WatchDog:',tmp)
             if all(tmp):
                 if not self.Ready:
                     print('WatchDog - Ready to go ....')
-                    self.P.tn.configure_wsjt(NewMode=self.FT_MODE)
+                    self.P.ClusterFeed.tn.configure_wsjt(NewMode=self.FT_MODE)
                     self.Ready=True
 
                 self.rig_freq = tmp[0]
@@ -1053,7 +972,7 @@ class BandMapGUI:
     def LBSelect(self,value,vfo):
         print('LBSelect: Tune rig to a spot - vfo=',vfo,value)
         self.status_bar.setText("Spot Select "+value)
-        scrolling(self,'LBSelect')
+        self.scrolling('LBSelect')
 
         # Examine item that was selected
         b=value.strip().split()
@@ -1065,7 +984,7 @@ class BandMapGUI:
             df = b[0]
             dx_call = b[1]
             #print('\n========================= LBSelect:',b,'\n')
-            self.P.tn.configure_wsjt(RxDF=df,DxCall=dx_call)
+            self.P.ClusterFeed.tn.configure_wsjt(RxDF=df,DxCall=dx_call)
             return
 
         # Note - need to set freq first so get on right band, then set the mode
@@ -1127,6 +1046,7 @@ class BandMapGUI:
     
 
     def LBCenterClick(self,event):
+        P=self.P
         print('LBCenterClick: Delete an entry')
 
         index = event.widget.nearest(event.y)
@@ -1136,21 +1056,21 @@ class BandMapGUI:
         print('You selected item %d: %s - %s' % (index,value,call))
         self.status_bar.setText("Spot Delete "+value)
 
-        del self.current[index]
+        del P.current[index]
         self.lb.delete(index)
 
-        #print('\nCENTER CLICK B4:',len(self.SpotList),self.SpotList)
+        #print('\nCENTER CLICK B4:',len(P.SpotList),P.SpotList)
         idx=[]
         i=0
-        for i in range(len(self.SpotList)):
-            x=self.SpotList[i]
+        for i in range(len(P.SpotList)):
+            x=P.SpotList[i]
             if hasattr(x, 'dx_call') and x.dx_call==call:
                 idx.append(i)
         idx.reverse()
         #print('idx=',idx)
         for i in idx:
-            x=self.SpotList.pop(i)
-        #print('\nCENTER CLICK AFTER:',len(self.SpotList),self.SpotList)
+            x=P.SpotList.pop(i)
+        #print('\nCENTER CLICK AFTER:',len(P.SpotList),P.SpotList)
             
     #########################################################################################
 
@@ -1183,6 +1103,9 @@ class BandMapGUI:
             self.root.title("Band Map by AA2IL - Server " + SERVER)
             self.Reset()
             self.node.set(self.P.SERVER)
+
+    def Reset(self):
+        self.P.ClusterFeed.Reset()
 
     # Toggle DX ONLY mode
     def toggle_dx_only(self):
@@ -1518,60 +1441,6 @@ class BandMapGUI:
         menubar["menu"]= menubar.menu  
 
 
-    # Function to open spot server
-    def open_spot_server(self):
-
-        P=self.P
-
-        # Open telnet connection to spot server
-        print('SERVER=',P.SERVER,'\tMY_CALL=',P.MY_CALL)
-        #sys,exit(0)
-        if P.SERVER=='NONE': # or (P.SERVER!="WSJT" and not P.INTERNET):
-
-            # No cluster node
-            P.tn = None
-        
-        elif P.SERVER=='ANY':
-
-            # Go down list of known nodes until we find one we can connect to
-            KEYS=list(P.NODES.keys())
-            print('NODES=',P.NODES)
-            print('KEYS=',KEYS)
-            
-            P.tn=None
-            inode=0
-            while not P.tn and inode<len(KEYS):
-                key = KEYS[inode]
-                self.status_bar.setText("Attempting to open node "+P.NODES[key]+' ...')
-                P.tn = connection(P.TEST_MODE,P.NODES[key],P.MY_CALL,P.WSJT_FNAME, \
-                                  ip_addr=P.WSJT_IP_ADDRESS,port=P.WSJT_PORT)
-                inode += 1
-            if P.tn:
-                P.CLUSTER=P.NODES[key]
-                P.SERVER = key
-            else:
-                print('\n*** Unable to connect to any node - no internet? - giving up! ***\n')
-                sys.exit(0)
-                
-        else:
-
-            # Connect to specified node 
-            self.status_bar.setText("Attempting to open "+P.CLUSTER+' ...')
-            P.tn = connection(P.TEST_MODE,P.CLUSTER,P.MY_CALL,P.WSJT_FNAME, \
-                              ip_addr=P.WSJT_IP_ADDRESS,port=P.WSJT_PORT)
-
-        if not P.TEST_MODE:
-            if P.tn:
-                OK=test_telnet_connection(P.tn)
-                if not OK:
-                    print('OPEN_SPOT_SERVER: Whooops!  SERVER=',P.SERVER,'\tOK=',OK)
-                    sys.exit(0)
-            else:
-                if P.SERVER!='NONE':
-                    print('OPEN_SPOT_SERVER: Giving up!  SERVER=',P.SERVER,'\tOK=',OK)
-                    sys.exit(0)
-
-                    
     # Function to read various auiliary data files
     def read_aux_data(self):
 
@@ -1599,30 +1468,111 @@ class BandMapGUI:
     
         # Read list of friends
         self.status_bar.setText('Reading misc data ...')
-        self.friends = []
+        P.friends = []
         lines = read_text_file('Friends.txt',
                                KEEP_BLANKS=False,UPPER=True)
         for line in lines:
             c=line.split(',')[0]
             if c[0]!='#':
-                self.friends.append(c)
-        print('FRIENDS=',self.friends)
+                P.friends.append(c)
+        print('FRIENDS=',P.friends)
         #sys.exit(0)
                                    
         # Read lists of most wanted
-        self.most_wanted = read_text_file('Most_Wanted.txt',
+        P.most_wanted = read_text_file('Most_Wanted.txt',
                                           KEEP_BLANKS=False,UPPER=True)
-        print('MOST WANTED=',self.most_wanted)
+        print('MOST WANTED=',P.most_wanted)
     
         # Read lists of common errors
         corrections = read_text_file('Corrections.txt',
                                      KEEP_BLANKS=False,UPPER=True)
         print('Corrections=',corrections)
-        self.corrections={}
+        P.corrections={}
         for x in corrections:
             print(x)
             y=x.split(' ')
-            self.corrections[y[0]] = y[1]
-        print('Corrections=',self.corrections)
+            P.corrections[y[0]] = y[1]
+        print('Corrections=',P.corrections)
 
-                    
+    #########################################################################################
+
+    #########################################################################################
+
+    # Debug routine for scrolling issues
+    def scrolling(self,txt,verbosity=0):
+        #print('SCROLLING:',txt,verbosity)
+
+        sb=self.scrollbar.get()
+        sz=self.lb.size()
+        yview=self.lb.yview()
+        y=yview[0]
+    
+        idx=int( y*sz +0.5 )
+        val=self.lb.get(min(max(idx,0),sz-1))
+        if verbosity>0:
+            print('SCROLLING:',txt+': sz=',sz,'\tyview=',yview,
+                  '\n\ty=',y,'\tidx=',idx,'\tval=',val)
+
+        return y
+
+    
+    # Function to cull aged spots
+    def cull_old_spots(self):
+        P=self.P
+        #logging.info("Calling Get_Freq ...")
+        now = datetime.utcnow().replace(tzinfo=UTC)
+        if self.sock:
+            frq = self.sock.get_freq(VFO=self.VFO)
+        else:
+            frq=0
+        #print('SpotList=',P.SpotList)
+        #print("CULL OLD SPOTS - Rig freq=",frq,'\tnspots=',P.nspots,len(P.SpotList),len(P.current),
+        #      '\nmax age=',self.P.MAX_AGE,'\tnow=',now)
+        print("CULL OLD SPOTS - Rig freq=",frq,
+              '\tnspots=',P.nspots,
+              '\tlen SpotList=',len(P.SpotList),
+              '\tlen Current=',len(P.current),
+              '\n\tmax age=',self.P.MAX_AGE,
+              '\tnow=',now)
+
+        self.scrolling('CULL OLD SPOTS A')
+
+        NewList=[];
+        BAND = int( self.band.get().replace('m','') )
+        for x in P.SpotList:
+            try:
+                age = (now - x.time).total_seconds()/60      # In minutes
+            except:
+                error_trap('CULL_OLD_SPOTS: ????')
+                age=0
+                print('x=',x)
+                #pprint(vars(x))
+                print('now=',now)
+                #print('x.time=',x.time)
+                continue
+            
+            #        print x.time,now,age
+            if age<self.P.MAX_AGE and x!=None:
+                NewList.append(x)
+            else:
+                print("CULL OLD SPOTS - Removed spot ",x.dx_call,'\t',x.time,x.frequency,x.band," age=",age)
+                if (not OLD_WAY) and x.band==BAND:
+                    idx2 = [i for i,y in enumerate(P.current) 
+                            if y.frequency == x.frequency and y.dx_call == x.dx_call]
+                    #print("Delete",idx2,idx2[0])
+                    del P.current[idx2[0]]
+                    self.lb.delete(idx2[0])
+
+        # Update gui display
+        self.scrolling('CULL OLD SPOTS B')
+        P.SpotList=NewList
+        if OLD_WAY:
+            self.SelectBands()
+        self.scrolling('CULL OLD SPOTS C')
+        print("CULL OLD SPOTS - New nspots=",P.nspots,
+              '\tlen SpotList=',len(P.SpotList),
+              '\tlen Current=',len(P.current))
+        self.last_check=datetime.now()
+        #    print self.last_check
+
+        

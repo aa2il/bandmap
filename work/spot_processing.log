@@ -1,0 +1,446 @@
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+Busted Prefix: 'False' of W3LPL3 could not be decoded
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+Busted Prefix: 'False' of AC0C1 could not be decoded
+Busted Prefix: 'False' of W1NT6 could not be decoded
+Busted Prefix: 'False' of K3PA2 could not be decoded
+Busted Prefix: 'False' of KM3T3 could not be decoded
+Busted Prefix: 'False' of AC0C1 could not be decoded
+Busted Prefix: 'False' of KE8RU1 could not be decoded
+Busted Prefix: 'False' of K3PA1 could not be decoded
+Busted Prefix: 'False' of W1NT6 could not be decoded
+Busted Prefix: 'False' of W1NT2 could not be decoded
+Busted Prefix: 'False' of KM3T3 could not be decoded
+Busted Prefix: 'False' of JH7CSU1 could not be decoded
+Busted Prefix: 'False' of K3PA2 could not be decoded
+Busted Prefix: 'False' of K3PA2 could not be decoded
+Busted Prefix: 'False' of AC0C1 could not be decoded
+Busted Prefix: 'False' of W1NT2 could not be decoded
+Busted Prefix: 'False' of W1NT6 could not be decoded
+Busted Prefix: 'False' of KM3T2 could not be decoded
+Busted Prefix: 'False' of AC0C1 could not be decoded
+Busted Prefix: 'False' of AC0C1 could not be decoded
+Busted Prefix: 'False' of KM3T2 could not be decoded
+Busted Prefix: 'False' of AC0C1 could not be decoded
+Busted Prefix: 'False' of W1NT2 could not be decoded
+Busted Prefix: 'False' of KM3T3 could not be decoded
+Busted Prefix: 'False' of W1NT6 could not be decoded
+Busted Prefix: 'False' of TA6C10 could not be decoded
+Busted Prefix: 'False' of W1NT6 could not be decoded
+Busted Prefix: 'False' of K3PA1 could not be decoded
+Busted Prefix: 'False' of KM3T2 could not be decoded
+Busted Prefix: 'False' of AC0C1 could not be decoded
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+Busted Prefix: 'False' of T9/HA7GN could not be decoded
+Busted Prefix: 'False' of T9/HA7GN could not be decoded
+Busted Prefix: 'False' of T9/HA7GN could not be decoded
+Busted Prefix: 'False' of KM3T2 could not be decoded
+Busted Prefix: 'False' of K5SL9 could not be decoded
+Busted Prefix: 'False' of JG1TSG7 could not be decoded
+Busted Prefix: 'False' of AC0C1 could not be decoded
+Busted Prefix: 'False' of W1NT2 could not be decoded
+Busted Prefix: 'False' of AC0C1 could not be decoded
+Busted Prefix: 'False' of W1NT2 could not be decoded
+Busted Prefix: 'False' of W1NT2 could not be decoded
+Busted Prefix: 'False' of K3PA1 could not be decoded
+Busted Prefix: 'False' of AC0C1 could not be decoded
+Busted Prefix: 'False' of W1NT2 could not be decoded
+Busted Prefix: 'False' of AC0C1 could not be decoded
+Busted Prefix: 'False' of KM3T3 could not be decoded
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+could not convert string to float: ''
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 899, in __process_spot
+    self.frequency = float(re.sub('[^0-9\.]+', '', raw_string[16:25]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''
+Busted Prefix: 'False' of W1NT6 could not be decoded
+Busted Prefix: 'False' of T9/HA7GN could not be decoded
+Busted Prefix: 'False' of AC0C1 could not be decoded
+Busted Prefix: 'False' of T9/HA7GN could not be decoded
+Busted Prefix: 'False' of T9/HA7GN could not be decoded
+Busted Prefix: 'False' of KM3T3 could not be decoded
+Busted Prefix: 'False' of DK9IP1 could not be decoded
+Busted Prefix: 'False' of W1NT6 could not be decoded
+Busted Prefix: 'False' of W1NT6 could not be decoded
+Busted Prefix: 'False' of K3PA1 could not be decoded
+Busted Homecall: 'False' of S/G could not be decoded
+Busted Homecall: 'False' of 14 could not be decoded
+Busted Homecall: 'False' of  could not be decoded
+could not convert string to float: '3.1.0'
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 896, in __process_spot
+    self.frequency = float(frequency_temp.group(0))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: '3.1.0'
+could not convert string to float: '3.1.0'
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 896, in __process_spot
+    self.frequency = float(frequency_temp.group(0))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: '3.1.0'
+Busted Homecall: 'False' of DROPING could not be decoded
+Busted Homecall: 'False' of  could not be decoded
+Busted Homecall: 'False' of QTH could not be decoded
+Busted Homecall: 'False' of QTH could not be decoded
+could not convert string to float: '3.1.0'
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 896, in __process_spot
+    self.frequency = float(frequency_temp.group(0))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: '3.1.0'
+Busted Homecall: 'False' of USA could not be decoded
+Busted Homecall: 'False' of USA could not be decoded
+Busted Homecall: 'False' of USA could not be decoded
+could not convert string to float: '3.1.0'
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 896, in __process_spot
+    self.frequency = float(frequency_temp.group(0))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: '3.1.0'
+Busted Homecall: 'False' of POTA could not be decoded
+Busted Homecall: 'False' of POTA could not be decoded
+Busted Homecall: 'False' of POTA could not be decoded
+Busted Homecall: 'False' of POTA could not be decoded
+Busted Homecall: 'False' of POTA could not be decoded
+Busted Homecall: 'False' of POTA could not be decoded
+Busted Homecall: 'False' of  could not be decoded
+Busted Homecall: 'False' of FWAS could not be decoded
+Busted Homecall: 'False' of POTA could not be decoded
+Busted Prefix: 'False' of 0Y5MDX could not be decoded
+Busted Prefix: 'False' of 0Y5MDX could not be decoded
+Busted Prefix: 'False' of 0Y5MDX could not be decoded
+Busted Prefix: 'False' of 0Y5MDX could not be decoded
+Busted Prefix: 'False' of 0Y5MDX could not be decoded
+Busted Homecall: 'False' of  could not be decoded
+Busted Homecall: 'False' of  could not be decoded
+Busted Homecall: 'False' of POTA could not be decoded
+Busted Homecall: 'False' of QRZCO could not be decoded
+Busted Homecall: 'False' of POTA could not be decoded
+Busted Homecall: 'False' of POTA could not be decoded
+Busted Homecall: 'False' of POTA could not be decoded
+Busted Homecall: 'False' of QRP could not be decoded
+Busted Homecall: 'False' of QRP could not be decoded
+Busted Homecall: 'False' of POTA could not be decoded
+Busted Homecall: 'False' of QRP could not be decoded
+Busted Homecall: 'False' of QRP could not be decoded
+Busted Homecall: 'False' of  could not be decoded
+Busted Homecall: 'False' of  could not be decoded
+Busted Homecall: 'False' of  could not be decoded
+Busted Homecall: 'False' of  could not be decoded
+Busted Homecall: 'False' of POTA could not be decoded
+Busted Homecall: 'False' of POTA could not be decoded
+Busted Prefix: 'False' of WB9OW73 could not be decoded
+Busted Prefix: 'False' of WB9OW73 could not be decoded
+Busted Prefix: 'False' of WB9OW73 could not be decoded
+Busted Prefix: 'False' of WB9OW73 could not be decoded
+Busted Prefix: 'False' of WB9OW73 could not be decoded
+Busted Homecall: 'False' of SD could not be decoded
+Busted Homecall: 'False' of SD could not be decoded
+Busted Homecall: 'False' of SD could not be decoded
+Busted Homecall: 'False' of SD could not be decoded
+Busted Homecall: 'False' of SD could not be decoded
+Busted Homecall: 'False' of SD could not be decoded
+Busted Homecall: 'False' of POTA could not be decoded
+Busted Homecall: 'False' of POTA could not be decoded
+Busted Prefix: 'False' of NIO967ID5XD could not be decoded
+Busted Prefix: 'False' of NIO967ID5XD could not be decoded
+Busted Prefix: 'False' of NIO967ID5XD could not be decoded
+Busted Prefix: 'False' of NIO967ID5XD could not be decoded
+Busted Homecall: 'False' of POTA could not be decoded
+Busted Prefix: 'False' of NIO967ID5XD could not be decoded
+Busted Homecall: 'False' of POTA could not be decoded
+Busted Homecall: 'False' of POTA could not be decoded
+Busted Homecall: 'False' of POTA could not be decoded
+Busted Homecall: 'False' of POTA could not be decoded
+Busted Homecall: 'False' of POTA could not be decoded
+Busted Homecall: 'False' of QSY could not be decoded
+Busted Homecall: 'False' of QSY could not be decoded
+could not convert string to float: '3.1.0'
+Problem in Spot Processing
+Traceback (most recent call last):
+  File "/home/joea/Python/libs/dx/spot_processing.py", line 896, in __process_spot
+    self.frequency = float(frequency_temp.group(0))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: '3.1.0'

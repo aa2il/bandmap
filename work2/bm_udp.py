@@ -24,7 +24,6 @@ from pprint import pprint
 import zlib
 from utilities import freq2band
 from datetime import datetime
-from cluster_feed import digest_spot
 from collections import OrderedDict
 import pytz
 
@@ -105,7 +104,7 @@ def bm_udp_msg_handler(self,sock,msg):
                 ('AA2IL'+'-#:',freq,call,mode+' 0 dB',
                  now.strftime("%H%M") )
             print(line)
-            digest_spot(self.P.bm_gui,line)
+            self.P.bm_gui.digest_spot(line)
             return
      
         elif mm[0]=='LOG':

@@ -120,7 +120,7 @@ def cluster_feed(self):
             print('spot=',spot)
 
         # Check for band changes
-        if tn.nsleep>=1 and True:
+        if tn.nsleep>=1:
             band  = self.band.get()
             #logging.info("Calling Get band ...")
             frq2 = 1e-6*self.sock.get_freq(VFO=self.VFO)
@@ -204,7 +204,7 @@ def digest_spot(self,line):
             
     # Check for logged contact
     if "<adif_ver" in line:
-        print('\nCluster Feed: LOGGED Contact Detected ...')
+        print('\nDIGEST SPOT: LOGGED Contact Detected ...')
         qso=parse_adif(-1,line)
         #print('qso=',qso)
         self.qsos.append( qso[0] )
@@ -230,12 +230,12 @@ def digest_spot(self,line):
 
         # Fix common mistakes
         if dx_call==None:
-            print('CLUSTER_FEED: *** CORRECTION - blank call?????',dx_call)
+            print('DIGEST SPOT: *** CORRECTION - blank call?????',dx_call)
             pprint(vars(obj))
         elif len(dx_call)<3:
-            print('CLUSTER_FEED: *** CORRECTION but dont know what to do - call=',dx_call)            
+            print('DIGEST SPOT: *** CORRECTION but dont know what to do - call=',dx_call)            
         elif dx_call in self.corrections:
-            print('CLUSTER_FEED: *** NEED A CORRECTION ***',dx_call)
+            print('DIGEST SPOT: *** NEED A CORRECTION ***',dx_call)
             dx_call = self.corrections[dx_call]
             obj.dx_call = dx_call
         elif dx_call[0]=='T' and dx_call[1:] in self.P.members:
@@ -267,7 +267,7 @@ def digest_spot(self,line):
                 keep=False
         
         if False:
-            print('CLUSTER FEED:',line.strip())
+            print('DIGEST SPOT:',line.strip())
             print('keep=',keep,'\tb=',b)
         
         if keep:
@@ -298,14 +298,14 @@ def digest_spot(self,line):
                     except:
                         bg=0
                     self.tn.highlight_spot(dx_call,fg,bg)
-                    #print('CLUSTER FEED: call=',obj.dx_call,'\tsnr=',obj.snr,'\tfg/bg=',fg,bg,'\t',obj.snr.isnumeric(),int(obj.snr),len(obj.snr))
+                    #print('DIGEST SPOT: call=',obj.dx_call,'\tsnr=',obj.snr,'\tfg/bg=',fg,bg,'\t',obj.snr.isnumeric(),int(obj.snr),len(obj.snr))
 
             # Pull out info from the spot
             freq=float( obj.frequency )
             mode=obj.mode
             band=obj.band
             self.nspots+=1
-            print('CLUSTER FEED: call=',obj.dx_call,'\tfreq=',freq,'\tmode=',mode,'\tband=',band,'\tnspots=',self.nspots)
+            print('DIGEST SPOT: call=',obj.dx_call,'\tfreq=',freq,'\tmode=',mode,'\tband=',band,'\tnspots=',self.nspots)
 
             dxcc=obj.dx_station.country
             if dxcc==None and False:
@@ -352,11 +352,11 @@ def digest_spot(self,line):
 
                 # Call already in list - Update spot info
                 #if VERBOSITY>=2:
-                print("CLUSTER FEED: Dupe call =",dx_call,'\tfreq=',freq,
+                print("DIGEST SPOT: Dupe call =",dx_call,'\tfreq=',freq,
                       '\tmode=',mode,'\tband=',band,'\tidx1=',idx1)
                 for i in idx1:
                     if VERBOSITY>=2:
-                        print('CLUSTER FEED A i=',i,self.SpotList[i].dx_call,
+                        print('\tA i=',i,self.SpotList[i].dx_call,
                               '\ttime=',self.SpotList[i].time,obj.time,
                               '\tfreq=',self.SpotList[i].frequency,obj.frequency)
                     self.SpotList[i].time=obj.time
@@ -366,13 +366,13 @@ def digest_spot(self,line):
                     if self.P.CLUSTER=='WSJT':
                         self.SpotList[i].df=obj.df
                     if VERBOSITY>=2:
-                        print('CLUSTER FEED B i=',i,self.SpotList[i].dx_call,
+                        print('\tB i=',i,self.SpotList[i].dx_call,
                               '\ttime=',self.SpotList[i].time,obj.time,
                               '\tfreq=',self.SpotList[i].frequency,obj.frequency)
 
                 # Update list box entry - In progress
                 idx2 = [i for i,x in enumerate(self.current) if x.dx_call == dx_call and x.band==b]
-                if len(idx2)>0 and True:
+                if len(idx2)>0:
                     bgc = self.lb.itemcget(idx2[0], 'background')
                     #print '&&&&&&&&&&&&&&&&&&&&&& Modifying ',idx2[0],dx_call,bgc
                     #print lb.get(idx2[0])
@@ -404,7 +404,7 @@ def digest_spot(self,line):
             else:
                     
                 # New call - maintain a list of all spots sorted by freq 
-                print("CLUSTER FEED: New call  =",dx_call,'\tfreq=',freq,
+                print("DIGEST SPOT: New call  =",dx_call,'\tfreq=',freq,
                       '\tmode=',mode,'\tband=',band)
                 self.SpotList.append( obj )
                 #                self.SpotList.sort(key=lambda x: x.frequency, reverse=False)
@@ -442,7 +442,7 @@ def digest_spot(self,line):
                     elif xm in ['SSB','LSB','USB','FM']:
                         xm='PH'
                     if xm not in self.P.SHOW_MODES:
-                        #print('CLUSTER_FEED: Culling',xm,'spot - ', self.P.SHOW_MODES)
+                        #print('DIGEST SPOT: Culling',xm,'spot - ', self.P.SHOW_MODES)
                         return True
 
                     # Cull dupes
@@ -491,7 +491,7 @@ def digest_spot(self,line):
         cull_old_spots(self)
                     
     if VERBOSITY>=1:
-        print('CLUSTER FEED B: nspots=',self.nspots,len(self.SpotList),len(self.current))
+        print('DIGEST SPOT: nspots=',self.nspots,len(self.SpotList),len(self.current))
     return True
 
 #########################################################################################

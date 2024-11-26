@@ -19,7 +19,8 @@
 /dist_1.0/bandmap
 /dist_1.0/bandmap.exe
 /dist_1.0/bandmap_setup.exe
-/work/*
-/work2/*
-/work3/*
 /OLD/*
+/JUNK/*
+/work/__pycache__/*
+/work/save*
+/work*/__pycache__/*
