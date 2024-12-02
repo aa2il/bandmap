@@ -27,7 +27,7 @@ import json
 import platform
 
 from datetime import datetime
-from dx.spot_processing import ChallengeData,Station
+from dx.spot_processing import ChallengeData
 
 from dx.cluster_connections import *
 from fileio import parse_adif, read_text_file
@@ -41,7 +41,6 @@ else:
     import tkFont
 
 from rig_io import bands
-from rig_io.ft_tables import THIRTEEN_COLONIES
 from cluster_feed import *
 from settings import *
 import logging               
@@ -78,17 +77,15 @@ class BandMapGUI:
         P.most_wanted=[]
         P.corrections=[]
         P.members=[]
-
-        self.last_check=datetime.now()
-        self.qsos=[]
-        self.VFO = P.RIG_VFO
+        P.qsos=[]
+        P.last_check=datetime.now()
+        
         if self.P.FT4:
             self.FT_MODE='FT4'
         else:
             self.FT_MODE='FT8'
         self.Ready=False
         self.calls1 = []
-        self.sock = None
         self.old_mode = None
 
         # UDP stuff
@@ -282,17 +279,16 @@ class BandMapGUI:
     # Function to actually get things going        
     def run(self):
     
-        self.sock = self.P.sock
-
         # Put gui on proper desktop
         if self.P.DESKTOP!=None:
             cmd='wmctrl -r "'+self.root.title()+'" -t '+str(self.P.DESKTOP)
             os.system(cmd)
 
-        if self.sock and self.sock.active:
+        sock = self.P.sock
+        if sock and sock.active:
             if VERBOSITY>0:
                 logging.info("Calling Get band ...")
-            f = 1e-6*self.sock.get_freq(VFO=self.VFO)     # Query rig at startup
+            f = 1e-6*sock.get_freq(VFO=self.P.RIG_VFO)     # Query rig at startup
             b = freq2band(f)
             self.rig_freq = 1e-3*f
         else:
@@ -303,7 +299,7 @@ class BandMapGUI:
         self.rig_band=b
         print("Initial band=",b)
         
-        if self.sock and self.sock.active:
+        if sock and sock.active:
             self.SelectMode('')
             self.SelectAnt(-1)
             self.SelectBands(True)
@@ -328,22 +324,24 @@ class BandMapGUI:
         
     # Adjust rig freq 
     def FreqAdjust(self,df):
+        sock=self.P.sock
         if VERBOSITY>0:
             logging.info("Calling Get Freq ...")
-        self.rig_freq = self.sock.get_freq(VFO=self.VFO) / 1000.
+        self.rig_freq = sock.get_freq(VFO=self.P.RIG_VFO) / 1000.
         if VERBOSITY>0:
             logging.info("Calling Set Freq ...")
-        self.sock.set_freq(self.rig_freq+df,VFO=self.VFO)
+        sock.set_freq(self.rig_freq+df,VFO=self.P.RIG_VFO)
 
     # Set rig freq to lo or hi end of mode subband
     def SetSubBand(self,iopt):
-        if self.sock==None:
+        sock=self.P.sock
+        if sock==None:
             return
 
         b = self.band.get()
         if VERBOSITY>0:
             logging.info("Calling Get Mode ...")
-        m = self.sock.get_mode(VFO=self.VFO)
+        m = sock.get_mode(VFO=self.P.RIG_VFO)
         if m=='AM':
             m='SSB'
         if iopt==1:
@@ -358,11 +356,12 @@ class BandMapGUI:
         print("\nSetSubBand:",iopt,b,m,frq)
         if VERBOSITY>0:
             logging.info("Calling Set Freq ...")
-        self.sock.set_freq(float(frq/1000.),VFO=self.VFO)
+        sock.set_freq(float(frq/1000.),VFO=self.P.RIG_VFO)
 
     # Callback to select antenna
     def SelectAnt(self,a=None,b=None,VERBOSITY=0):
-        if self.sock==None:
+        sock=self.P.sock
+        if sock==None:
             print('SELECT ANT - No socket!')
             return
         
@@ -373,7 +372,7 @@ class BandMapGUI:
             if VERBOSITY>0:
                 logging.info("Calling Get Ant ...")
                 print("SELECT ANT: Calling Get Ant ...")
-            a = self.sock.get_ant()
+            a = sock.get_ant()
             self.ant.set(a)
             if VERBOSITY>0:
                 print("SELECT ANT: Got Antenna =",a)
@@ -390,13 +389,13 @@ class BandMapGUI:
                     ant=2
                 else:
                     ant=1
-                self.P.sock.set_ant(ant,VFO=self.VFO)
+                self.P.sock.set_ant(ant,VFO=self.P.RIG_VFO)
                 
         else:
             print("\n%%%%%%%%%% Select Antenna: Setting Antenna =",a,"%%%%%%%%")
             if VERBOSITY>0:
                 logging.info("Calling Set Ant  ...")
-            self.sock.set_ant(a,VFO=self.VFO)
+            sock.set_ant(a,VFO=self.P.RIG_VFO)
             self.status_bar.setText("Selecting Antenna "+str(a))
 
     # Callback to handle mode changes for WSJT-X
@@ -404,7 +403,8 @@ class BandMapGUI:
         if VERBOSITY>0:
             print('\nSelectMode2: mode=',self.FT_MODE)
 
-        if self.sock==None:
+        sock=self.P.sock
+        if sock==None:
             print('SELECT MODE2 - No socket!')
             return
         
@@ -419,11 +419,11 @@ class BandMapGUI:
         print('\n***************************************** Well well well ...',self.FT_MODE,band,frq)
         self.P.ClusterFeed.tn.configure_wsjt(NewMode=self.FT_MODE)
         time.sleep(.1)
-        self.sock.set_freq(frq,VFO=self.VFO)
+        sock.set_freq(frq,VFO=self.P.RIG_VFO)
 
         # Make sure monitor is turned on also
         GAIN=25
-        self.sock.set_monitor_gain(25)
+        sock.set_monitor_gain(25)
         
         return
 
@@ -432,7 +432,8 @@ class BandMapGUI:
         if VERBOSITY>0:
             print('\nSelectMode: mode=',m)
             
-        if self.sock==None:
+        sock=self.P.sock
+        if sock==None:
             print('SELECT MODE - No socket!')
             return
         
@@ -443,7 +444,7 @@ class BandMapGUI:
         if m=='':
             if VERBOSITY>0:
                 logging.info("Calling Get Mode ...")
-            m = self.sock.get_mode(VFO=self.VFO)
+            m = sock.get_mode(VFO=self.P.RIG_VFO)
             #print('SelectMode:',m)
             if m==None:
                 return
@@ -461,7 +462,7 @@ class BandMapGUI:
             #        buf=get_response(s,'w BY;EX1030\n');            # Audio from MIC (front)
             if VERBOSITY>0:
                 logging.info("Calling Get Freq ...")
-            self.rig_freq = self.sock.get_freq(VFO=self.VFO) / 1000.
+            self.rig_freq = sock.get_freq(VFO=self.P.RIG_VFO) / 1000.
             if self.rig_freq<10000:
                 m='LSB'
             else:
@@ -472,9 +473,9 @@ class BandMapGUI:
         if VERBOSITY>0:
             logging.info("Calling Set Mode ...")
         if not self.P.CONTEST_MODE:
-            self.sock.set_mode(m,VFO=self.VFO,Filter='Auto')
+            sock.set_mode(m,VFO=self.P.RIG_VFO,Filter='Auto')
             if m=='CW':
-                self.sock.set_if_shift(0)
+                sock.set_if_shift(0)
 
     # Function to collect spots for a particular band
     def collect_spots(self,band,REVERSE=False,OVERRIDE=False):
@@ -517,7 +518,7 @@ class BandMapGUI:
             # Check for dupes
             if keep:
                 match = self.P.ClusterFeed.B4(x,band)
-                c,c2,age=self.spot_color(match,x)
+                c,c2,age=self.P.ClusterFeed.spot_color(match,x)
                 x.color=c
                 if not (self.P.SHOW_DUPES or OVERRIDE):
                     keep = keep and (c2!='r')
@@ -548,9 +549,10 @@ class BandMapGUI:
 
         self.scrolling('SELECT BANDS A')
 
-        if not self.sock:
+        sock=self.P.sock
+        if not sock:
             print('\nGUI->SELECT BANDS: Not sure why but no socket yet ????')
-            print('\tsock=',self.sock,'\n')
+            print('\tsock=',sock,'\n')
             #return
         
         try:
@@ -562,8 +564,8 @@ class BandMapGUI:
         
         if VERBOSITY>0:
             logging.info("Calling Get Band ...")
-        if self.sock:
-            frq2 = 1e-6*self.sock.get_freq(VFO=self.VFO)
+        if sock:
+            frq2 = 1e-6*sock.get_freq(VFO=self.P.RIG_VFO)
         else:
             frq2=0
         band2 = freq2band(frq2)
@@ -588,14 +590,14 @@ class BandMapGUI:
                 if VERBOSITY>0:
                     logging.info("Calling Set Freq and Mode ...")
                 print('SELECT BANDS: Setting freq=',new_frq,'and mode=',self.FT_MODE)
-                if self.sock:
-                    self.sock.set_freq(new_frq,VFO=self.VFO)
-                    self.sock.set_mode(self.FT_MODE,VFO=self.VFO)
+                if sock:
+                    sock.set_freq(new_frq,VFO=self.P.RIG_VFO)
+                    sock.set_mode(self.FT_MODE,VFO=self.P.RIG_VFO)
             else:
-                if band != band2 and self.sock:
+                if band != band2 and sock:
                     if VERBOSITY>0:
                         logging.info("Calling Set Band ...")
-                    self.sock.set_band(band,VFO=self.VFO)
+                    sock.set_band(band,VFO=self.P.RIG_VFO)
 
             # Make sure antenna selection is correct also
             self.SelectAnt(-2,band)
@@ -603,35 +605,38 @@ class BandMapGUI:
         # Extract a list of spots that are in the desired band
         P.current = self.collect_spots(band)
         y=self.scrolling('SELECT BANDS B')
+
+        P.GUI_BAND = self.band.get()
+        P.GUI_MODE = self.mode.get()
         
         # Get latest logbook
         now = datetime.utcnow().replace(tzinfo=UTC)
-        if self.P.STAND_ALONE or len(self.qsos)==0:
+        if self.P.STAND_ALONE or len(self.P.qsos)==0:
             if self.P.LOG_NAME0:
                 # Log for operator if different from current callsign
                 # We won't keep reading this file so we set REVISIT=False
                 print('\nGUI: Reading log file',self.P.LOG_NAME0)
                 logbook = parse_adif(self.P.LOG_NAME0,REVISIT=False,verbosity=0)
-                self.qsos += logbook
-                print('QSOs in log=',len(logbook),len(self.qsos))
+                self.P.qsos += logbook
+                print('QSOs in log=',len(logbook),len(self.P.qsos))
 
             # Log for current callsign
             # We will keep reading this file for new QSOs so we set REVISIT=True
             print('\nGUI: Reading log file',self.P.LOG_NAME)
             logbook = parse_adif(self.P.LOG_NAME,REVISIT=True,verbosity=0)
-            self.qsos += logbook
-            print('QSOs in log=',len(logbook),len(self.qsos))
+            self.P.qsos += logbook
+            print('QSOs in log=',len(logbook),len(self.P.qsos))
             #sys.exit(0)
 
         if self.P.CWOPS:
-            self.calls = self.calls1 + [ qso['call'] for qso in self.qsos ]
+            self.calls = self.calls1 + [ qso['call'] for qso in self.P.qsos ]
             self.calls=list( set( self.calls) )
             print('No. unique calls worked:',len(self.calls))
             #print(self.calls)
             
         # Re-populate list box with spots from this band
         # This seems to be the slow part
-        #print 'Repopulate ...',len(P.current),len(self.qsos)
+        #print 'Repopulate ...',len(P.current),len(self.P.qsos)
         self.lb.delete(0, END)
         n=0
         for x in P.current:
@@ -689,85 +694,6 @@ class BandMapGUI:
 
         return match
 
-    # Function to return worked status of cwops stations
-    #   0 = call is not a cwops member
-    #   1 = call is a cwops member but hasn't been worked yet this year
-    #   2 = call is a cwops member and been worked yet this year
-    def cwops_worked_status(self,dx_call):
-        if '/' in dx_call:
-            dx_station = Station(dx_call)
-            home_call = dx_station.homecall
-        else:
-            home_call = dx_call
-
-        if (dx_call in self.P.members) or (home_call in self.P.members):
-            if (dx_call in self.P.data.cwops_worked) or (home_call in self.P.data.cwops_worked):
-                status=2
-            else:
-                status=1
-        else:
-            status=0
-
-        #print('CWops WORKED STATUS: call=',dx_call,'\thome call=',home_call,'\tworked=',status)
-        return status
-        
-    # Function to determine spot color
-    def spot_color(self,match,x):
-        P=self.P
-
-        now = datetime.utcnow().replace(tzinfo=UTC)
-        age = (now - x.time).total_seconds()/60      # In minutes
-        dx_call=x.dx_call.upper()
-        dx_station = Station(dx_call)
-        if dx_station.country=='United States' and len(dx_station.appendix)>=2:
-            dx_call=dx_station.homecall            # Strip out bogus appendices from state QPs
-        cwops_status=self.cwops_worked_status(dx_call)
-
-        # Set color depending criteria
-        # c2 is the abbreviated version used to shorten the inter-process messages 
-        # These need to be matched in pySDR/gui.py
-        if match:
-            c="red"
-            c2='r'
-        elif x.needed:
-            c="magenta"
-            c2='m'
-        elif x.need_this_year:
-            c="violet"
-            c2='v'
-        elif x.need_mode:
-            c="pink"
-            c2='p'
-        elif dx_call in P.friends:
-            c="lightskyblue" 
-            c2='lb'
-        elif dx_call in P.most_wanted:
-            c="turquoise"
-            c2='t'
-        elif dx_call==self.P.MY_CALL:
-            c="deepskyblue" 
-            c2='b'
-        elif self.P.CWOPS and cwops_status>0:
-            if cwops_status==2:
-                c="gold"
-                c2='d'
-            else:
-                c='orange'
-                c2='o'
-        elif dx_call in THIRTEEN_COLONIES:
-            c="lightskyblue" 
-            c2='lb'
-        else:
-            if age<2:
-                c="yellow"
-                c2='y'
-            else:
-                c="lightgreen"
-                c2='g'
-
-        return c,c2,age
-    
-    
     # Why is this still around? - see cluster_feed.py
     def lb_update(self):
         b = self.band.get()
@@ -779,7 +705,7 @@ class BandMapGUI:
             return
         for x in P.current:
             idx+=1
-            for qso in self.qsos:
+            for qso in self.P.qsos:
                 match = self.match_qsos(qso,x,b,now)
                 call=qso['call']
                 #print('LB_UPDATE:',call,x.dx_call,match)
@@ -791,7 +717,7 @@ class BandMapGUI:
         #    return
 
         if idx>=0:
-            c,c2,age=self.spot_color(match,x)
+            c,c2,age=self.P.ClusterFeed.spot_color(match,x)
             self.lb.itemconfigure(idx, background=c)
             #print('LB_UPDATE:',dx_call,c)
                 
@@ -892,12 +818,15 @@ class BandMapGUI:
     # Watch Dog 
     def WatchDog(self):
         #print('BM WATCH DOG ...')
+        sock = self.P.sock
 
         # Check if we have any new spots
-        nspots=self.P.q.qsize()
+        Update=False
+        nspots=self.P.bm_q.qsize()
         #print('BM WATCH DOG - There are',nspots,'new spots in the queue ...')
         while nspots>0:
-            entry=self.P.q.get()
+            Update=True
+            entry=self.P.bm_q.get()
             #print('\tentry=',entry,len(entry))
             if len(entry)==1:
                 self.lb.delete(entry[0])
@@ -908,8 +837,15 @@ class BandMapGUI:
                 except:
                     error_trap('WATCH DOG: Error in configuring item bg color ????')
                     print('entry=',entry)
-            self.P.q.task_done()
-            nspots=self.P.q.qsize()
+            self.P.bm_q.task_done()
+            nspots=self.P.bm_q.qsize()
+
+        # Check if we need to cull old spots
+        if Update:
+            self.LBsanity()
+            dt = (datetime.now() - self.P.last_check).total_seconds()/60      # In minutes
+            if dt>1:
+                self.cull_old_spots()
         
         # Check for antenna or mode or band changes
         # Should combine these two
@@ -930,14 +866,14 @@ class BandMapGUI:
             
         else:
             try:
-                if self.sock:
-                    self.rig_freq = 1e-3*self.sock.get_freq(VFO=self.VFO)
+                if sock:
+                    self.rig_freq = 1e-3*sock.get_freq(VFO=self.P.RIG_VFO)
                     self.rig_band = freq2band(1e-3*self.rig_freq)
             except:
                 error_trap('WATCHDOG: Problem reading rig freq/band',True)
 
         try:
-            if self.sock:
+            if sock:
                 self.SelectAnt(-1,VERBOSITY=0)
                 self.SelectMode('',VERBOSITY=0)
         except:
@@ -957,7 +893,7 @@ class BandMapGUI:
                     print('WATCHDOG: Unable to open UDP client (keyer) - too many attempts',self.P.bm_udp_ntries)
 
         # Check if socket is dead
-        if self.sock and self.sock.ntimeouts>=10:
+        if sock and sock.ntimeouts>=10:
             print('\tWATCHDOG: *** Too many socket timeouts - port is probably closed - giving up -> sys.exit ***\n')
             sys.exit(0)
 
@@ -973,6 +909,7 @@ class BandMapGUI:
         print('LBSelect: Tune rig to a spot - vfo=',vfo,value)
         self.status_bar.setText("Spot Select "+value)
         self.scrolling('LBSelect')
+        sock=self.P.sock
 
         # Examine item that was selected
         b=value.strip().split()
@@ -994,13 +931,13 @@ class BandMapGUI:
         print("LBSelect: Setting freq=',b[0],'on VFO',vfo,'\tmode=',b[2].'\tcall ",b[1])
         if VERBOSITY>0:
             logging.info("Calling Set Freq ...")
-        if self.sock:
-            self.sock.set_freq(float(b[0]),VFO=vfo)
+        if sock:
+            sock.set_freq(float(b[0]),VFO=vfo)
             if not self.P.CONTEST_MODE:
                 print("LBSelect: Setting mode ",b[2])
                 self.SelectMode(b[2])
-                self.sock.set_freq(float(b[0]),VFO=vfo)            
-            self.sock.set_call(b[1])
+                sock.set_freq(float(b[0]),VFO=vfo)            
+            sock.set_call(b[1])
 
         # Make sure antenna selection is correct also
         band=freq2band(0.001*float(b[0]))
@@ -1088,7 +1025,7 @@ class BandMapGUI:
     # Print out log
     def ShowLog(self):
         print('\nLOG::::::::::',self.P.STAND_ALONE)
-        for qso in self.qsos:
+        for qso in self.P.qsos:
             print(qso)
         print(' ')
         return
@@ -1521,8 +1458,9 @@ class BandMapGUI:
         P=self.P
         #logging.info("Calling Get_Freq ...")
         now = datetime.utcnow().replace(tzinfo=UTC)
-        if self.sock:
-            frq = self.sock.get_freq(VFO=self.VFO)
+        sock=self.P.sock
+        if sock:
+            frq = sock.get_freq(VFO=self.P.RIG_VFO)
         else:
             frq=0
         #print('SpotList=',P.SpotList)
@@ -1572,7 +1510,6 @@ class BandMapGUI:
         print("CULL OLD SPOTS - New nspots=",P.nspots,
               '\tlen SpotList=',len(P.SpotList),
               '\tlen Current=',len(P.current))
-        self.last_check=datetime.now()
-        #    print self.last_check
+        self.P.last_check=datetime.now()
 
         

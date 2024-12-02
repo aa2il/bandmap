@@ -24,7 +24,7 @@ import re
 import time
 import pytz
 from datetime import datetime
-from dx.spot_processing import Spot
+from dx.spot_processing import Spot,Station
 from pprint import pprint
 from fileio import parse_adif
 import logging               
@@ -33,6 +33,7 @@ from utilities import freq2band, error_trap
 from dx.cluster_connections import *
 import threading
 import queue
+from rig_io.ft_tables import THIRTEEN_COLONIES
 
 #########################################################################################
 
@@ -74,7 +75,7 @@ class ClusterFeed:
             self.fp=-1
 
         # Create a buffer to communicate spots to gui thread
-        P.q = queue.Queue(maxsize=0)
+        P.bm_q = queue.Queue(maxsize=0)
 
         # Kick off cluster spot monitor
         dt=.001*msec
@@ -230,9 +231,9 @@ class ClusterFeed:
 
             # Check for band changes
             if self.tn.nsleep>=1:
-                band  = self.P.bm_gui.band.get()
+                band  = self.P.GUI_BAND
                 #logging.info("Calling Get band ...")
-                frq2 = 1e-6*self.P.bm_gui.sock.get_freq(VFO=self.P.bm_gui.VFO)
+                frq2 = 1e-6*self.P.sock.get_freq(VFO=self.P.RIG_VFO)
                 band2 = freq2band(frq2)
                 #print('CLUSTER_FEED: band/band2=',band,band2)
                 if band2==0 or not band2:
@@ -296,7 +297,7 @@ class ClusterFeed:
                 return 0
 
         # Process the spot
-        if len(line)>0:
+        if len(line)>0 and self.P.data:
             self.digest_spot(line)
             
         return 1
@@ -336,7 +337,6 @@ class ClusterFeed:
     def digest_spot(self,line):
 
         P=self.P
-        #lb=P.bm_gui.lb
         VERBOSITY = self.P.DEBUG
             
         # Check for logged contact
@@ -344,7 +344,7 @@ class ClusterFeed:
             print('\nDIGEST SPOT: LOGGED Contact Detected ...')
             qso=parse_adif(-1,line)
             #print('qso=',qso)
-            self.P.bm_gui.qsos.append( qso[0] )
+            self.P.qsos.append( qso[0] )
             #print('self.qsos=',self.qsos)
             lb_update()
 
@@ -384,13 +384,13 @@ class ClusterFeed:
 
             # Reject FT8/4 spots if we're in a contest
             keep=True
-            m = self.P.bm_gui.mode.get()
+            m = self.P.GUI_MODE
             if self.P.CONTEST_MODE:
                 if m=='CW' and obj.mode in ['FT4','FT8','DIGITAL']:
                     keep=False
 
             # Reject calls that really aren't calls
-            b = self.P.bm_gui.band.get()
+            b = self.P.GUI_BAND
             if keep:
                 if not dx_call or len(dx_call)<=2 or not obj.dx_station: 
                     keep=False
@@ -413,7 +413,7 @@ class ClusterFeed:
 
                 # Highlighting in WSJT-X window
                 if self.P.CLUSTER=='WSJT':
-                    for qso in self.P.bm_gui.qsos:
+                    for qso in self.P.qsos:
                         if self.P.CW_SS:
                             # Can only work each station once regardless of band in this contest
                             match = dx_call==qso['call']
@@ -469,13 +469,13 @@ class ClusterFeed:
             
                 # Determine color for this spot
                 match = self.B4(obj,str(band)+'m')
-                c,c2,age=self.P.bm_gui.spot_color(match,obj)
+                c,c2,age=self.spot_color(match,obj)
                 obj.color=c
                 
                 # Check if this call is already there
                 # Need some error trapping here bx we seem to get confused sometimes
                 try:
-                    b = self.P.bm_gui.band.get()
+                    b = self.P.GUI_BAND
                 except:
                     b = ''
 
@@ -513,14 +513,14 @@ class ClusterFeed:
                     idx2 = [i for i,x in enumerate(P.current) if x.dx_call == dx_call and x.band==b]
                     if len(idx2)>0:
                         #lb.delete(idx2[0])
-                        self.P.q.put( [idx2[0]] )
+                        self.P.bm_q.put( [idx2[0]] )
                         if self.P.CLUSTER=='WSJT':
                             df = obj.df
                             try:
                                 df=int(df)
                                 entry="%4d  %-10.10s  %+6.6s %-17.17s %+4.4s" % \
                                     (df,dx_call,mode,cleanup(dxcc),obj.snr)
-                                self.P.q.put( [idx2[0], entry, obj.color] )
+                                self.P.bm_q.put( [idx2[0], entry, obj.color] )
                             
                                 i=idx[0]
                                 P.current[i].time=obj.time
@@ -533,7 +533,7 @@ class ClusterFeed:
                         else:
                             entry="%-6.1f  %-10.19s  %+6.6s %-15.16s %+4.4s" % \
                                 (freq,dx_call,mode,cleanup(dxcc),obj.snr)
-                            self.P.q.put( [idx2[0], entry, obj.color] )
+                            self.P.bm_q.put( [idx2[0], entry, obj.color] )
                     
                 else:
                     
@@ -545,10 +545,10 @@ class ClusterFeed:
 
                     # Show only those spots on the list that are from the desired band
                     try:
-                        BAND = int( self.P.bm_gui.band.get().replace('m','') )
+                        BAND = int( self.P.GUI_BAND.replace('m','') )
                     except:
                         error_trap('DIGEST SPOT: ?????')
-                        print('band=',self.P.bm_gui.band)
+                        print('band=',self.P.GUI_BAND)
                         return
                     
                     now = datetime.utcnow().replace(tzinfo=UTC)
@@ -566,7 +566,7 @@ class ClusterFeed:
                             return True
 
                         # Cull out stations non-cwops or cwops we've worked this year - useful for ACA
-                        status=self.P.bm_gui.cwops_worked_status(obj.dx_call)
+                        status=self.cwops_worked_status(obj.dx_call)
                         if self.P.NEW_CWOPS_ONLY and status!=1:
                             return True                    
 
@@ -606,13 +606,7 @@ class ClusterFeed:
                         else:
                             entry="%-6.1f  %-10.10s  %+6.6s %-15.15s %+4.4s" % \
                                 (freq,dx_call,mode,cleanup(dxcc),obj.snr)
-                        self.P.q.put( [idx2[0], entry, obj.color] )
-                    
-        # Check if we need to cull old spots
-        self.P.bm_gui.LBsanity()
-        dt = (datetime.now() - self.P.bm_gui.last_check).total_seconds()/60      # In minutes
-        if dt>1:
-            self.P.bm_gui.cull_old_spots()
+                        self.P.bm_q.put( [idx2[0], entry, obj.color] )
                     
         if VERBOSITY>=1:
             print('DIGEST SPOT: nspots=',P.nspots,len(P.SpotList),len(P.current))
@@ -626,13 +620,13 @@ class ClusterFeed:
         VERBOSITY = self.P.DEBUG
         now = datetime.utcnow().replace(tzinfo=UTC)
         dx_call=x.dx_call.upper()
-        nqsos=len(self.P.bm_gui.qsos)
+        nqsos=len(self.P.qsos)
         if VERBOSITY>0:
             print('B4: ... call=',dx_call,'\tband=',b,'nqsos=',nqsos)
         
         match=False
         if nqsos>0:
-            for qso in self.P.bm_gui.qsos:
+            for qso in self.P.qsos:
                 #print('QSO=',qso)
                 if self.P.CW_SS:
                     # Can only work each station once regardless of band in this contest
@@ -659,5 +653,88 @@ class ClusterFeed:
                         break
 
         return match
+
+    
+
+
+    # Function to determine spot color
+    def spot_color(self,match,x):
+        P=self.P
+
+        now = datetime.utcnow().replace(tzinfo=UTC)
+        age = (now - x.time).total_seconds()/60      # In minutes
+        dx_call=x.dx_call.upper()
+        dx_station = Station(dx_call)
+        if dx_station.country=='United States' and len(dx_station.appendix)>=2:
+            dx_call=dx_station.homecall            # Strip out bogus appendices from state QPs
+        cwops_status=self.cwops_worked_status(dx_call)
+
+        # Set color depending criteria
+        # c2 is the abbreviated version used to shorten the inter-process messages 
+        # These need to be matched in pySDR/gui.py
+        if match:
+            c="red"
+            c2='r'
+        elif x.needed:
+            c="magenta"
+            c2='m'
+        elif x.need_this_year:
+            c="violet"
+            c2='v'
+        elif x.need_mode:
+            c="pink"
+            c2='p'
+        elif dx_call in P.friends:
+            c="lightskyblue" 
+            c2='lb'
+        elif dx_call in P.most_wanted:
+            c="turquoise"
+            c2='t'
+        elif dx_call==self.P.MY_CALL:
+            c="deepskyblue" 
+            c2='b'
+        elif self.P.CWOPS and cwops_status>0:
+            if cwops_status==2:
+                c="gold"
+                c2='d'
+            else:
+                c='orange'
+                c2='o'
+        elif dx_call in THIRTEEN_COLONIES:
+            c="lightskyblue" 
+            c2='lb'
+        else:
+            if age<2:
+                c="yellow"
+                c2='y'
+            else:
+                c="lightgreen"
+                c2='g'
+
+        return c,c2,age
+    
+    
+    
+    # Function to return worked status of cwops stations
+    #   0 = call is not a cwops member
+    #   1 = call is a cwops member but hasn't been worked yet this year
+    #   2 = call is a cwops member and been worked yet this year
+    def cwops_worked_status(self,dx_call):
+        if '/' in dx_call:
+            dx_station = Station(dx_call)
+            home_call = dx_station.homecall
+        else:
+            home_call = dx_call
+
+        if (dx_call in self.P.members) or (home_call in self.P.members):
+            if (dx_call in self.P.data.cwops_worked) or (home_call in self.P.data.cwops_worked):
+                status=2
+            else:
+                status=1
+        else:
+            status=0
+
+        #print('CWops WORKED STATUS: call=',dx_call,'\thome call=',home_call,'\tworked=',status)
+        return status
 
     
