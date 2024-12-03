@@ -670,60 +670,6 @@ class BandMapGUI:
                   '\tlen Current=',len(P.current))
 
             
-    def match_qsos(self,qso,x,b,now):
-        if self.P.CW_SS:
-            # Can only work each station once regardless of band in this contest
-            match = x.dx_call==qso['call']
-        else:
-            try:
-                match = (x.dx_call==qso['call']) and (b==qso['band'])
-            except:
-                error_trap('GUI->MATCH QSOS: ?????')
-                match=False
-                print('dx_call=',x.dx_call)
-                print('qso=',qso)
-                
-        #print('\n------MATCH_QSOS: qso=',qso,x.dx_call,match)
-        if match:
-            t1 = datetime.strptime(now.strftime("%Y%m%d %H%M%S"), "%Y%m%d %H%M%S") 
-            t2 = datetime.strptime( qso['qso_date_off']+" "+qso["time_off"] , "%Y%m%d %H%M%S")
-            delta=(t1-t2).total_seconds() / 3600
-            match = delta< self.P.MAX_HOURS_DUPE
-            if VERBOSITY>=2:
-                print('--- MATCH_QSOS: Possible dupe for',x.dx_call,'\tt12',t1,t2,'\tdelta=',delta,match)
-
-        return match
-
-    # Why is this still around? - see cluster_feed.py
-    def lb_update(self):
-        b = self.band.get()
-        print('LB_UPDATE: b=',b)
-        now = datetime.utcnow().replace(tzinfo=UTC)
-        idx=-1
-        if len(P.current)==0:
-            print('LB_UPDATE - Nothing to do.',P.current)
-            return
-        for x in P.current:
-            idx+=1
-            for qso in self.P.qsos:
-                match = self.match_qsos(qso,x,b,now)
-                call=qso['call']
-                #print('LB_UPDATE:',call,x.dx_call,match)
-                #match |= call==self.P.MY_CALL
-                if match:
-                    break
-        #else:
-        #    print('LB_UPDATE - Nothing to do.',P.current)
-        #    return
-
-        if idx>=0:
-            c,c2,age=self.P.ClusterFeed.spot_color(match,x)
-            self.lb.itemconfigure(idx, background=c)
-            #print('LB_UPDATE:',dx_call,c)
-                
-
-            
-
     # Function to set list box view
     def set_lbview(self,frq,MIDDLE=False):
         
@@ -818,8 +764,14 @@ class BandMapGUI:
     # Watch Dog 
     def WatchDog(self):
         #print('BM WATCH DOG ...')
-        sock = self.P.sock
+        P=self.P
+        sock = P.sock
 
+        if P.GUI_BAND==None:
+            P.GUI_BAND = self.band.get()
+        if P.GUI_MODE==None:
+            P.GUI_MODE = self.mode.get()
+                
         # Check if we have any new spots
         Update=False
         nspots=self.P.bm_q.qsize()
@@ -831,7 +783,8 @@ class BandMapGUI:
             if len(entry)==1:
                 self.lb.delete(entry[0])
             else:
-                self.lb.insert(entry[0], entry[1])
+                if entry[1]!=None:
+                    self.lb.insert(entry[0], entry[1])
                 try:
                     self.lb.itemconfigure(entry[0], background=entry[2])
                 except:

@@ -104,7 +104,7 @@ def bm_udp_msg_handler(self,sock,msg):
                 ('AA2IL'+'-#:',freq,call,mode+' 0 dB',
                  now.strftime("%H%M") )
             print(line)
-            self.P.bm_gui.digest_spot(line)
+            self.P.ClusterFeed.digest_spot(line)
             return
      
         elif mm[0]=='LOG':
@@ -117,9 +117,9 @@ def bm_udp_msg_handler(self,sock,msg):
             qso['mode']         = mm[3]
             qso['qso_date_off'] = mm[4]
             qso['time_off']     = mm[5]
-            self.P.bm_gui.qsos.append(qso)
+            self.P.qsos.append(qso)
             print('\tqso=',qso)
-            self.P.bm_gui.lb_update()
+            self.P.ClusterFeed.lb_update()
             return
             
         elif mm[0]=='SpotList':
@@ -128,7 +128,7 @@ def bm_udp_msg_handler(self,sock,msg):
                 print('BM UDP MSG HANDLER: Received SpotList Refresh')
                 return
             elif mm[1]=='?':
-                band=self.P.bm_gui.band.get()
+                band=self.P.GUI_BAND
             else:
                 band=mm[1]
             
@@ -149,7 +149,7 @@ def spot_list_query(P,sock=None,band=None):
         return
 
     if not band:
-        band=P.bm_gui.band.get()
+        band=P.GUI_BAND
         print('\tband=',band)
     
     a=[]
@@ -168,8 +168,8 @@ def spot_list_query(P,sock=None,band=None):
         try:
             a.append(color)
         except:
-            match = P.bm_gui.B4(x,band)
-            c,c2,age=P.bm_gui.spot_color(match,x)
+            match = P.ClusterFeed.B4(x,band)
+            c,c2,age=P.ClusterFeed.spot_color(match,x)
             a.append(c2)
     a=str(a)
     msg2='SpotList:'+band+':'+a+'\n'

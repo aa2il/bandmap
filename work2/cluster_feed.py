@@ -64,6 +64,8 @@ class ClusterFeed:
         self.P = P
         self.nerrors=0
         self.last_error=''
+        self.lock = threading.Lock()             # Avoid collisions between various threads
+        self.lock_to=2.0                         # Time out to acquire lock
 
         # Open spot server
         self.open_spot_server()
@@ -338,6 +340,8 @@ class ClusterFeed:
 
         P=self.P
         VERBOSITY = self.P.DEBUG
+        #if P.GUI_BAND==None:
+        #    P.GUI_BAND = self.P.bm_gui.band.get()
             
         # Check for logged contact
         if "<adif_ver" in line:
@@ -411,6 +415,12 @@ class ClusterFeed:
                 if dx_call==self.P.MY_CALL or (self.P.ECHO_ON and False):
                     print('keep:',line.strip())
 
+                acq=self.lock.acquire(timeout=self.lock_to)
+                if not acq:
+                    error_trap('DIGEST_SPOT: Unable to acquire lock - giving up!')
+                    print('line=',line.strip())
+                    return
+                    
                 # Highlighting in WSJT-X window
                 if self.P.CLUSTER=='WSJT':
                     for qso in self.P.qsos:
@@ -549,6 +559,7 @@ class ClusterFeed:
                     except:
                         error_trap('DIGEST SPOT: ?????')
                         print('band=',self.P.GUI_BAND)
+                        self.lock.release()
                         return
                     
                     now = datetime.utcnow().replace(tzinfo=UTC)
@@ -557,17 +568,20 @@ class ClusterFeed:
                         # Cull out U.S. stations, except SESs (Useful for chasing DX)
                         dxcc = obj.dx_station.country
                         if self.P.DX_ONLY and dxcc=='United States' and len(obj.dx_call)>3:
+                            self.lock.release()
                             return True
 
                         # Cull out stations not in North America (useful for NAQP for example)
                         cont = obj.dx_station.continent
                         #print('cont=',cont)
                         if self.P.NA_ONLY and cont!='NA':
+                            self.lock.release()
                             return True
 
                         # Cull out stations non-cwops or cwops we've worked this year - useful for ACA
                         status=self.cwops_worked_status(obj.dx_call)
                         if self.P.NEW_CWOPS_ONLY and status!=1:
+                            self.lock.release()
                             return True                    
 
                         # Cull out modes we are not interested in
@@ -578,11 +592,13 @@ class ClusterFeed:
                             xm='PH'
                         if xm not in self.P.SHOW_MODES:
                             #print('DIGEST SPOT: Culling',xm,'spot - ', self.P.SHOW_MODES)
+                            self.lock.release()
                             return True
 
                         # Cull dupes
                         if not self.P.SHOW_DUPES:
                             if obj.color=='red':
+                                self.lock.release()
                                 return True
                     
                         # Find insertion point - This might be where the sorting problem is - if two stations have same freq?
@@ -607,7 +623,10 @@ class ClusterFeed:
                             entry="%-6.1f  %-10.10s  %+6.6s %-15.15s %+4.4s" % \
                                 (freq,dx_call,mode,cleanup(dxcc),obj.snr)
                         self.P.bm_q.put( [idx2[0], entry, obj.color] )
-                    
+
+                # Release lock
+                self.lock.release()
+                
         if VERBOSITY>=1:
             print('DIGEST SPOT: nspots=',P.nspots,len(P.SpotList),len(P.current))
         return True
@@ -654,8 +673,70 @@ class ClusterFeed:
 
         return match
 
-    
 
+    def match_qsos(self,qso,x,b,now):
+        VERBOSITY = self.P.DEBUG
+        
+        if self.P.CW_SS:
+            # Can only work each station once regardless of band in this contest
+            match = x.dx_call==qso['call']
+        else:
+            try:
+                match = (x.dx_call==qso['call']) and (b==qso['band'])
+            except:
+                error_trap('GUI->MATCH QSOS: ?????')
+                match=False
+                print('dx_call=',x.dx_call)
+                print('qso=',qso)
+                
+        #print('\n------MATCH_QSOS: qso=',qso,x.dx_call,match)
+        if match:
+            t1 = datetime.strptime(now.strftime("%Y%m%d %H%M%S"), "%Y%m%d %H%M%S") 
+            t2 = datetime.strptime( qso['qso_date_off']+" "+qso["time_off"] , "%Y%m%d %H%M%S")
+            delta=(t1-t2).total_seconds() / 3600
+            match = delta< self.P.MAX_HOURS_DUPE
+            if VERBOSITY>=2:
+                print('--- MATCH_QSOS: Possible dupe for',x.dx_call,'\tt12',t1,t2,'\tdelta=',delta,match)
+
+        return match
+
+
+    def lb_update(self):
+        P=self.P
+        b = P.GUI_BAND
+        print('LB_UPDATE: band =',b)
+
+        # Acquire lock
+        acq=self.lock.acquire(timeout=self.lock_to)
+        if not acq:
+            error_trap('LB UPDATE: Unable to acquire lock - giving up!')
+            return
+        
+        if len(P.current)==0:
+            print('LB_UPDATE - Nothing to do.',P.current)
+            return
+
+        idx=-1
+        now = datetime.utcnow().replace(tzinfo=UTC)
+        for x in P.current:
+            idx+=1
+            for qso in self.P.qsos:
+                match = self.match_qsos(qso,x,b,now)
+                call=qso['call']
+                #print('LB_UPDATE:',call,x.dx_call,match)
+                #match |= call==self.P.MY_CALL
+                if match:
+                    break
+                
+        if idx>=0:
+            c,c2,age=self.spot_color(match,x)
+            #self.lb.itemconfigure(idx, background=c)
+            self.P.bm_q.put( [idx,None, c] )
+            #print('LB_UPDATE:',dx_call,c)
+                
+        # Release lock
+        self.lock.release()
+                
 
     # Function to determine spot color
     def spot_color(self,match,x):
