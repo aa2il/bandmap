@@ -66,7 +66,8 @@ class ClusterFeed:
         self.last_error=''
         self.lock = threading.Lock()             # Avoid collisions between various threads
         self.lock_to=2.0                         # Time out to acquire lock
-
+        self.Reset_Flag = threading.Event()
+        
         # Open spot server
         self.open_spot_server()
 
@@ -174,6 +175,10 @@ class ClusterFeed:
     def Monitor(self):
 
         #print('Cluster Monitor ...')
+        if self.Reset_Flag.isSet():
+            self.Reset_Flag.clear()
+            self.Reset()
+        
         n = self.cluster_feed()
         if n==0:
             if "telent connection closed" in self.last_error:
@@ -309,6 +314,7 @@ class ClusterFeed:
     def Reset(self):
         print("\n------------- Reset -------------",self.P.CLUSTER,'\n')
         self.P.bm_gui.status_bar.setText("RESET - "+self.P.CLUSTER)
+        self.nerrors=0
         self.P.bm_gui.Clear_Spot_List()
         """
         if self.P.BM_UDP_CLIENT and self.P.bm_udp_client and False:
@@ -350,7 +356,7 @@ class ClusterFeed:
             #print('qso=',qso)
             self.P.qsos.append( qso[0] )
             #print('self.qsos=',self.qsos)
-            lb_update()
+            self.lb_update()
 
         if self.P.CLUSTER=='WSJT':
             print('SPOT:',line,len(line))
@@ -417,7 +423,7 @@ class ClusterFeed:
 
                 acq=self.lock.acquire(timeout=self.lock_to)
                 if not acq:
-                    error_trap('DIGEST_SPOT: Unable to acquire lock - giving up!')
+                    print('DIGEST_SPOT: Unable to acquire lock - giving up!')
                     print('line=',line.strip())
                     return
                     
@@ -709,7 +715,7 @@ class ClusterFeed:
         # Acquire lock
         acq=self.lock.acquire(timeout=self.lock_to)
         if not acq:
-            error_trap('LB UPDATE: Unable to acquire lock - giving up!')
+            print('LB UPDATE: Unable to acquire lock - giving up!')
             return
         
         if len(P.current)==0:

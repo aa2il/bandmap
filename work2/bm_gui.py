@@ -995,7 +995,9 @@ class BandMapGUI:
             self.node.set(self.P.SERVER)
 
     def Reset(self):
-        self.P.ClusterFeed.Reset()
+        self.P.ClusterFeed.Reset_Flag.set()
+        #self.P.ClusterFeed.Reset()
+        
 
     # Toggle DX ONLY mode
     def toggle_dx_only(self):
