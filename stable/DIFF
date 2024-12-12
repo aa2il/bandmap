@@ -30,7 +30,7 @@ set old=${ROOT}${PTH}
 
 # Override if needed
 #set old='save34'
-set old='work2'
+set old='work'
 echo OLD=$old
 
 rm -f DIFFS

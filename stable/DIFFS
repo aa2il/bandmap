@@ -1,0 +1,1218 @@
+----------------------------------
+bandmap.py
+ 
+1,4c1
+< #! /home/joea/miniconda3/envs/aa2il/bin/python -u
+< #
+< # NEW: /home/joea/miniconda3/envs/aa2il/bin/python -u
+< # OLD: /usr/bin/python3 -u 
+---
+> #!/usr/bin/python3 -u
+43c40
+< from cluster_feed import ClusterFeed
+---
+> from cluster_feed import test_telnet_connection
+125,135d121
+<     # Start thread to manage feed from dx cluster
+<     P.bm_gui.status_bar.setText('Starting Cluster Feed Monitor ...')
+<     P.ClusterFeed = ClusterFeed(P,200)
+<     """
+<     worker = Thread(target=P.ClusterFeed.Monitor, args=(),
+<                     name='Cluster Feed Monitor' )
+<     worker.daemon=True
+<     worker.start()
+<     P.threads.append(worker)
+<     """
+<         
+146c132
+<     if False:
+---
+>     if True:
+ 
+----------------------------------
+bm_gui.py
+ 
+3c3
+< # gui.py - Rev. 2.0
+---
+> # gui.py - Rev. 1.0
+84a85,87
+>         self.nerrors=0
+>         self.enable_scheduler=True
+>         self.last_error=''
+96a100,105
+>         # Open a file to save all of the spots
+>         if P.SAVE_SPOTS:
+>             self.fp = open("all_spots.dat","w")
+>         else:
+>             self.fp=-1
+> 
+279a289,291
+>         # Open spot server
+>         self.open_spot_server()
+>         
+283a296
+>         self.tn   = self.P.tn
+312a326
+>         self.Scheduler()
+419c433
+<         self.P.ClusterFeed.tn.configure_wsjt(NewMode=self.FT_MODE)
+---
+>         self.P.tn.configure_wsjt(NewMode=self.FT_MODE)
+544c558
+<         self.scrolling('SELECT BANDS A')
+---
+>         scrolling(self,'SELECT BANDS A')
+576c590
+<                 self.P.ClusterFeed.tn.configure_wsjt(NewMode=self.FT_MODE)
+---
+>                 self.P.tn.configure_wsjt(NewMode=self.FT_MODE)
+600c614
+<         y=self.scrolling('SELECT BANDS B')
+---
+>         y=scrolling(self,'SELECT BANDS B')
+656c670
+<         self.scrolling('SELECT BANDS C')
+---
+>         scrolling(self,'SELECT BANDS C')
+905c919
+<             y=self.scrolling('LBSANITY',verbosity=0)
+---
+>             y=scrolling(self,'LBSANITY',verbosity=0)
+913a928,959
+> 
+>     # Callback to reset telnet connection
+>     def Reset(self):
+>         print("\n------------- Reset -------------",self.P.CLUSTER,'\n')
+>         self.status_bar.setText("RESET - "+self.P.CLUSTER)
+>         self.Clear_Spot_List()
+>         if self.P.BM_UDP_CLIENT and self.P.bm_udp_client and False:
+>             self.P.bm_udp_client.StartServer()
+>         if self.P.BM_UDP_CLIENT and self.P.bm_udp_server and False:
+>             self.P.bm_udp_server.StartServer()
+>         if self.tn:
+>             self.tn.close()
+>             self.enable_scheduler=False
+>             time.sleep(.1)
+>             
+>         try:
+>             self.tn = connection(self.P.TEST_MODE,self.P.CLUSTER, \
+>                                  self.P.MY_CALL,self.P.WSJT_FNAME)
+>             print("--- Reset --- Connected to",self.P.CLUSTER, self.enable_scheduler)
+>             OK=test_telnet_connection(self.tn)
+>         except:
+>             error_trap('GUI->RESET: Problem connecting to node'+self.P.CLUSTER)
+>             OK=False
+>             
+>         if not OK:
+>             print('--- Reset --- Now what Sherlock?!')
+>             self.status_bar.setText('Lost telnet connection?!')
+>         if not self.enable_scheduler or True:
+>             self.enable_scheduler=True
+>             self.nerrors=0
+>             self.Scheduler()
+> 
+921a968,988
+>         # JBA - MEM??? - Why are we re-reading this???? Disable and see what happens
+>         if False:
+>             self.P.data = ChallengeData(self.P.CHALLENGE_FNAME)
+> 
+>     # Wrapper to schedule events to read the spots
+>     def Scheduler(self):
+>         n = cluster_feed(self)
+>         if n==0:
+>             if "telent connection closed" in self.last_error:
+>                 self.enable_scheduler=False
+>                 print('SCHEDULER - Attempting to reopen node ...')
+>                 self.SelectNode()
+>             else:
+>                 #print('SCHEDULER - Nothing returned')
+>                 dt=200          # Wait a bit before querying cluster again
+>         else:
+>             dt=5      # We got a spot - see if there are more
+>             
+>         if self.enable_scheduler:
+>             self.root.after(dt, self.Scheduler)   
+> 
+926,935c993
+<         #print('BM WATCH DOG ...')
+< 
+<         # Check if we have any new spots
+<         nspots=self.P.q.qsize()
+<         print('BM WATCH DOG - There are',nspots,'new spots in the queue ...')
+<         while nspots>0:
+<             line=self.P.q.get()
+<             self.digest_spot(line)
+<             self.P.q.task_done()
+<             nspots=self.P.q.qsize()
+---
+>         print('BM WATCH DOG ...')
+942c1000
+<             tmp = self.P.ClusterFeed.tn.wsjt_status()
+---
+>             tmp = self.tn.wsjt_status()
+947c1005
+<                     self.P.ClusterFeed.tn.configure_wsjt(NewMode=self.FT_MODE)
+---
+>                     self.P.tn.configure_wsjt(NewMode=self.FT_MODE)
+998c1056
+<         self.scrolling('LBSelect')
+---
+>         scrolling(self,'LBSelect')
+1010c1068
+<             self.P.ClusterFeed.tn.configure_wsjt(RxDF=df,DxCall=dx_call)
+---
+>             self.P.tn.configure_wsjt(RxDF=df,DxCall=dx_call)
+1129,1131d1186
+<     def Reset(self):
+<         self.P.ClusterFeed.Reset()
+< 
+1465a1521,1574
+>     # Function to open spot server
+>     def open_spot_server(self):
+> 
+>         P=self.P
+> 
+>         # Open telnet connection to spot server
+>         print('SERVER=',P.SERVER,'\tMY_CALL=',P.MY_CALL)
+>         #sys,exit(0)
+>         if P.SERVER=='NONE': # or (P.SERVER!="WSJT" and not P.INTERNET):
+> 
+>             # No cluster node
+>             P.tn = None
+>         
+>         elif P.SERVER=='ANY':
+> 
+>             # Go down list of known nodes until we find one we can connect to
+>             KEYS=list(P.NODES.keys())
+>             print('NODES=',P.NODES)
+>             print('KEYS=',KEYS)
+>             
+>             P.tn=None
+>             inode=0
+>             while not P.tn and inode<len(KEYS):
+>                 key = KEYS[inode]
+>                 self.status_bar.setText("Attempting to open node "+P.NODES[key]+' ...')
+>                 P.tn = connection(P.TEST_MODE,P.NODES[key],P.MY_CALL,P.WSJT_FNAME, \
+>                                   ip_addr=P.WSJT_IP_ADDRESS,port=P.WSJT_PORT)
+>                 inode += 1
+>             if P.tn:
+>                 P.CLUSTER=P.NODES[key]
+>                 P.SERVER = key
+>             else:
+>                 print('\n*** Unable to connect to any node - no internet? - giving up! ***\n')
+>                 sys.exit(0)
+>                 
+>         else:
+> 
+>             # Connect to specified node 
+>             self.status_bar.setText("Attempting to open "+P.CLUSTER+' ...')
+>             P.tn = connection(P.TEST_MODE,P.CLUSTER,P.MY_CALL,P.WSJT_FNAME, \
+>                               ip_addr=P.WSJT_IP_ADDRESS,port=P.WSJT_PORT)
+> 
+>         if not P.TEST_MODE:
+>             if P.tn:
+>                 OK=test_telnet_connection(P.tn)
+>                 if not OK:
+>                     print('OPEN_SPOT_SERVER: Whooops!  SERVER=',P.SERVER,'\tOK=',OK)
+>                     sys.exit(0)
+>             else:
+>                 if P.SERVER!='NONE':
+>                     print('OPEN_SPOT_SERVER: Giving up!  SERVER=',P.SERVER,'\tOK=',OK)
+>                     sys.exit(0)
+> 
+>                     
+1519,1899d1627
+<     #########################################################################################
+< 
+<     # Function to read spots from the telnet connection
+<     def digest_spot(self,line):
+< 
+<         lb=self.lb
+<         VERBOSITY = self.P.DEBUG
+<             
+<         # Check for logged contact
+<         if "<adif_ver" in line:
+<             print('\nDIGEST SPOT: LOGGED Contact Detected ...')
+<             qso=parse_adif(-1,line)
+<             #print('qso=',qso)
+<             self.qsos.append( qso[0] )
+<             #print('self.qsos=',self.qsos)
+<             self.lb_update()
+< 
+<         if self.P.CLUSTER=='WSJT':
+<             print('SPOT:',line,len(line))
+<         obj = Spot(line)
+<         if self.P.ECHO_ON:
+<             print('OBJ:')
+<             pprint(vars(obj))
+<         sys.stdout.flush()
+< 
+<         # Check if we got a new spot
+<         if not hasattr(obj, 'dx_call'):
+< 
+<             print('Not sure what to do with this: ',line.strip())
+< 
+<         else:
+< 
+<             dx_call=obj.dx_call
+< 
+<             # Fix common mistakes
+<             if dx_call==None:
+<                 print('DIGEST SPOT: *** CORRECTION - blank call?????',dx_call)
+<                 pprint(vars(obj))
+<             elif len(dx_call)<3:
+<                 print('DIGEST SPOT: *** CORRECTION but dont know what to do - call=',dx_call)            
+<             elif dx_call in self.corrections:
+<                 print('DIGEST SPOT: *** NEED A CORRECTION ***',dx_call)
+<                 dx_call = self.corrections[dx_call]
+<                 obj.dx_call = dx_call
+<             elif dx_call[0]=='T' and dx_call[1:] in self.P.members:
+<                 dx_call = dx_call[1:]
+<                 obj.dx_call = dx_call
+<             elif len(dx_call)>=7 and dx_call[-3:] in ['CWT','SST','MST']:
+<                 dx_call = dx_call[:-3]
+<                 obj.dx_call = dx_call
+< 
+<             # Reject FT8/4 spots if we're in a contest
+<             keep=True
+<             m = self.mode.get()
+<             if self.P.CONTEST_MODE:
+<                 if m=='CW' and obj.mode in ['FT4','FT8','DIGITAL']:
+<                     keep=False
+< 
+<             # Reject calls that really aren't calls
+<             b = self.band.get()
+<             if keep:
+<                 if not dx_call or len(dx_call)<=2 or not obj.dx_station: 
+<                     keep=False
+<                 elif not obj.dx_station.country and not obj.dx_station.call_suffix:
+<                     keep=False
+< 
+<                 # Filter out NCDXF beacons
+<                 elif 'NCDXF' in line or 'BEACON' in line or '/B' in dx_call:
+<                     if VERBOSITY>=1:
+<                         print('Ignoring BEACON:',line.strip())
+<                     keep=False
+<         
+<             if False:
+<                 print('DIGEST SPOT:',line.strip())
+<                 print('keep=',keep,'\tb=',b)
+<         
+<             if keep:
+<                 if dx_call==self.P.MY_CALL or (self.P.ECHO_ON and False):
+<                     print('keep:',line.strip())
+< 
+<                 # Highlighting in WSJT-X window
+<                 if self.P.CLUSTER=='WSJT':
+<                     for qso in self.qsos:
+<                         if self.P.CW_SS:
+<                             # Can only work each station once regardless of band in this contest
+<                             match = dx_call==qso['call']
+<                         else:
+<                             match = (dx_call==qso['call']) and (b==qso['band'])
+<                         if match:
+<                             break
+<                     else:
+<                         # Set background according to SNR to call attention to stronger sigs
+<                         fg=1                       # 1=Red
+<                         try:
+<                             snr=int(obj.snr)
+<                             if snr>=0:
+<                                 bg=2              # 13=Light magenta, 2=Light Green
+<                             elif snr>=-15:
+<                                 bg=10              # 18=Light purple, 10=light Green
+<                             else:
+<                                 bg=0
+<                         except:
+<                             bg=0
+<                         self.P.ClusterFeed.tn.highlight_spot(dx_call,fg,bg)
+<                         #print('DIGEST SPOT: call=',obj.dx_call,'\tsnr=',obj.snr,
+<                         #'\tfg/bg=',fg,bg,'\t',obj.snr.isnumeric(),int(obj.snr),len(obj.snr))
+< 
+<                 # Pull out info from the spot
+<                 freq=float( obj.frequency )
+<                 mode=obj.mode
+<                 band=obj.band
+<                 self.nspots+=1
+<                 print('DIGEST SPOT: call=',obj.dx_call,'\tfreq=',freq,'\tmode=',mode,
+<                       '\tband=',band,'\tnspots=',self.nspots)
+< 
+<                 dxcc=obj.dx_station.country
+<                 if dxcc==None and False:
+<                     print('\nDXCC=NONE!!!!')
+<                     pprint(vars(obj.dx_station))
+<                     sys.exit(0)
+<                 now = datetime.utcnow().replace(tzinfo=UTC)
+<                 year=now.year
+<                 obj.needed = self.P.data.needed_challenge(dxcc,str(band)+'M',0)
+<                 obj.need_this_year = self.P.data.needed_challenge(dxcc,year,0) and self.P.SHOW_NEED_YEAR
+< 
+<                 # Reconcile mode
+<                 if mode in ['CW']:
+<                     mode2='CW'
+<                 elif mode in ['SSB','LSB','USB','FM','PH']:
+<                     mode2='Phone'
+<                 elif mode in ['DIGITAL','FT8','FT4','JT65','PSK']:
+<                     mode2='Data'
+<                 else:
+<                     mode2='Unknown'
+<                 obj.need_mode = self.P.data.needed_challenge(dxcc,mode2,0) and self.P.SHOW_NEED_MODE
+<             
+<                 # Determine color for this spot
+<                 match = self.B4(obj,str(band)+'m')
+<                 c,c2,age=self.spot_color(match,obj)
+<                 obj.color=c
+<                 
+<                 # Check if this call is already there
+<                 # Need some error trapping here bx we seem to get confused sometimes
+<                 try:
+<                     b = self.band.get()
+<                 except:
+<                     b = ''
+< 
+<                 try:
+<                     # Indices of all matches
+<                     idx1 = [i for i,x in enumerate(self.SpotList)
+<                             if x.dx_call==dx_call and x.band==band and x.mode==mode]
+<                     #if x.dx_call==dx_call and x.band==band]
+<                 except:
+<                     idx1 = []
+< 
+<                 if len(idx1)>0:
+< 
+<                     # Call already in list - Update spot info
+<                     #if VERBOSITY>=2:
+<                     print("DIGEST SPOT: Dupe call =",dx_call,'\tfreq=',freq,
+<                           '\tmode=',mode,'\tband=',band,'\tidx1=',idx1)
+<                     for i in idx1:
+<                         if VERBOSITY>=2:
+<                             print('\tA i=',i,self.SpotList[i].dx_call,
+<                                   '\ttime=',self.SpotList[i].time,obj.time,
+<                                   '\tfreq=',self.SpotList[i].frequency,obj.frequency)
+<                         self.SpotList[i].time=obj.time
+<                         self.SpotList[i].frequency=obj.frequency
+<                         self.SpotList[i].snr=obj.snr
+<                         self.SpotList[i].color=obj.color
+<                         if self.P.CLUSTER=='WSJT':
+<                             self.SpotList[i].df=obj.df
+<                         if VERBOSITY>=2:
+<                             print('\tB i=',i,self.SpotList[i].dx_call,
+<                                   '\ttime=',self.SpotList[i].time,obj.time,
+<                                   '\tfreq=',self.SpotList[i].frequency,obj.frequency)
+< 
+<                     # Update list box entry - In progress
+<                     idx2 = [i for i,x in enumerate(self.current) if x.dx_call == dx_call and x.band==b]
+<                     if len(idx2)>0:
+<                         bgc = self.lb.itemcget(idx2[0], 'background')
+<                         #print '&&&&&&&&&&&&&&&&&&&&&& Modifying ',idx2[0],dx_call,bgc
+<                         #print lb.get(idx2[0])
+<                         lb.delete(idx2[0])
+<                         if self.P.CLUSTER=='WSJT':
+<                             df = obj.df
+<                             try:
+<                                 df=int(df)
+<                                 #print('Insert3')
+<                                 lb.insert(idx2[0], "%4d  %-10.10s  %+6.6s %-17.17s %+4.4s" % \
+<                                           (df,dx_call,mode,cleanup(dxcc),obj.snr))
+<                             
+<                                 i=idx[0]
+<                                 self.current[i].time=obj.time
+<                                 self.current[i].frequency=obj.frequency
+<                                 self.current[i].snr=obj.snr
+<                                 self.current[i].df=obj.df
+<                                 self.current[i].color=obj.color
+<                             except:
+<                                 error_trap('DIGEST SPOT: ?????')
+<                         else:
+<                             #print('Insert4')
+<                             lb.insert(idx2[0], "%-6.1f  %-10.19s  %+6.6s %-15.16s %+4.4s" % \
+<                                       (freq,dx_call,mode,cleanup(dxcc),obj.snr))
+<                         #lb.itemconfigure(idx2[0], background=bgc)
+<                         lb.itemconfigure(idx2[0], background=obj.color)
+<                         #self.scrolling('DIGEST SPOT C')
+<                     
+<                 else:
+<                     
+<                     # New call - maintain a list of all spots sorted by freq 
+<                     print("DIGEST SPOT: New call  =",dx_call,'\tfreq=',freq,
+<                           '\tmode=',mode,'\tband=',band)
+<                     self.SpotList.append( obj )
+<                     #                self.SpotList.sort(key=lambda x: x.frequency, reverse=False)
+< 
+<                     # Show only those spots on the list that are from the desired band
+<                     try:
+<                         BAND = int( self.band.get().replace('m','') )
+<                     except:
+<                         error_trap('DIGEST SPOT: ?????')
+<                         print('band=',self.band)
+<                         return
+<                     
+<                     now = datetime.utcnow().replace(tzinfo=UTC)
+<                     if band==BAND:
+< 
+<                         # Cull out U.S. stations, except SESs (Useful for chasing DX)
+<                         dxcc = obj.dx_station.country
+<                         if self.P.DX_ONLY and dxcc=='United States' and len(obj.dx_call)>3:
+<                             return True
+< 
+<                         # Cull out stations not in North America (useful for NAQP for example)
+<                         cont = obj.dx_station.continent
+<                         #print('cont=',cont)
+<                         if self.P.NA_ONLY and cont!='NA':
+<                             return True
+< 
+<                         # Cull out stations non-cwops or cwops we've worked this year - useful for ACA
+<                         status=self.cwops_worked_status(obj.dx_call)
+<                         if self.P.NEW_CWOPS_ONLY and status!=1:
+<                             return True                    
+< 
+<                         # Cull out modes we are not interested in
+<                         xm = obj.mode
+<                         if xm in ['FT8','FT4','DIGITAL','JT65']:
+<                             xm='DIGI'
+<                         elif xm in ['SSB','LSB','USB','FM']:
+<                             xm='PH'
+<                         if xm not in self.P.SHOW_MODES:
+<                             #print('DIGEST SPOT: Culling',xm,'spot - ', self.P.SHOW_MODES)
+<                             return True
+< 
+<                         # Cull dupes
+<                         if not self.P.SHOW_DUPES:
+<                             if obj.color=='red':
+<                                 return True
+<                     
+<                         # Find insertion point - This might be where the sorting problem is - if two stations have same freq?
+<                         #self.current.append( obj )
+<                         #self.current.sort(key=lambda x: x.frequency, reverse=False)
+<                         idx2 = [i for i,x in enumerate(self.current) if x.frequency > freq]
+<                         if len(idx2)==0:
+<                             idx2=[len(self.current)];
+<                         if False:
+<                             print('INSERT: len(current)=',len(self.current))
+<                             print('freq=',freq,dx_call)
+<                             print('idx2=',idx2)
+<                             for cc in self.current:
+<                                 print(cc.dx_call,cc.frequency)
+<                         self.current.insert(idx2[0], obj )
+< 
+<                         if self.P.CLUSTER=='WSJT':
+<                             df = int( obj.df )
+<                             lb.insert(idx2[0], "%4d  %-10.10s  %+6.6s %-17.17s %+4.4s" % \
+<                                       (df,dx_call,mode,cleanup(dxcc),obj.snr))
+<                         else:
+<                             lb.insert(idx2[0], "%-6.1f  %-10.10s  %+6.6s %-15.15s %+4.4s" % \
+<                                       (freq,dx_call,mode,cleanup(dxcc),obj.snr))
+<                     
+<                         # Change background colors on each list entry
+<                         try:
+<                             # This triggered an error sometime
+<                             lb.itemconfigure(idx2[0], background=obj.color)
+<                             #self.scrolling('DIGEST SPOT D')
+<                         except:
+<                             error_trap('DIGET SPOT: Error in configuring item bg color ????')
+<                             print('idx=',idx)
+<                             print('OBJ:')
+<                             pprint(vars(obj))
+< 
+<         # Check if we need to cull old spots
+<         self.LBsanity()
+<         dt = (datetime.now() - self.last_check).total_seconds()/60      # In minutes
+<         # print "dt=",dt
+<         if dt>1:
+<             self.cull_old_spots()
+<                     
+<         if VERBOSITY>=1:
+<             print('DIGEST SPOT: nspots=',self.nspots,len(self.SpotList),len(self.current))
+<         return True
+< 
+<     #########################################################################################
+< 
+<     # Debug routine for scrolling issues
+<     def scrolling(self,txt,verbosity=0):
+<         #print('SCROLLING:',txt,verbosity)
+< 
+<         sb=self.scrollbar.get()
+<         sz=self.lb.size()
+<         yview=self.lb.yview()
+<         y=yview[0]
+<     
+<         idx=int( y*sz +0.5 )
+<         val=self.lb.get(min(max(idx,0),sz-1))
+<         if verbosity>0:
+<             print('SCROLLING:',txt+': sz=',sz,'\tyview=',yview,
+<                   '\n\ty=',y,'\tidx=',idx,'\tval=',val)
+< 
+<         return y
+< 
+<     
+<     # Function to cull aged spots
+<     def cull_old_spots(self):
+<         #logging.info("Calling Get_Freq ...")
+<         now = datetime.utcnow().replace(tzinfo=UTC)
+<         if self.sock:
+<             frq = self.sock.get_freq(VFO=self.VFO)
+<         else:
+<             frq=0
+<         #print('SpotList=',self.SpotList)
+<         #print("CULL OLD SPOTS - Rig freq=",frq,'\tnspots=',self.nspots,len(self.SpotList),len(self.current),
+<         #      '\nmax age=',self.P.MAX_AGE,'\tnow=',now)
+<         print("CULL OLD SPOTS - Rig freq=",frq,
+<               '\tnspots=',self.nspots,
+<               '\tlen SpotList=',len(self.SpotList),
+<               '\tlen Current=',len(self.current),
+<               '\n\tmax age=',self.P.MAX_AGE,
+<               '\tnow=',now)
+< 
+<         self.scrolling('CULL OLD SPOTS A')
+< 
+<         NewList=[];
+<         BAND = int( self.band.get().replace('m','') )
+<         for x in self.SpotList:
+<             try:
+<                 age = (now - x.time).total_seconds()/60      # In minutes
+<             except:
+<                 error_trap('CULL_OLD_SPOTS: ????')
+<                 age=0
+<                 print('x=',x)
+<                 #pprint(vars(x))
+<                 print('now=',now)
+<                 #print('x.time=',x.time)
+<                 continue
+<             
+<             #        print x.time,now,age
+<             if age<self.P.MAX_AGE and x!=None:
+<                 NewList.append(x)
+<             else:
+<                 print("CULL OLD SPOTS - Removed spot ",x.dx_call,'\t',x.time,x.frequency,x.band," age=",age)
+<                 if (not OLD_WAY) and x.band==BAND:
+<                     idx2 = [i for i,y in enumerate(self.current) 
+<                             if y.frequency == x.frequency and y.dx_call == x.dx_call]
+<                     #print("Delete",idx2,idx2[0])
+<                     del self.current[idx2[0]]
+<                     self.lb.delete(idx2[0])
+< 
+<         # Update gui display
+<         self.scrolling('CULL OLD SPOTS B')
+<         self.SpotList=NewList
+<         if OLD_WAY:
+<             self.SelectBands()
+<         self.scrolling('CULL OLD SPOTS C')
+<         print("CULL OLD SPOTS - New nspots=",self.nspots,
+<               '\tlen SpotList=',len(self.SpotList),
+<               '\tlen Current=',len(self.current))
+<         self.last_check=datetime.now()
+<         #    print self.last_check
+< 
+ 
+----------------------------------
+bm_udp.py
+ 
+26a27
+> from cluster_feed import digest_spot
+107c108
+<             self.P.bm_gui.digest_spot(line)
+---
+>             digest_spot(self.P.bm_gui,line)
+ 
+----------------------------------
+cluster_feed.py
+ 
+3c3
+< # cluster_feed.py - Rev. 2.0
+---
+> # cluster_feed.py - Rev. 1.0
+33,35d32
+< from dx.cluster_connections import *
+< import threading
+< import queue
+57,138d53
+< # The GUI
+< class ClusterFeed:
+<     def __init__(self,P,msec):
+< 
+<         # Init
+<         print('ClusterFeed Init ...')
+<         self.P = P
+<         self.nerrors=0
+<         self.last_error=''
+< 
+<         # Open spot server
+<         self.open_spot_server()
+< 
+<         # Open a file to save all of the spots
+<         if P.SAVE_SPOTS:
+<             self.fp = open("all_spots.dat","w")
+<         else:
+<             self.fp=-1
+< 
+<         # Create a buffer to communicate spots to gui thread
+<         P.q     = queue.Queue(maxsize=0)
+< 
+<         # Kick off cluster spot monitor
+<         dt=.001*msec
+<         self.Timer = threading.Timer(dt, self.Monitor)
+<         self.Timer.daemon=True                       # This prevents timer thread from blocking shutdown
+<         self.Timer.start()
+<         
+<         
+<     # Function to open spot server
+<     def open_spot_server(self):
+< 
+<         print('\nOpening Spot Server ...')
+<         P=self.P
+< 
+<         # Open telnet connection to spot server
+<         print('SERVER=',P.SERVER,'\tMY_CALL=',P.MY_CALL)
+<         #sys,exit(0)
+<         if P.SERVER=='NONE': # or (P.SERVER!="WSJT" and not P.INTERNET):
+< 
+<             # No cluster node
+<             self.tn = None
+<         
+<         elif P.SERVER=='ANY':
+< 
+<             # Go down list of known nodes until we find one we can connect to
+<             KEYS=list(P.NODES.keys())
+<             print('NODES=',P.NODES)
+<             print('KEYS=',KEYS)
+<             
+<             self.tn=None
+<             inode=0
+<             while not self.tn and inode<len(KEYS):
+<                 key = KEYS[inode]
+<                 self.P.bm_gui.status_bar.setText("Attempting to open node "+P.NODES[key]+' ...')
+<                 self.tn = connection(P.TEST_MODE,P.NODES[key],P.MY_CALL,P.WSJT_FNAME, \
+<                                   ip_addr=P.WSJT_IP_ADDRESS,port=P.WSJT_PORT)
+<                 inode += 1
+<             if self.tn:
+<                 P.CLUSTER=P.NODES[key]
+<                 P.SERVER = key
+<             else:
+<                 print('\n*** Unable to connect to any node - no internet? - giving up! ***\n')
+<                 sys.exit(0)
+<                 
+<         else:
+< 
+<             # Connect to specified node 
+<             self.P.bm_gui.status_bar.setText("Attempting to open "+P.CLUSTER+' ...')
+<             self.tn = connection(P.TEST_MODE,P.CLUSTER,P.MY_CALL,P.WSJT_FNAME, \
+<                               ip_addr=P.WSJT_IP_ADDRESS,port=P.WSJT_PORT)
+< 
+<         if not P.TEST_MODE:
+<             if self.tn:
+<                 OK=self.test_telnet_connection()
+<                 if not OK:
+<                     print('OPEN_SPOT_SERVER: Whooops!  SERVER=',P.SERVER,'\tOK=',OK)
+<                     sys.exit(0)
+<             else:
+<                 if P.SERVER!='NONE':
+<                     print('OPEN_SPOT_SERVER: Giving up!  SERVER=',P.SERVER,'\tOK=',OK)
+<                     sys.exit(0)
+141,142c56
+<     def test_telnet_connection(self):
+<         #tn=self.tn
+---
+> def test_telnet_connection(tn):
+144,145c58,59
+<         
+<         if not self.tn:
+---
+>     if not tn:
+>         print('CLUSTER_FEED.PY -> TEST TELNET CONNECTION')
+148c62
+<         elif isinstance(self.tn,SimpleServer):
+---
+>     elif isinstance(tn,SimpleServer):
+153c67
+<             line=self.tn.read_very_eager().decode("utf-8")
+---
+>         line=tn.read_very_eager().decode("utf-8")
+158c72
+<                 line=self.tn.read_very_eager().decode("utf-8")
+---
+>             line=tn.read_very_eager().decode("utf-8")
+170,191d83
+<     #
+<     def Monitor(self):
+< 
+<         #print('Cluster Monitor ...')
+<         n = self.cluster_feed()
+<         if n==0:
+<             if "telent connection closed" in self.last_error:
+<                 self.enable_scheduler=False
+<                 print('SCHEDULER - Attempting to reopen node ...')
+<                 self.SelectNode()
+<             else:
+<                 #print('SCHEDULER - Nothing returned')
+<                 dt=200          # Wait a bit before querying cluster again
+<         else:
+<             dt=5      # We got a spot - see if there are more
+< 
+<         #print('Restarting Cluster Monitor - n=',n,'\tdt=',dt)
+<         self.Timer = threading.Timer(.001*dt, self.Monitor)
+<         self.Timer.setDaemon(True)   
+<         self.Timer.start()
+< 
+< 
+194c86
+<         
+---
+>     tn=self.tn
+209c101
+<                 a=self.tn.readline()
+---
+>             a=tn.readline()
+212c104
+<                     self.tn.close()
+---
+>                 tn.close()
+222,223c114,115
+<             spot = self.tn.get_spot2(None,0)
+<             line = self.tn.convert_spot(spot)
+---
+>         spot = tn.get_spot2(None,0)
+>         line = tn.convert_spot(spot)
+231,232c123,124
+<             if self.tn.nsleep>=1:
+<                 band  = self.P.bm_gui.band.get()
+---
+>         if tn.nsleep>=1:
+>             band  = self.band.get()
+234c126
+<                 frq2 = 1e-6*self.P.bm_gui.sock.get_freq(VFO=self.P.bm_gui.VFO)
+---
+>             frq2 = 1e-6*self.sock.get_freq(VFO=self.VFO)
+239c131
+<                     tmp   = self.tn.last_band()
+---
+>                 tmp   = tn.last_band()
+244,245c136,137
+<                     self.P.bm_gui.band.set(band2)
+<                     self.P.bm_gui.SelectBands()
+---
+>                 self.band.set(band2)
+>                 self.SelectBands()
+276c168,169
+<                     line2 = self.tn.read_until(b"\n",timeout=10).decode("utf-8") 
+---
+>                 #line2 = tn.read_until(b"\n")
+>                 line2 = tn.read_until(b"\n",timeout=10).decode("utf-8") 
+294c187
+<                 self.tn.write(b"Y\n")              # send "Y"
+---
+>             tn.write(b"Y\n")              # send "Y"
+299,302c192,194
+<             #self.P.bm_gui.scrolling('DIGEST SPOT A')
+<             #self.P.bm_gui.digest_spot(line)
+<             #self.P.bm_gui.scrolling('DIGEST SPOT B')
+<             self.P.q.put(line)
+---
+>         scrolling(self,'DIGEST SPOT A')
+>         digest_spot(self,line)
+>         scrolling(self,'DIGEST SPOT B')
+306,319c198,410
+<     # Callback to reset telnet connection
+<     def Reset(self):
+<         print("\n------------- Reset -------------",self.P.CLUSTER,'\n')
+<         self.status_bar.setText("RESET - "+self.P.CLUSTER)
+<         self.Clear_Spot_List()
+<         """
+<         if self.P.BM_UDP_CLIENT and self.P.bm_udp_client and False:
+<             self.P.bm_udp_client.StartServer()
+<         if self.P.BM_UDP_CLIENT and self.P.bm_udp_server and False:
+<             self.P.bm_udp_server.StartServer()
+<         """
+<         if self.tn:
+<             self.tn.close()
+<             time.sleep(.1)
+---
+> # Function to read spots from the telnet connection
+> def digest_spot(self,line):
+> 
+>     tn=self.tn
+>     lb=self.lb
+>     VERBOSITY = self.P.DEBUG
+>             
+>     # Check for logged contact
+>     if "<adif_ver" in line:
+>         print('\nDIGEST SPOT: LOGGED Contact Detected ...')
+>         qso=parse_adif(-1,line)
+>         #print('qso=',qso)
+>         self.qsos.append( qso[0] )
+>         #print('self.qsos=',self.qsos)
+>         self.lb_update()
+> 
+>     if self.P.CLUSTER=='WSJT':
+>         print('SPOT:',line,len(line))
+>     obj = Spot(line)
+>     if self.P.ECHO_ON:
+>         print('OBJ:')
+>         pprint(vars(obj))
+>     sys.stdout.flush()
+> 
+>     # Check if we got a new spot
+>     if not hasattr(obj, 'dx_call'):
+> 
+>         print('Not sure what to do with this: ',line.strip())
+> 
+>     else:
+> 
+>         dx_call=obj.dx_call
+> 
+>         # Fix common mistakes
+>         if dx_call==None:
+>             print('DIGEST SPOT: *** CORRECTION - blank call?????',dx_call)
+>             pprint(vars(obj))
+>         elif len(dx_call)<3:
+>             print('DIGEST SPOT: *** CORRECTION but dont know what to do - call=',dx_call)            
+>         elif dx_call in self.corrections:
+>             print('DIGEST SPOT: *** NEED A CORRECTION ***',dx_call)
+>             dx_call = self.corrections[dx_call]
+>             obj.dx_call = dx_call
+>         elif dx_call[0]=='T' and dx_call[1:] in self.P.members:
+>             dx_call = dx_call[1:]
+>             obj.dx_call = dx_call
+>         elif len(dx_call)>=7 and dx_call[-3:] in ['CWT','SST','MST']:
+>             dx_call = dx_call[:-3]
+>             obj.dx_call = dx_call
+> 
+>         # Reject FT8/4 spots if we're in a contest
+>         keep=True
+>         m = self.mode.get()
+>         if self.P.CONTEST_MODE:
+>             if m=='CW' and obj.mode in ['FT4','FT8','DIGITAL']:
+>                 keep=False
+> 
+>         # Reject calls that really aren't calls
+>         b = self.band.get()
+>         if keep:
+>             if not dx_call or len(dx_call)<=2 or not obj.dx_station: 
+>                 keep=False
+>             elif not obj.dx_station.country and not obj.dx_station.call_suffix:
+>                 keep=False
+> 
+>             # Filter out NCDXF beacons
+>             elif 'NCDXF' in line or 'BEACON' in line or '/B' in dx_call:
+>                 if VERBOSITY>=1:
+>                     print('Ignoring BEACON:',line.strip())
+>                 keep=False
+>         
+>         if False:
+>             print('DIGEST SPOT:',line.strip())
+>             print('keep=',keep,'\tb=',b)
+>         
+>         if keep:
+>             if dx_call==self.P.MY_CALL or (self.P.ECHO_ON and False):
+>                 print('keep:',line.strip())
+> 
+>             # Highlighting in WSJT-X window
+>             if self.P.CLUSTER=='WSJT':
+>                 for qso in self.qsos:
+>                     if self.P.CW_SS:
+>                         # Can only work each station once regardless of band in this contest
+>                         match = dx_call==qso['call']
+>                     else:
+>                         match = (dx_call==qso['call']) and (b==qso['band'])
+>                     if match:
+>                         break
+>                 else:
+>                     # Set background according to SNR to call attention to stronger sigs
+>                     fg=1                       # 1=Red
+>                     try:
+>                         snr=int(obj.snr)
+>                         if snr>=0:
+>                             bg=2              # 13=Light magenta, 2=Light Green
+>                         elif snr>=-15:
+>                             bg=10              # 18=Light purple, 10=light Green
+>                         else:
+>                             bg=0
+>                     except:
+>                         bg=0
+>                     self.tn.highlight_spot(dx_call,fg,bg)
+>                     #print('DIGEST SPOT: call=',obj.dx_call,'\tsnr=',obj.snr,'\tfg/bg=',fg,bg,'\t',obj.snr.isnumeric(),int(obj.snr),len(obj.snr))
+> 
+>             # Pull out info from the spot
+>             freq=float( obj.frequency )
+>             mode=obj.mode
+>             band=obj.band
+>             self.nspots+=1
+>             print('DIGEST SPOT: call=',obj.dx_call,'\tfreq=',freq,'\tmode=',mode,'\tband=',band,'\tnspots=',self.nspots)
+> 
+>             dxcc=obj.dx_station.country
+>             if dxcc==None and False:
+>                 print('\nDXCC=NONE!!!!')
+>                 pprint(vars(obj.dx_station))
+>                 sys.exit(0)
+>             now = datetime.utcnow().replace(tzinfo=UTC)
+>             year=now.year
+>             obj.needed = self.P.data.needed_challenge(dxcc,str(band)+'M',0)
+>             obj.need_this_year = self.P.data.needed_challenge(dxcc,year,0) and self.P.SHOW_NEED_YEAR
+> 
+>             # Reconcile mode
+>             if mode in ['CW']:
+>                 mode2='CW'
+>             elif mode in ['SSB','LSB','USB','FM','PH']:
+>                 mode2='Phone'
+>             elif mode in ['DIGITAL','FT8','FT4','JT65','PSK']:
+>                 mode2='Data'
+>             else:
+>                 mode2='Unknown'
+>             obj.need_mode = self.P.data.needed_challenge(dxcc,mode2,0) and self.P.SHOW_NEED_MODE
+>             
+>             # Determine color for this spot
+>             match = self.B4(obj,str(band)+'m')
+>             c,c2,age=self.spot_color(match,obj)
+>             obj.color=c
+>                 
+>             # Check if this call is already there
+>             # Need some error trapping here bx we seem to get confused sometimes
+>             try:
+>                 b = self.band.get()
+>             except:
+>                 b = ''
+> 
+>             try:
+>                 # Indices of all matches
+>                 idx1 = [i for i,x in enumerate(self.SpotList)
+>                         if x.dx_call==dx_call and x.band==band and x.mode==mode]
+>                 #if x.dx_call==dx_call and x.band==band]
+>             except:
+>                 idx1 = []
+> 
+>             if len(idx1)>0:
+> 
+>                 # Call already in list - Update spot info
+>                 #if VERBOSITY>=2:
+>                 print("DIGEST SPOT: Dupe call =",dx_call,'\tfreq=',freq,
+>                       '\tmode=',mode,'\tband=',band,'\tidx1=',idx1)
+>                 for i in idx1:
+>                     if VERBOSITY>=2:
+>                         print('\tA i=',i,self.SpotList[i].dx_call,
+>                               '\ttime=',self.SpotList[i].time,obj.time,
+>                               '\tfreq=',self.SpotList[i].frequency,obj.frequency)
+>                     self.SpotList[i].time=obj.time
+>                     self.SpotList[i].frequency=obj.frequency
+>                     self.SpotList[i].snr=obj.snr
+>                     self.SpotList[i].color=obj.color
+>                     if self.P.CLUSTER=='WSJT':
+>                         self.SpotList[i].df=obj.df
+>                     if VERBOSITY>=2:
+>                         print('\tB i=',i,self.SpotList[i].dx_call,
+>                               '\ttime=',self.SpotList[i].time,obj.time,
+>                               '\tfreq=',self.SpotList[i].frequency,obj.frequency)
+> 
+>                 # Update list box entry - In progress
+>                 idx2 = [i for i,x in enumerate(self.current) if x.dx_call == dx_call and x.band==b]
+>                 if len(idx2)>0:
+>                     bgc = self.lb.itemcget(idx2[0], 'background')
+>                     #print '&&&&&&&&&&&&&&&&&&&&&& Modifying ',idx2[0],dx_call,bgc
+>                     #print lb.get(idx2[0])
+>                     lb.delete(idx2[0])
+>                     if self.P.CLUSTER=='WSJT':
+>                         df = obj.df
+>                         try:
+>                             df=int(df)
+>                             #print('Insert3')
+>                             lb.insert(idx2[0], "%4d  %-10.10s  %+6.6s %-17.17s %+4.4s" % \
+>                                       (df,dx_call,mode,cleanup(dxcc),obj.snr))
+>                             
+>                             i=idx[0]
+>                             self.current[i].time=obj.time
+>                             self.current[i].frequency=obj.frequency
+>                             self.current[i].snr=obj.snr
+>                             self.current[i].df=obj.df
+>                             self.current[i].color=obj.color
+>                         except:
+>                             error_trap('DIGEST SPOT: ?????')
+>                     else:
+>                         #print('Insert4')
+>                         lb.insert(idx2[0], "%-6.1f  %-10.19s  %+6.6s %-15.16s %+4.4s" % \
+>                                   (freq,dx_call,mode,cleanup(dxcc),obj.snr))
+>                     #lb.itemconfigure(idx2[0], background=bgc)
+>                     lb.itemconfigure(idx2[0], background=obj.color)
+>                     #scrolling(self,'DIGEST SPOT C')
+>                     
+>             else:
+>                     
+>                 # New call - maintain a list of all spots sorted by freq 
+>                 print("DIGEST SPOT: New call  =",dx_call,'\tfreq=',freq,
+>                       '\tmode=',mode,'\tband=',band)
+>                 self.SpotList.append( obj )
+>                 #                self.SpotList.sort(key=lambda x: x.frequency, reverse=False)
+320a412
+>                 # Show only those spots on the list that are from the desired band
+322,325c414
+<             self.tn = connection(self.P.TEST_MODE,self.P.CLUSTER, \
+<                                  self.P.MY_CALL,self.P.WSJT_FNAME)
+<             print("--- Reset --- Connected to",self.P.CLUSTER)
+<             OK=test_telnet_connection(self.tn)
+---
+>                     BAND = int( self.band.get().replace('m','') )
+327,328c416,431
+<             error_trap('GUI->RESET: Problem connecting to node'+self.P.CLUSTER)
+<             OK=False
+---
+>                     error_trap('DIGEST SPOT: ?????')
+>                     print('band=',self.band)
+>                     return
+>                 now = datetime.utcnow().replace(tzinfo=UTC)
+>                 if band==BAND:
+> 
+>                     # Cull out U.S. stations, except SESs (Useful for chasing DX)
+>                     dxcc = obj.dx_station.country
+>                     if self.P.DX_ONLY and dxcc=='United States' and len(obj.dx_call)>3:
+>                         return True
+> 
+>                     # Cull out stations not in North America (useful for NAQP for example)
+>                     cont = obj.dx_station.continent
+>                     #print('cont=',cont)
+>                     if self.P.NA_ONLY and cont!='NA':
+>                         return True
+330,332c433,573
+<         if not OK:
+<             print('--- Reset --- Now what Sherlock?!')
+<             self.status_bar.setText('Lost telnet connection?!')
+---
+>                     # Cull out stations non-cwops or cwops we've worked this year - useful for ACA
+>                     status=self.cwops_worked_status(obj.dx_call)
+>                     if self.P.NEW_CWOPS_ONLY and status!=1:
+>                         return True                    
+> 
+>                     # Cull out modes we are not interested in
+>                     xm = obj.mode
+>                     if xm in ['FT8','FT4','DIGITAL','JT65']:
+>                         xm='DIGI'
+>                     elif xm in ['SSB','LSB','USB','FM']:
+>                         xm='PH'
+>                     if xm not in self.P.SHOW_MODES:
+>                         #print('DIGEST SPOT: Culling',xm,'spot - ', self.P.SHOW_MODES)
+>                         return True
+> 
+>                     # Cull dupes
+>                     if not self.P.SHOW_DUPES:
+>                         if obj.color=='red':
+>                             return True
+>                     
+>                     # Find insertion point - This might be where the sorting problem is - if two stations have same freq?
+>                     #self.current.append( obj )
+>                     #self.current.sort(key=lambda x: x.frequency, reverse=False)
+>                     idx2 = [i for i,x in enumerate(self.current) if x.frequency > freq]
+>                     if len(idx2)==0:
+>                         idx2=[len(self.current)];
+>                     if False:
+>                         print('INSERT: len(current)=',len(self.current))
+>                         print('freq=',freq,dx_call)
+>                         print('idx2=',idx2)
+>                         for cc in self.current:
+>                             print(cc.dx_call,cc.frequency)
+>                     self.current.insert(idx2[0], obj )
+> 
+>                     if self.P.CLUSTER=='WSJT':
+>                         df = int( obj.df )
+>                         lb.insert(idx2[0], "%4d  %-10.10s  %+6.6s %-17.17s %+4.4s" % \
+>                                   (df,dx_call,mode,cleanup(dxcc),obj.snr))
+>                     else:
+>                         lb.insert(idx2[0], "%-6.1f  %-10.10s  %+6.6s %-15.15s %+4.4s" % \
+>                                   (freq,dx_call,mode,cleanup(dxcc),obj.snr))
+>                     
+>                     # Change background colors on each list entry
+>                     try:
+>                         # This triggered an error sometime
+>                         lb.itemconfigure(idx2[0], background=obj.color)
+>                         #scrolling(self,'DIGEST SPOT D')
+>                     except:
+>                         error_trap('DIGET SPOT: Error in configuring item bg color ????')
+>                         print('idx=',idx)
+>                         print('OBJ:')
+>                         pprint(vars(obj))
+> 
+>     # Check if we need to cull old spots
+>     self.LBsanity()
+>     dt = (datetime.now() - self.last_check).total_seconds()/60      # In minutes
+>     # print "dt=",dt
+>     if dt>1:
+>         cull_old_spots(self)
+>                     
+>     if VERBOSITY>=1:
+>         print('DIGEST SPOT: nspots=',self.nspots,len(self.SpotList),len(self.current))
+>     return True
+> 
+> #########################################################################################
+> 
+> # Debug routine for scrolling issues
+> def scrolling(self,txt,verbosity=0):
+>     #print('SCROLLING:',txt,verbosity)
+> 
+>     sb=self.scrollbar.get()
+>     sz=self.lb.size()
+>     yview=self.lb.yview()
+>     y=yview[0]
+>     
+>     idx=int( y*sz +0.5 )
+>     val=self.lb.get(min(max(idx,0),sz-1))
+>     if verbosity>0:
+>         print('SCROLLING:',txt+': sz=',sz,'\tyview=',yview,
+>               '\n\ty=',y,'\tidx=',idx,'\tval=',val)
+> 
+>     return y
+> 
+>     
+> # Function to cull aged spots
+> def cull_old_spots(self):
+>     #logging.info("Calling Get_Freq ...")
+>     now = datetime.utcnow().replace(tzinfo=UTC)
+>     if self.sock:
+>         frq = self.sock.get_freq(VFO=self.VFO)
+>     else:
+>         frq=0
+>     #print('SpotList=',self.SpotList)
+>     #print("CULL OLD SPOTS - Rig freq=",frq,'\tnspots=',self.nspots,len(self.SpotList),len(self.current),
+>     #      '\nmax age=',self.P.MAX_AGE,'\tnow=',now)
+>     print("CULL OLD SPOTS - Rig freq=",frq,
+>           '\tnspots=',self.nspots,
+>           '\tlen SpotList=',len(self.SpotList),
+>           '\tlen Current=',len(self.current),
+>           '\n\tmax age=',self.P.MAX_AGE,
+>           '\tnow=',now)
+> 
+>     scrolling(self,'CULL OLD SPOTS A')
+> 
+>     NewList=[];
+>     BAND = int( self.band.get().replace('m','') )
+>     for x in self.SpotList:
+>         try:
+>             age = (now - x.time).total_seconds()/60      # In minutes
+>         except:
+>             error_trap('CULL_OLD_SPOTS: ????')
+>             age=0
+>             print('x=',x)
+>             #pprint(vars(x))
+>             print('now=',now)
+>             #print('x.time=',x.time)
+>             continue
+>             
+> #        print x.time,now,age
+>         if age<self.P.MAX_AGE and x!=None:
+>             NewList.append(x)
+>         else:
+>             print("CULL OLD SPOTS - Removed spot ",x.dx_call,'\t',x.time,x.frequency,x.band," age=",age)
+>             if (not OLD_WAY) and x.band==BAND:
+>                 idx2 = [i for i,y in enumerate(self.current) 
+>                         if y.frequency == x.frequency and y.dx_call == x.dx_call]
+>                 #print("Delete",idx2,idx2[0])
+>                 del self.current[idx2[0]]
+>                 self.lb.delete(idx2[0])
+> 
+>     # Update gui display
+>     scrolling(self,'CULL OLD SPOTS B')
+>     self.SpotList=NewList
+>     if OLD_WAY:
+>         self.SelectBands()
+>     scrolling(self,'CULL OLD SPOTS C')
+>     print("CULL OLD SPOTS - New nspots=",self.nspots,
+>           '\tlen SpotList=',len(self.SpotList),
+>           '\tlen Current=',len(self.current))
+>     self.last_check=datetime.now()
+> #    print self.last_check
+ 

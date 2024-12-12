@@ -40,7 +40,7 @@ from bm_gui import BandMapGUI
 from settings import *
 from params import *
 from dx.cluster_connections import connection,get_logger
-from cluster_feed import ClusterFeed
+from cluster_feed import test_telnet_connection
 from dx.spot_processing import ChallengeData
 from pprint import pprint
 from get_node_list import *
@@ -121,17 +121,6 @@ if __name__ == "__main__":
         worker.daemon=True
         worker.start()
         P.threads.append(worker)
-
-    # Start thread to manage feed from dx cluster
-    P.bm_gui.status_bar.setText('Starting Cluster Feed Monitor ...')
-    P.ClusterFeed = ClusterFeed(P,200)
-    """
-    worker = Thread(target=P.ClusterFeed.Monitor, args=(),
-                    name='Cluster Feed Monitor' )
-    worker.daemon=True
-    worker.start()
-    P.threads.append(worker)
-    """
         
     # WatchDog - runs in its own thread
     P.WATCHDOG = True
@@ -143,7 +132,7 @@ if __name__ == "__main__":
     # Let's go!
     P.bm_gui.status_bar.setText('And away we go!')
     P.bm_gui.run()
-    if False:
+    if True:
         print("P=")
         pprint(vars(P))
         print(' ')

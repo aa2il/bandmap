@@ -166,8 +166,6 @@ class PARAMS:
         self.SHOW_NEED_MODE = args.show_mode
         self.SHOW_NEED_YEAR = args.show_year
         self.SHOW_DUPES     = not args.nodupes
-        self.GUI_BAND       = None
-        self.GUI_MODE       = None
 
         valid_modes=['CW','RTTY','DIGI','PH']
         if type(args.modes) is list:
