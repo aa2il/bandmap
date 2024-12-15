@@ -720,6 +720,7 @@ class ClusterFeed:
         
         if len(P.current)==0:
             print('LB_UPDATE - Nothing to do.',P.current)
+            self.lock.release()
             return
 
         idx=-1

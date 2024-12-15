@@ -503,7 +503,7 @@ class BandMapGUI:
 
             if self.P.NEW_CWOPS_ONLY:
                 # Retain only cwops stations not worked yet this year
-                keep = keep and self.cwops_worked_status(x.dx_call)==1
+                keep = keep and self.P.ClusterFeed.cwops_worked_status(x.dx_call)==1
 
             # Retain only modes we are interested in
             xm = x.mode
