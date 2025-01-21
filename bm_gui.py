@@ -1,7 +1,7 @@
 #########################################################################################
 #
 # gui.py - Rev. 2.0
-# Copyright (C) 2021-4 by Joseph B. Attili, aa2il AT arrl DOT net
+# Copyright (C) 2021-5 by Joseph B. Attili, aa2il AT arrl DOT net
 #
 # Gui for dx cluster bandmap.
 #
@@ -611,7 +611,7 @@ class BandMapGUI:
         
         # Get latest logbook
         now = datetime.utcnow().replace(tzinfo=UTC)
-        if self.P.STAND_ALONE or len(self.P.qsos)==0:
+        if (self.P.STAND_ALONE and False) or len(self.P.qsos)==0:
             if self.P.LOG_NAME0:
                 # Log for operator if different from current callsign
                 # We won't keep reading this file so we set REVISIT=False

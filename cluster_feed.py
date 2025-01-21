@@ -1,7 +1,7 @@
 #########################################################################################
 #
 # cluster_feed.py - Rev. 2.0
-# Copyright (C) 2021-4 by Joseph B. Attili, aa2il AT arrl DOT net
+# Copyright (C) 2021-5 by Joseph B. Attili, aa2il AT arrl DOT net
 #
 # Routines to grab spots from the dx cluster.
 #

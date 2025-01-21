@@ -83,6 +83,7 @@ w6sx,Hank
 n6ror,ROARS
 W5LVC,Colin,Dallas Club
 #K4HTA,Sean,VA Club
+K7RST,Lloyd,Tucson AZ Club
 
 # Other
 N7AAE,Marty Mueller, Jim's brother

@@ -1,7 +1,7 @@
 #########################################################################################
 #
 # udp.py - Rev. 1.0
-# Copyright (C) 2022-4 by Joseph B. Attili, aa2il AT arrl DOT net
+# Copyright (C) 2022-5 by Joseph B. Attili, aa2il AT arrl DOT net
 #
 # UDP messaging for bandmap.
 #
@@ -109,17 +109,31 @@ def bm_udp_msg_handler(self,sock,msg):
      
         elif mm[0]=='LOG':
 
-            # LOG:CALL:BAND:MODE:DATE_OFF:TIME_OFF
-            print('\nUDP: Received SPOT:',mm)
+            # LOG:CALL:BAND:FREQ:MODE:DATE_OFF:TIME_OFF
+            print('\nUDP: Received LOGged contact:',mm)
             qso = OrderedDict()
             qso['call']         = mm[1]
             qso['band']         = mm[2]
-            qso['mode']         = mm[3]
-            qso['qso_date_off'] = mm[4]
-            qso['time_off']     = mm[5]
+            #qso['freq']         = mm[3]
+            qso['mode']         = mm[4]
+            qso['qso_date_off'] = mm[5]
+            qso['time_off']     = mm[6]
             self.P.qsos.append(qso)
             print('\tqso=',qso)
             self.P.ClusterFeed.lb_update()
+
+            if True:
+                b = int( qso['band'].split("m")[0] )
+                idx = [i for i,x in enumerate(self.P.current) if x.dx_call == qso['call'] and x.band==b]
+                print('\tb=',b,'\tidx=',idx)
+                if len(idx)>0:
+                    print('\tentry=',[idx[0],None, 'red'] )
+                    self.P.bm_q.put( [idx[0],None, 'red'] )
+                else:
+                    #print('\tP.current=',self.P.current)
+                    for x in self.P.current:
+                        print(x,x.dx_call,x.band)
+            
             return
             
         elif mm[0]=='SpotList':
