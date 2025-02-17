@@ -82,11 +82,11 @@ w6sx,Hank
 # Clubs
 n6ror,ROARS
 W5LVC,Colin,Dallas Club
-#K4HTA,Sean,VA Club
+K4HTA,Sean,VA Club
 K7RST,Lloyd,Tucson AZ Club
+W9OG,Dennis,IN Club
 
 # Other
 N7AAE,Marty Mueller, Jim's brother
-VE3INE,Mary,Prospective student 
 
 # DX - should be in Most Wanted list, not here!

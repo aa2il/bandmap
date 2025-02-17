@@ -208,7 +208,7 @@ class ClusterFeed:
             print('CLUSTER FEED A: nspots=',P.nspots,len(P.SpotList),len(P.current))
 
         if self.nerrors>10:
-            print('CLUSTER_FEED: Too many errors - giving up!')
+            print('CLUSTER_FEED: Too many errors - giving up!',self.nerrors)
             return 0
 
         if self.P.TEST_MODE:
@@ -265,10 +265,13 @@ class ClusterFeed:
                 try:
                     line = self.tn.read_until(b"\n",self.P.TIME_OUT).decode("utf-8")
                 except Exception as e:
-                    error_trap('CLUSTER_FEED:   ??????')
+                    err = error_trap('CLUSTER_FEED: Problem reading line from cluster server ...')
                     line = ''
                     self.nerrors+=1
                     self.last_error=str(e)
+
+                    if "telnet connection closed" in err[1]:
+                        print("\tLooks like we've lost the connection to the server :-(")
                 
                 if VERBOSITY>=2:
                     print('Line:',line)
