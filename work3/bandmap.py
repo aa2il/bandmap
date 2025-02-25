@@ -115,6 +115,7 @@ if __name__ == "__main__":
 
     # Read various auxilary data files
     P.bm_gui.read_aux_data()
+    #P.SCORING=SST_SCORING(P,'SST')
     P.SCORING=Select_Scoring(P)
 
     # Start thread with UDP server

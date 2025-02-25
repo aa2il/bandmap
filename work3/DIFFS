@@ -1,0 +1,1602 @@
+----------------------------------
+bandmap.py
+ 
+43c43
+< from cluster_feed import ClusterFeed
+---
+> from cluster_feed import test_telnet_connection
+125,135d124
+<     # Start thread to manage feed from dx cluster
+<     P.bm_gui.status_bar.setText('Starting Cluster Feed Monitor ...')
+<     P.ClusterFeed = ClusterFeed(P,200)
+<     """
+<     worker = Thread(target=P.ClusterFeed.Monitor, args=(),
+<                     name='Cluster Feed Monitor' )
+<     worker.daemon=True
+<     worker.start()
+<     P.threads.append(worker)
+<     """
+<         
+146c135
+<     if False:
+---
+>     if True:
+ 
+----------------------------------
+bm_gui.py
+ 
+3c3
+< # gui.py - Rev. 2.0
+---
+> # gui.py - Rev. 1.0
+30c30
+< from dx.spot_processing import ChallengeData
+---
+> from dx.spot_processing import ChallengeData,Station
+43a44
+> from rig_io.ft_tables import THIRTEEN_COLONIES
+73,82c74,79
+<         P.nspots=0
+<         P.SpotList=[]
+<         P.current=[]
+<         P.friends=[]
+<         P.most_wanted=[]
+<         P.corrections=[]
+<         P.members=[]
+<         P.qsos=[]
+<         P.last_check=datetime.now()
+<         
+---
+>         self.nspots=0
+>         self.SpotList=[]
+>         self.current=[]
+>         self.last_check=datetime.now()
+>         self.qsos=[]
+>         self.VFO = P.RIG_VFO
+87a85,91
+>         self.nerrors=0
+>         self.enable_scheduler=True
+>         self.last_error=''
+>         self.friends=[]
+>         self.most_wanted=[]
+>         self.corrections=[]
+>         P.members=[]
+88a93
+>         self.sock = None
+94a100,105
+>         # Open a file to save all of the spots
+>         if P.SAVE_SPOTS:
+>             self.fp = open("all_spots.dat","w")
+>         else:
+>             self.fp=-1
+> 
+277a289,291
+>         # Open spot server
+>         self.open_spot_server()
+>         
+281a296,298
+>         self.tn   = self.P.tn
+>         self.sock = self.P.sock
+> 
+287,288c304
+<         sock = self.P.sock
+<         if sock and sock.active:
+---
+>         if self.sock and self.sock.active:
+291c307
+<             f = 1e-6*sock.get_freq(VFO=self.P.RIG_VFO)     # Query rig at startup
+---
+>             f = 1e-6*self.sock.get_freq(VFO=self.VFO)     # Query rig at startup
+302c318
+<         if sock and sock.active:
+---
+>         if self.sock and self.sock.active:
+309a326
+>         self.Scheduler()
+327d343
+<         sock=self.P.sock
+330c346
+<         self.rig_freq = sock.get_freq(VFO=self.P.RIG_VFO) / 1000.
+---
+>         self.rig_freq = self.sock.get_freq(VFO=self.VFO) / 1000.
+333c349
+<         sock.set_freq(self.rig_freq+df,VFO=self.P.RIG_VFO)
+---
+>         self.sock.set_freq(self.rig_freq+df,VFO=self.VFO)
+337,338c353
+<         sock=self.P.sock
+<         if sock==None:
+---
+>         if self.sock==None:
+344c359
+<         m = sock.get_mode(VFO=self.P.RIG_VFO)
+---
+>         m = self.sock.get_mode(VFO=self.VFO)
+359c374
+<         sock.set_freq(float(frq/1000.),VFO=self.P.RIG_VFO)
+---
+>         self.sock.set_freq(float(frq/1000.),VFO=self.VFO)
+363,364c378
+<         sock=self.P.sock
+<         if sock==None:
+---
+>         if self.sock==None:
+375c389
+<             a = sock.get_ant()
+---
+>             a = self.sock.get_ant()
+392c406
+<                 self.P.sock.set_ant(ant,VFO=self.P.RIG_VFO)
+---
+>                 self.P.sock.set_ant(ant,VFO=self.VFO)
+398c412
+<             sock.set_ant(a,VFO=self.P.RIG_VFO)
+---
+>             self.sock.set_ant(a,VFO=self.VFO)
+406,407c420
+<         sock=self.P.sock
+<         if sock==None:
+---
+>         if self.sock==None:
+420c433
+<         self.P.ClusterFeed.tn.configure_wsjt(NewMode=self.FT_MODE)
+---
+>         self.P.tn.configure_wsjt(NewMode=self.FT_MODE)
+422c435
+<         sock.set_freq(frq,VFO=self.P.RIG_VFO)
+---
+>         self.sock.set_freq(frq,VFO=self.VFO)
+426c439
+<         sock.set_monitor_gain(25)
+---
+>         self.sock.set_monitor_gain(25)
+435,436c448
+<         sock=self.P.sock
+<         if sock==None:
+---
+>         if self.sock==None:
+447c459
+<             m = sock.get_mode(VFO=self.P.RIG_VFO)
+---
+>             m = self.sock.get_mode(VFO=self.VFO)
+465c477
+<             self.rig_freq = sock.get_freq(VFO=self.P.RIG_VFO) / 1000.
+---
+>             self.rig_freq = self.sock.get_freq(VFO=self.VFO) / 1000.
+476c488
+<             sock.set_mode(m,VFO=self.P.RIG_VFO,Filter='Auto')
+---
+>             self.sock.set_mode(m,VFO=self.VFO,Filter='Auto')
+478c490
+<                 sock.set_if_shift(0)
+---
+>                 self.sock.set_if_shift(0)
+483,486c495,496
+<         P=self.P
+< 
+<         print('COLLECT_SPOTS: nspots=',len(P.SpotList),'\tband=',band,
+<               '\nReverse=',REVERSE,'\tOVERRIDE=',OVERRIDE,'\tCONTEST_MODE=', self.P.CONTEST_MODE)
+---
+>         print('COLLECT_SPOTS: band=',band,'\tReverse=',REVERSE,
+>               '\tOVERRIDE=',OVERRIDE,'\tCONTEST_MODE=', self.P.CONTEST_MODE)
+494c504
+<         for x in P.SpotList:
+---
+>         for x in self.SpotList:
+520,521c530,531
+<                 match = self.P.ClusterFeed.B4(x,band)
+<                 c,c2,age=self.P.ClusterFeed.spot_color(match,x)
+---
+>                 match = self.B4(x,band)
+>                 c,c2,age=self.spot_color(match,x)
+534d543
+<         print('\tNo. Collect spots=',len(spots))
+542d550
+<         P=self.P
+546,548c554,556
+<             print('SELECT BANDS A: nspots=',P.nspots,
+<                   '\tlen SpotList=',len(P.SpotList),
+<                   '\tlen Current=',len(P.current))
+---
+>             print('SELECT BANDS A: nspots=',self.nspots,
+>                   '\tlen SpotList=',len(self.SpotList),
+>                   '\tlen Current=',len(self.current))
+550c558
+<         self.scrolling('SELECT BANDS A')
+---
+>         scrolling(self,'SELECT BANDS A')
+552,553c560
+<         sock=self.P.sock
+<         if not sock:
+---
+>         if not self.sock:
+555c562
+<             print('\tsock=',sock,'\n')
+---
+>             print('\tsock=',self.sock,'\n')
+567,568c574,575
+<         if sock:
+<             frq2 = 1e-6*sock.get_freq(VFO=self.P.RIG_VFO)
+---
+>         if self.sock:
+>             frq2 = 1e-6*self.sock.get_freq(VFO=self.VFO)
+574c581
+<         print("\nYou've selected ",band,' - Current rig band=',band2,\
+---
+>         print("You've selected ",band,' - Current rig band=',band2,\
+583c590
+<                 self.P.ClusterFeed.tn.configure_wsjt(NewMode=self.FT_MODE)
+---
+>                 self.P.tn.configure_wsjt(NewMode=self.FT_MODE)
+593,595c600,602
+<                 if sock:
+<                     sock.set_freq(new_frq,VFO=self.P.RIG_VFO)
+<                     sock.set_mode(self.FT_MODE,VFO=self.P.RIG_VFO)
+---
+>                 if self.sock:
+>                     self.sock.set_freq(new_frq,VFO=self.VFO)
+>                     self.sock.set_mode(self.FT_MODE,VFO=self.VFO)
+597c604
+<                 if band != band2 and sock:
+---
+>                 if band != band2 and self.sock:
+600c607
+<                     sock.set_band(band,VFO=self.P.RIG_VFO)
+---
+>                     self.sock.set_band(band,VFO=self.VFO)
+606,610c613,614
+<         P.current = self.collect_spots(band)
+<         y=self.scrolling('SELECT BANDS B')
+< 
+<         P.GUI_BAND = self.band.get()
+<         P.GUI_MODE = self.mode.get()
+---
+>         self.current = self.collect_spots(band)
+>         y=scrolling(self,'SELECT BANDS B')
+614c618
+<         if self.P.STAND_ALONE or len(self.P.qsos)==0:
+---
+>         if self.P.STAND_ALONE or len(self.qsos)==0:
+620,621c624,625
+<                 self.P.qsos += logbook
+<                 print('QSOs in log=',len(logbook),len(self.P.qsos))
+---
+>                 self.qsos += logbook
+>                 print('QSOs in log=',len(logbook),len(self.qsos))
+627,628c631,632
+<             self.P.qsos += logbook
+<             print('QSOs in log=',len(logbook),len(self.P.qsos))
+---
+>             self.qsos += logbook
+>             print('QSOs in log=',len(logbook),len(self.qsos))
+632c636
+<             self.calls = self.calls1 + [ qso['call'] for qso in self.P.qsos ]
+---
+>             self.calls = self.calls1 + [ qso['call'] for qso in self.qsos ]
+639c643
+<         #print 'Repopulate ...',len(P.current),len(self.P.qsos)
+---
+>         #print 'Repopulate ...',len(self.current),len(self.qsos)
+642c646
+<         for x in P.current:
+---
+>         for x in self.current:
+660c664
+<             self.lb.itemconfigure(END, background=P.current[n].color)
+---
+>             self.lb.itemconfigure(END, background=self.current[n].color)
+666c670,812
+<         self.scrolling('SELECT BANDS C')
+---
+>         scrolling(self,'SELECT BANDS C')
+>         if VERBOSITY>0:
+>             print('SELECT BANDS B: nspots=',self.nspots,
+>                   '\tlen SpotList=',len(self.SpotList),
+>                   '\tlen Current=',len(self.current))
+> 
+>             
+>     def match_qsos(self,qso,x,b,now):
+>         if self.P.CW_SS:
+>             # Can only work each station once regardless of band in this contest
+>             match = x.dx_call==qso['call']
+>         else:
+>             try:
+>                 match = (x.dx_call==qso['call']) and (b==qso['band'])
+>             except:
+>                 error_trap('GUI->MATCH QSOS: ?????')
+>                 match=False
+>                 print('dx_call=',x.dx_call)
+>                 print('qso=',qso)
+>                 
+>         #print('\n------MATCH_QSOS: qso=',qso,x.dx_call,match)
+>         if match:
+>             t1 = datetime.strptime(now.strftime("%Y%m%d %H%M%S"), "%Y%m%d %H%M%S") 
+>             t2 = datetime.strptime( qso['qso_date_off']+" "+qso["time_off"] , "%Y%m%d %H%M%S")
+>             delta=(t1-t2).total_seconds() / 3600
+>             match = delta< self.P.MAX_HOURS_DUPE
+>             if VERBOSITY>=2:
+>                 print('--- MATCH_QSOS: Possible dupe for',x.dx_call,'\tt12',t1,t2,'\tdelta=',delta,match)
+> 
+>         return match
+> 
+>     # Function to return worked status of cwops stations
+>     #   0 = call is not a cwops member
+>     #   1 = call is a cwops member but hasn't been worked yet this year
+>     #   2 = call is a cwops member and been worked yet this year
+>     def cwops_worked_status(self,dx_call):
+>         if '/' in dx_call:
+>             dx_station = Station(dx_call)
+>             home_call = dx_station.homecall
+>         else:
+>             home_call = dx_call
+> 
+>         if (dx_call in self.P.members) or (home_call in self.P.members):
+>             if (dx_call in self.P.data.cwops_worked) or (home_call in self.P.data.cwops_worked):
+>                 status=2
+>             else:
+>                 status=1
+>         else:
+>             status=0
+> 
+>         #print('CWops WORKED STATUS: call=',dx_call,'\thome call=',home_call,'\tworked=',status)
+>         return status
+>         
+>     # Function to determine spot color
+>     def spot_color(self,match,x):
+> 
+>         now = datetime.utcnow().replace(tzinfo=UTC)
+>         age = (now - x.time).total_seconds()/60      # In minutes
+>         dx_call=x.dx_call.upper()
+>         dx_station = Station(dx_call)
+>         if dx_station.country=='United States' and len(dx_station.appendix)>=2:
+>             dx_call=dx_station.homecall            # Strip out bogus appendices from state QPs
+>         cwops_status=self.cwops_worked_status(dx_call)
+> 
+>         # Set color depending criteria
+>         # c2 is the abbreviated version used to shorten the inter-process messages 
+>         # These need to be matched in pySDR/gui.py
+>         if match:
+>             c="red"
+>             c2='r'
+>         elif x.needed:
+>             c="magenta"
+>             c2='m'
+>         elif x.need_this_year:
+>             c="violet"
+>             c2='v'
+>         elif x.need_mode:
+>             c="pink"
+>             c2='p'
+>         elif dx_call in self.friends:
+>             c="lightskyblue" 
+>             c2='lb'
+>         elif dx_call in self.most_wanted:
+>             c="turquoise"
+>             c2='t'
+>         elif dx_call==self.P.MY_CALL:
+>             c="deepskyblue" 
+>             c2='b'
+>         elif self.P.CWOPS and cwops_status>0:
+>             if cwops_status==2:
+>                 c="gold"
+>                 c2='d'
+>             else:
+>                 c='orange'
+>                 c2='o'
+>         elif dx_call in THIRTEEN_COLONIES:
+>             c="lightskyblue" 
+>             c2='lb'
+>         else:
+>             if age<2:
+>                 c="yellow"
+>                 c2='y'
+>             else:
+>                 c="lightgreen"
+>                 c2='g'
+> 
+>         return c,c2,age
+>     
+>     
+>     # Why is this still around? - see cluster_feed.py
+>     def lb_update(self):
+>         b = self.band.get()
+>         print('LB_UPDATE: b=',b)
+>         now = datetime.utcnow().replace(tzinfo=UTC)
+>         idx=-1
+>         if len(self.current)==0:
+>             print('LB_UPDATE - Nothing to do.',self.current)
+>             return
+>         for x in self.current:
+>             idx+=1
+>             for qso in self.qsos:
+>                 match = self.match_qsos(qso,x,b,now)
+>                 call=qso['call']
+>                 #print('LB_UPDATE:',call,x.dx_call,match)
+>                 #match |= call==self.P.MY_CALL
+>                 if match:
+>                     break
+>         #else:
+>         #    print('LB_UPDATE - Nothing to do.',self.current)
+>         #    return
+> 
+>         if idx>=0:
+>             c,c2,age=self.spot_color(match,x)
+>             self.lb.itemconfigure(idx, background=c)
+>             #print('LB_UPDATE:',dx_call,c)
+>                 
+> 
+>     # Function to check if we've already worked a spotted station
+>     def B4(self,x,b):
+>             
+>         now = datetime.utcnow().replace(tzinfo=UTC)
+>         dx_call=x.dx_call.upper()
+>         nqsos=len(self.qsos)
+668,670c814,845
+<             print('SELECT BANDS B: nspots=',P.nspots,
+<                   '\tlen SpotList=',len(P.SpotList),
+<                   '\tlen Current=',len(P.current))
+---
+>             print('B4: ... call=',dx_call,'\tband=',b,'nqsos=',nqsos)
+>         
+>         match=False
+>         if nqsos>0:
+>             for qso in self.qsos:
+>                 #print('QSO=',qso)
+>                 if self.P.CW_SS:
+>                     # Can only work each station once regardless of band in this contest
+>                     match = dx_call==qso['call']
+>                 else:
+>                     try:
+>                         match = (dx_call==qso['call']) and (b==qso['band'])
+>                     except: 
+>                         error_trap('GUI->MATCH QSOS: ?????')
+>                         match=False
+>                         print('dx_call=',dx_call)
+>                         print('qso=',qso)
+> 
+>                 if match:
+>                     t1 = datetime.strptime(now.strftime("%Y%m%d %H%M%S"), "%Y%m%d %H%M%S") 
+>                     t2 = datetime.strptime( qso['qso_date_off']+" "+qso["time_off"] , "%Y%m%d %H%M%S")
+>                     delta=(t1-t2).total_seconds() / 3600
+>                     match = delta < self.P.MAX_HOURS_DUPE
+>                     if VERBOSITY>=2:
+>                         print('--- Possible dupe ',tag,' for',dx_call,'\tt12=',t1,t2,'\tdelta=',
+>                               delta,match)
+>                     if match:
+>                         print('*** Dupe ***',qso['call'],qso['band'])
+>                         break
+> 
+>         return match
+> 
+681c856
+<         for x in P.current:
+---
+>         for x in self.current:
+697c872
+<                   '\tf=',P.current[ibest].frequency,
+---
+>                   '\tf=',self.current[ibest].frequency,
+744c919
+<             y=self.scrolling('LBSANITY',verbosity=0)
+---
+>             y=scrolling(self,'LBSANITY',verbosity=0)
+752a928,959
+> 
+>     # Callback to reset telnet connection
+>     def Reset(self):
+>         print("\n------------- Reset -------------",self.P.CLUSTER,'\n')
+>         self.status_bar.setText("RESET - "+self.P.CLUSTER)
+>         self.Clear_Spot_List()
+>         if self.P.BM_UDP_CLIENT and self.P.bm_udp_client and False:
+>             self.P.bm_udp_client.StartServer()
+>         if self.P.BM_UDP_CLIENT and self.P.bm_udp_server and False:
+>             self.P.bm_udp_server.StartServer()
+>         if self.tn:
+>             self.tn.close()
+>             self.enable_scheduler=False
+>             time.sleep(.1)
+>             
+>         try:
+>             self.tn = connection(self.P.TEST_MODE,self.P.CLUSTER, \
+>                                  self.P.MY_CALL,self.P.WSJT_FNAME)
+>             print("--- Reset --- Connected to",self.P.CLUSTER, self.enable_scheduler)
+>             OK=test_telnet_connection(self.tn)
+>         except:
+>             error_trap('GUI->RESET: Problem connecting to node'+self.P.CLUSTER)
+>             OK=False
+>             
+>         if not OK:
+>             print('--- Reset --- Now what Sherlock?!')
+>             self.status_bar.setText('Lost telnet connection?!')
+>         if not self.enable_scheduler or True:
+>             self.enable_scheduler=True
+>             self.nerrors=0
+>             self.Scheduler()
+> 
+755d961
+<         P=self.P
+757,759c963,965
+<         P.nspots=0
+<         P.SpotList=[];
+<         P.current=[]
+---
+>         self.nspots=0
+>         self.SpotList=[];
+>         self.current=[]
+761a968,988
+>         # JBA - MEM??? - Why are we re-reading this???? Disable and see what happens
+>         if False:
+>             self.P.data = ChallengeData(self.P.CHALLENGE_FNAME)
+> 
+>     # Wrapper to schedule events to read the spots
+>     def Scheduler(self):
+>         n = cluster_feed(self)
+>         if n==0:
+>             if "telent connection closed" in self.last_error:
+>                 self.enable_scheduler=False
+>                 print('SCHEDULER - Attempting to reopen node ...')
+>                 self.SelectNode()
+>             else:
+>                 #print('SCHEDULER - Nothing returned')
+>                 dt=200          # Wait a bit before querying cluster again
+>         else:
+>             dt=5      # We got a spot - see if there are more
+>             
+>         if self.enable_scheduler:
+>             self.root.after(dt, self.Scheduler)   
+> 
+766,801c993
+<         #print('BM WATCH DOG ...')
+<         P=self.P
+<         sock = P.sock
+< 
+<         if P.GUI_BAND==None:
+<             P.GUI_BAND = self.band.get()
+<         if P.GUI_MODE==None:
+<             P.GUI_MODE = self.mode.get()
+<                 
+<         # Check if we have any new spots
+<         Update=False
+<         nspots=self.P.bm_q.qsize()
+<         #print('BM WATCH DOG - There are',nspots,'new spots in the queue ...')
+<         while nspots>0:
+<             Update=True
+<             entry=self.P.bm_q.get()
+<             #print('\tentry=',entry,len(entry))
+<             if len(entry)==1:
+<                 self.lb.delete(entry[0])
+<             else:
+<                 if entry[1]!=None:
+<                     self.lb.insert(entry[0], entry[1])
+<                 try:
+<                     self.lb.itemconfigure(entry[0], background=entry[2])
+<                 except:
+<                     error_trap('WATCH DOG: Error in configuring item bg color ????')
+<                     print('entry=',entry)
+<             self.P.bm_q.task_done()
+<             nspots=self.P.bm_q.qsize()
+< 
+<         # Check if we need to cull old spots
+<         if Update:
+<             self.LBsanity()
+<             dt = (datetime.now() - self.P.last_check).total_seconds()/60      # In minutes
+<             if dt>1:
+<                 self.cull_old_spots()
+---
+>         print('BM WATCH DOG ...')
+808c1000
+<             tmp = self.P.ClusterFeed.tn.wsjt_status()
+---
+>             tmp = self.tn.wsjt_status()
+813c1005
+<                     self.P.ClusterFeed.tn.configure_wsjt(NewMode=self.FT_MODE)
+---
+>                     self.P.tn.configure_wsjt(NewMode=self.FT_MODE)
+822,823c1014,1015
+<                 if sock:
+<                     self.rig_freq = 1e-3*sock.get_freq(VFO=self.P.RIG_VFO)
+---
+>                 if self.sock:
+>                     self.rig_freq = 1e-3*self.sock.get_freq(VFO=self.VFO)
+829c1021
+<             if sock:
+---
+>             if self.sock:
+849c1041
+<         if sock and sock.ntimeouts>=10:
+---
+>         if self.sock and self.sock.ntimeouts>=10:
+864,865c1056
+<         self.scrolling('LBSelect')
+<         sock=self.P.sock
+---
+>         scrolling(self,'LBSelect')
+877c1068
+<             self.P.ClusterFeed.tn.configure_wsjt(RxDF=df,DxCall=dx_call)
+---
+>             self.P.tn.configure_wsjt(RxDF=df,DxCall=dx_call)
+887,888c1078,1079
+<         if sock:
+<             sock.set_freq(float(b[0]),VFO=vfo)
+---
+>         if self.sock:
+>             self.sock.set_freq(float(b[0]),VFO=vfo)
+892,893c1083,1084
+<                 sock.set_freq(float(b[0]),VFO=vfo)            
+<             sock.set_call(b[1])
+---
+>                 self.sock.set_freq(float(b[0]),VFO=vfo)            
+>             self.sock.set_call(b[1])
+939d1129
+<         P=self.P
+949c1139
+<         del P.current[index]
+---
+>         del self.current[index]
+952c1142
+<         #print('\nCENTER CLICK B4:',len(P.SpotList),P.SpotList)
+---
+>         #print('\nCENTER CLICK B4:',len(self.SpotList),self.SpotList)
+955,956c1145,1146
+<         for i in range(len(P.SpotList)):
+<             x=P.SpotList[i]
+---
+>         for i in range(len(self.SpotList)):
+>             x=self.SpotList[i]
+962,963c1152,1153
+<             x=P.SpotList.pop(i)
+<         #print('\nCENTER CLICK AFTER:',len(P.SpotList),P.SpotList)
+---
+>             x=self.SpotList.pop(i)
+>         #print('\nCENTER CLICK AFTER:',len(self.SpotList),self.SpotList)
+981c1171
+<         for qso in self.P.qsos:
+---
+>         for qso in self.qsos:
+997,1001d1186
+<     def Reset(self):
+<         self.P.ClusterFeed.Reset_Flag.set()
+<         #self.P.ClusterFeed.Reset()
+<         
+< 
+1335a1521,1574
+>     # Function to open spot server
+>     def open_spot_server(self):
+> 
+>         P=self.P
+> 
+>         # Open telnet connection to spot server
+>         print('SERVER=',P.SERVER,'\tMY_CALL=',P.MY_CALL)
+>         #sys,exit(0)
+>         if P.SERVER=='NONE': # or (P.SERVER!="WSJT" and not P.INTERNET):
+> 
+>             # No cluster node
+>             P.tn = None
+>         
+>         elif P.SERVER=='ANY':
+> 
+>             # Go down list of known nodes until we find one we can connect to
+>             KEYS=list(P.NODES.keys())
+>             print('NODES=',P.NODES)
+>             print('KEYS=',KEYS)
+>             
+>             P.tn=None
+>             inode=0
+>             while not P.tn and inode<len(KEYS):
+>                 key = KEYS[inode]
+>                 self.status_bar.setText("Attempting to open node "+P.NODES[key]+' ...')
+>                 P.tn = connection(P.TEST_MODE,P.NODES[key],P.MY_CALL,P.WSJT_FNAME, \
+>                                   ip_addr=P.WSJT_IP_ADDRESS,port=P.WSJT_PORT)
+>                 inode += 1
+>             if P.tn:
+>                 P.CLUSTER=P.NODES[key]
+>                 P.SERVER = key
+>             else:
+>                 print('\n*** Unable to connect to any node - no internet? - giving up! ***\n')
+>                 sys.exit(0)
+>                 
+>         else:
+> 
+>             # Connect to specified node 
+>             self.status_bar.setText("Attempting to open "+P.CLUSTER+' ...')
+>             P.tn = connection(P.TEST_MODE,P.CLUSTER,P.MY_CALL,P.WSJT_FNAME, \
+>                               ip_addr=P.WSJT_IP_ADDRESS,port=P.WSJT_PORT)
+> 
+>         if not P.TEST_MODE:
+>             if P.tn:
+>                 OK=test_telnet_connection(P.tn)
+>                 if not OK:
+>                     print('OPEN_SPOT_SERVER: Whooops!  SERVER=',P.SERVER,'\tOK=',OK)
+>                     sys.exit(0)
+>             else:
+>                 if P.SERVER!='NONE':
+>                     print('OPEN_SPOT_SERVER: Giving up!  SERVER=',P.SERVER,'\tOK=',OK)
+>                     sys.exit(0)
+> 
+>                     
+1363c1602
+<         P.friends = []
+---
+>         self.friends = []
+1369,1370c1608,1609
+<                 P.friends.append(c)
+<         print('FRIENDS=',P.friends)
+---
+>                 self.friends.append(c)
+>         print('FRIENDS=',self.friends)
+1374c1613
+<         P.most_wanted = read_text_file('Most_Wanted.txt',
+---
+>         self.most_wanted = read_text_file('Most_Wanted.txt',
+1376c1615
+<         print('MOST WANTED=',P.most_wanted)
+---
+>         print('MOST WANTED=',self.most_wanted)
+1382c1621
+<         P.corrections={}
+---
+>         self.corrections={}
+1386,1468c1625,1626
+<             P.corrections[y[0]] = y[1]
+<         print('Corrections=',P.corrections)
+< 
+<     #########################################################################################
+< 
+<     #########################################################################################
+< 
+<     # Debug routine for scrolling issues
+<     def scrolling(self,txt,verbosity=0):
+<         #print('SCROLLING:',txt,verbosity)
+< 
+<         sb=self.scrollbar.get()
+<         sz=self.lb.size()
+<         yview=self.lb.yview()
+<         y=yview[0]
+<     
+<         idx=int( y*sz +0.5 )
+<         val=self.lb.get(min(max(idx,0),sz-1))
+<         if verbosity>0:
+<             print('SCROLLING:',txt+': sz=',sz,'\tyview=',yview,
+<                   '\n\ty=',y,'\tidx=',idx,'\tval=',val)
+< 
+<         return y
+< 
+<     
+<     # Function to cull aged spots
+<     def cull_old_spots(self):
+<         P=self.P
+<         #logging.info("Calling Get_Freq ...")
+<         now = datetime.utcnow().replace(tzinfo=UTC)
+<         sock=self.P.sock
+<         if sock:
+<             frq = sock.get_freq(VFO=self.P.RIG_VFO)
+<         else:
+<             frq=0
+<         #print('SpotList=',P.SpotList)
+<         #print("CULL OLD SPOTS - Rig freq=",frq,'\tnspots=',P.nspots,len(P.SpotList),len(P.current),
+<         #      '\nmax age=',self.P.MAX_AGE,'\tnow=',now)
+<         print("CULL OLD SPOTS - Rig freq=",frq,
+<               '\tnspots=',P.nspots,
+<               '\tlen SpotList=',len(P.SpotList),
+<               '\tlen Current=',len(P.current),
+<               '\n\tmax age=',self.P.MAX_AGE,
+<               '\tnow=',now)
+< 
+<         self.scrolling('CULL OLD SPOTS A')
+< 
+<         NewList=[];
+<         BAND = int( self.band.get().replace('m','') )
+<         for x in P.SpotList:
+<             try:
+<                 age = (now - x.time).total_seconds()/60      # In minutes
+<             except:
+<                 error_trap('CULL_OLD_SPOTS: ????')
+<                 age=0
+<                 print('x=',x)
+<                 #pprint(vars(x))
+<                 print('now=',now)
+<                 #print('x.time=',x.time)
+<                 continue
+<             
+<             #        print x.time,now,age
+<             if age<self.P.MAX_AGE and x!=None:
+<                 NewList.append(x)
+<             else:
+<                 print("CULL OLD SPOTS - Removed spot ",x.dx_call,'\t',x.time,x.frequency,x.band," age=",age)
+<                 if (not OLD_WAY) and x.band==BAND:
+<                     idx2 = [i for i,y in enumerate(P.current) 
+<                             if y.frequency == x.frequency and y.dx_call == x.dx_call]
+<                     #print("Delete",idx2,idx2[0])
+<                     del P.current[idx2[0]]
+<                     self.lb.delete(idx2[0])
+< 
+<         # Update gui display
+<         self.scrolling('CULL OLD SPOTS B')
+<         P.SpotList=NewList
+<         if OLD_WAY:
+<             self.SelectBands()
+<         self.scrolling('CULL OLD SPOTS C')
+<         print("CULL OLD SPOTS - New nspots=",P.nspots,
+<               '\tlen SpotList=',len(P.SpotList),
+<               '\tlen Current=',len(P.current))
+<         self.P.last_check=datetime.now()
+---
+>             self.corrections[y[0]] = y[1]
+>         print('Corrections=',self.corrections)
+ 
+----------------------------------
+bm_udp.py
+ 
+26a27
+> from cluster_feed import digest_spot
+107c108
+<             self.P.ClusterFeed.digest_spot(line)
+---
+>             digest_spot(self.P.bm_gui,line)
+120c121
+<             self.P.qsos.append(qso)
+---
+>             self.P.bm_gui.qsos.append(qso)
+122c123
+<             self.P.ClusterFeed.lb_update()
+---
+>             self.P.bm_gui.lb_update()
+131c132
+<                 band=self.P.GUI_BAND
+---
+>                 band=self.P.bm_gui.band.get()
+152c153
+<         band=P.GUI_BAND
+---
+>         band=P.bm_gui.band.get()
+171,172c172,173
+<             match = P.ClusterFeed.B4(x,band)
+<             c,c2,age=P.ClusterFeed.spot_color(match,x)
+---
+>             match = P.bm_gui.B4(x,band)
+>             c,c2,age=P.bm_gui.spot_color(match,x)
+ 
+----------------------------------
+cluster_feed.py
+ 
+3c3
+< # cluster_feed.py - Rev. 2.0
+---
+> # cluster_feed.py - Rev. 1.0
+27c27
+< from dx.spot_processing import Spot,Station
+---
+> from dx.spot_processing import Spot
+33,36d32
+< from dx.cluster_connections import *
+< import threading
+< import queue
+< from rig_io.ft_tables import THIRTEEN_COLONIES
+58,142d53
+< # The GUI
+< class ClusterFeed:
+<     def __init__(self,P,msec):
+< 
+<         # Init
+<         print('ClusterFeed Init ...')
+<         self.P = P
+<         self.nerrors=0
+<         self.last_error=''
+<         self.lock = threading.Lock()             # Avoid collisions between various threads
+<         self.lock_to=2.0                         # Time out to acquire lock
+<         self.Reset_Flag = threading.Event()
+<         
+<         # Open spot server
+<         self.open_spot_server()
+< 
+<         # Open a file to save all of the spots
+<         if P.SAVE_SPOTS:
+<             self.fp = open("all_spots.dat","w")
+<         else:
+<             self.fp=-1
+< 
+<         # Create a buffer to communicate spots to gui thread
+<         P.bm_q = queue.Queue(maxsize=0)
+< 
+<         # Kick off cluster spot monitor
+<         dt=.001*msec
+<         self.Timer = threading.Timer(dt, self.Monitor)
+<         self.Timer.daemon=True                       # This prevents timer thread from blocking shutdown
+<         self.Timer.start()
+<         
+<         
+<     # Function to open spot server
+<     def open_spot_server(self):
+< 
+<         print('\nOpening Spot Server ...')
+<         P=self.P
+< 
+<         # Open telnet connection to spot server
+<         print('SERVER=',P.SERVER,'\tMY_CALL=',P.MY_CALL)
+<         #sys,exit(0)
+<         if P.SERVER=='NONE': # or (P.SERVER!="WSJT" and not P.INTERNET):
+< 
+<             # No cluster node
+<             self.tn = None
+<         
+<         elif P.SERVER=='ANY':
+< 
+<             # Go down list of known nodes until we find one we can connect to
+<             KEYS=list(P.NODES.keys())
+<             print('NODES=',P.NODES)
+<             print('KEYS=',KEYS)
+<             
+<             self.tn=None
+<             inode=0
+<             while not self.tn and inode<len(KEYS):
+<                 key = KEYS[inode]
+<                 self.P.bm_gui.status_bar.setText("Attempting to open node "+P.NODES[key]+' ...')
+<                 self.tn = connection(P.TEST_MODE,P.NODES[key],P.MY_CALL,P.WSJT_FNAME, \
+<                                   ip_addr=P.WSJT_IP_ADDRESS,port=P.WSJT_PORT)
+<                 inode += 1
+<             if self.tn:
+<                 P.CLUSTER=P.NODES[key]
+<                 P.SERVER = key
+<             else:
+<                 print('\n*** Unable to connect to any node - no internet? - giving up! ***\n')
+<                 sys.exit(0)
+<                 
+<         else:
+< 
+<             # Connect to specified node 
+<             self.P.bm_gui.status_bar.setText("Attempting to open "+P.CLUSTER+' ...')
+<             self.tn = connection(P.TEST_MODE,P.CLUSTER,P.MY_CALL,P.WSJT_FNAME, \
+<                               ip_addr=P.WSJT_IP_ADDRESS,port=P.WSJT_PORT)
+< 
+<         if not P.TEST_MODE:
+<             if self.tn:
+<                 OK=self.test_telnet_connection()
+<                 if not OK:
+<                     print('OPEN_SPOT_SERVER: Whooops!  SERVER=',P.SERVER,'\tOK=',OK)
+<                     sys.exit(0)
+<             else:
+<                 if P.SERVER!='NONE':
+<                     print('OPEN_SPOT_SERVER: Giving up!  SERVER=',P.SERVER,'\tOK=',OK)
+<                     sys.exit(0)
+145,146c56
+<     def test_telnet_connection(self):
+<         #tn=self.tn
+---
+> def test_telnet_connection(tn):
+148,149c58,59
+<         
+<         if not self.tn:
+---
+>     if not tn:
+>         print('CLUSTER_FEED.PY -> TEST TELNET CONNECTION')
+152c62
+<         elif isinstance(self.tn,SimpleServer):
+---
+>     elif isinstance(tn,SimpleServer):
+157c67
+<             line=self.tn.read_very_eager().decode("utf-8")
+---
+>         line=tn.read_very_eager().decode("utf-8")
+162c72
+<                 line=self.tn.read_very_eager().decode("utf-8")
+---
+>             line=tn.read_very_eager().decode("utf-8")
+174,199d83
+<     #
+<     def Monitor(self):
+< 
+<         #print('Cluster Monitor ...')
+<         if self.Reset_Flag.isSet():
+<             self.Reset_Flag.clear()
+<             self.Reset()
+<         
+<         n = self.cluster_feed()
+<         if n==0:
+<             if "telent connection closed" in self.last_error:
+<                 self.enable_scheduler=False
+<                 print('SCHEDULER - Attempting to reopen node ...')
+<                 self.SelectNode()
+<             else:
+<                 #print('SCHEDULER - Nothing returned')
+<                 dt=200          # Wait a bit before querying cluster again
+<         else:
+<             dt=5      # We got a spot - see if there are more
+< 
+<         #print('Restarting Cluster Monitor - n=',n,'\tdt=',dt)
+<         self.Timer = threading.Timer(.001*dt, self.Monitor)
+<         self.Timer.setDaemon(True)   
+<         self.Timer.start()
+< 
+< 
+202,203c86
+< 
+<         P=self.P
+---
+>     tn=self.tn
+208c91
+<             print('CLUSTER FEED A: nspots=',P.nspots,len(P.SpotList),len(P.current))
+---
+>         print('CLUSTER FEED A: nspots=',self.nspots,len(self.SpotList),len(self.current))
+218c101
+<                 a=self.tn.readline()
+---
+>             a=tn.readline()
+221c104
+<                     self.tn.close()
+---
+>                 tn.close()
+231,232c114,115
+<             spot = self.tn.get_spot2(None,0)
+<             line = self.tn.convert_spot(spot)
+---
+>         spot = tn.get_spot2(None,0)
+>         line = tn.convert_spot(spot)
+240,241c123,124
+<             if self.tn.nsleep>=1:
+<                 band  = self.P.GUI_BAND
+---
+>         if tn.nsleep>=1:
+>             band  = self.band.get()
+243c126
+<                 frq2 = 1e-6*self.P.sock.get_freq(VFO=self.P.RIG_VFO)
+---
+>             frq2 = 1e-6*self.sock.get_freq(VFO=self.VFO)
+248c131
+<                     tmp   = self.tn.last_band()
+---
+>                 tmp   = tn.last_band()
+253,254c136,137
+<                     self.P.bm_gui.band.set(band2)
+<                     self.P.bm_gui.SelectBands()
+---
+>                 self.band.set(band2)
+>                 self.SelectBands()
+267c150
+<                 except Exception as e:
+---
+>             except Exception as ex:
+285c168,169
+<                     line2 = self.tn.read_until(b"\n",timeout=10).decode("utf-8") 
+---
+>                 #line2 = tn.read_until(b"\n")
+>                 line2 = tn.read_until(b"\n",timeout=10).decode("utf-8") 
+303c187
+<                 self.tn.write(b"Y\n")              # send "Y"
+---
+>             tn.write(b"Y\n")              # send "Y"
+307,309c191,194
+<         if len(line)>0 and self.P.data:
+<             self.digest_spot(line)
+<             
+---
+>     if len(line)>0:
+>         scrolling(self,'DIGEST SPOT A')
+>         digest_spot(self,line)
+>         scrolling(self,'DIGEST SPOT B')
+313,343d197
+<     # Callback to reset telnet connection
+<     def Reset(self):
+<         print("\n------------- Reset -------------",self.P.CLUSTER,'\n')
+<         self.P.bm_gui.status_bar.setText("RESET - "+self.P.CLUSTER)
+<         self.nerrors=0
+<         self.P.bm_gui.Clear_Spot_List()
+<         """
+<         if self.P.BM_UDP_CLIENT and self.P.bm_udp_client and False:
+<             self.P.bm_udp_client.StartServer()
+<         if self.P.BM_UDP_CLIENT and self.P.bm_udp_server and False:
+<             self.P.bm_udp_server.StartServer()
+<         """
+<         if self.tn:
+<             self.tn.close()
+<             time.sleep(.1)
+<             
+<         try:
+<             self.tn = connection(self.P.TEST_MODE,self.P.CLUSTER, \
+<                                  self.P.MY_CALL,self.P.WSJT_FNAME)
+<             print("--- Reset --- Connected to",self.P.CLUSTER)
+<             OK=self.test_telnet_connection()
+<         except:
+<             error_trap('GUI->RESET: Problem connecting to node'+self.P.CLUSTER)
+<             OK=False
+<             
+<         if not OK:
+<             print('--- Reset --- Now what Sherlock?!')
+<             self.P.bm_gui.status_bar.setText('Lost telnet connection?!')
+< 
+< 
+< 
+347c201,202
+<         P=self.P
+---
+>     tn=self.tn
+>     lb=self.lb
+349,350d203
+<         #if P.GUI_BAND==None:
+<         #    P.GUI_BAND = self.P.bm_gui.band.get()
+357c210
+<             self.P.qsos.append( qso[0] )
+---
+>         self.qsos.append( qso[0] )
+384c237
+<             elif dx_call in P.corrections:
+---
+>         elif dx_call in self.corrections:
+386c239
+<                 dx_call = P.corrections[dx_call]
+---
+>             dx_call = self.corrections[dx_call]
+397c250
+<             m = self.P.GUI_MODE
+---
+>         m = self.mode.get()
+403c256
+<             b = self.P.GUI_BAND
+---
+>         b = self.band.get()
+424,429d276
+<                 acq=self.lock.acquire(timeout=self.lock_to)
+<                 if not acq:
+<                     print('DIGEST_SPOT: Unable to acquire lock - giving up!')
+<                     print('line=',line.strip())
+<                     return
+<                     
+432c279
+<                     for qso in self.P.qsos:
+---
+>                 for qso in self.qsos:
+453,455c300,301
+<                         self.P.ClusterFeed.tn.highlight_spot(dx_call,fg,bg)
+<                         #print('DIGEST SPOT: call=',obj.dx_call,'\tsnr=',obj.snr,
+<                         #'\tfg/bg=',fg,bg,'\t',obj.snr.isnumeric(),int(obj.snr),len(obj.snr))
+---
+>                     self.tn.highlight_spot(dx_call,fg,bg)
+>                     #print('DIGEST SPOT: call=',obj.dx_call,'\tsnr=',obj.snr,'\tfg/bg=',fg,bg,'\t',obj.snr.isnumeric(),int(obj.snr),len(obj.snr))
+461,463c307,308
+<                 P.nspots+=1
+<                 print('DIGEST SPOT: call=',obj.dx_call,'\tfreq=',freq,'\tmode=',mode,
+<                       '\tband=',band,'\tnspots=',P.nspots)
+---
+>             self.nspots+=1
+>             print('DIGEST SPOT: call=',obj.dx_call,'\tfreq=',freq,'\tmode=',mode,'\tband=',band,'\tnspots=',self.nspots)
+494c339
+<                     b = self.P.GUI_BAND
+---
+>                 b = self.band.get()
+500c345
+<                     idx1 = [i for i,x in enumerate(P.SpotList)
+---
+>                 idx1 = [i for i,x in enumerate(self.SpotList)
+509c354
+<                     if VERBOSITY>=1:
+---
+>                 #if VERBOSITY>=2:
+514,520c359,365
+<                             print('\tA i=',i,P.SpotList[i].dx_call,
+<                                   '\ttime=',P.SpotList[i].time,obj.time,
+<                                   '\tfreq=',P.SpotList[i].frequency,obj.frequency)
+<                         P.SpotList[i].time=obj.time
+<                         P.SpotList[i].frequency=obj.frequency
+<                         P.SpotList[i].snr=obj.snr
+<                         P.SpotList[i].color=obj.color
+---
+>                         print('\tA i=',i,self.SpotList[i].dx_call,
+>                               '\ttime=',self.SpotList[i].time,obj.time,
+>                               '\tfreq=',self.SpotList[i].frequency,obj.frequency)
+>                     self.SpotList[i].time=obj.time
+>                     self.SpotList[i].frequency=obj.frequency
+>                     self.SpotList[i].snr=obj.snr
+>                     self.SpotList[i].color=obj.color
+522c367
+<                             P.SpotList[i].df=obj.df
+---
+>                         self.SpotList[i].df=obj.df
+524,526c369,371
+<                             print('\tB i=',i,P.SpotList[i].dx_call,
+<                                   '\ttime=',P.SpotList[i].time,obj.time,
+<                                   '\tfreq=',P.SpotList[i].frequency,obj.frequency)
+---
+>                         print('\tB i=',i,self.SpotList[i].dx_call,
+>                               '\ttime=',self.SpotList[i].time,obj.time,
+>                               '\tfreq=',self.SpotList[i].frequency,obj.frequency)
+528,529c373,374
+<                     # Update list box entry
+<                     idx2 = [i for i,x in enumerate(P.current) if x.dx_call == dx_call and x.band==b]
+---
+>                 # Update list box entry - In progress
+>                 idx2 = [i for i,x in enumerate(self.current) if x.dx_call == dx_call and x.band==b]
+531,532c376,379
+<                         #lb.delete(idx2[0])
+<                         self.P.bm_q.put( [idx2[0]] )
+---
+>                     bgc = self.lb.itemcget(idx2[0], 'background')
+>                     #print '&&&&&&&&&&&&&&&&&&&&&& Modifying ',idx2[0],dx_call,bgc
+>                     #print lb.get(idx2[0])
+>                     lb.delete(idx2[0])
+537,539c384,386
+<                                 entry="%4d  %-10.10s  %+6.6s %-17.17s %+4.4s" % \
+<                                     (df,dx_call,mode,cleanup(dxcc),obj.snr)
+<                                 self.P.bm_q.put( [idx2[0], entry, obj.color] )
+---
+>                             #print('Insert3')
+>                             lb.insert(idx2[0], "%4d  %-10.10s  %+6.6s %-17.17s %+4.4s" % \
+>                                       (df,dx_call,mode,cleanup(dxcc),obj.snr))
+542,546c389,393
+<                                 P.current[i].time=obj.time
+<                                 P.current[i].frequency=obj.frequency
+<                                 P.current[i].snr=obj.snr
+<                                 P.current[i].df=obj.df
+<                                 P.current[i].color=obj.color
+---
+>                             self.current[i].time=obj.time
+>                             self.current[i].frequency=obj.frequency
+>                             self.current[i].snr=obj.snr
+>                             self.current[i].df=obj.df
+>                             self.current[i].color=obj.color
+550,552c397,402
+<                             entry="%-6.1f  %-10.19s  %+6.6s %-15.16s %+4.4s" % \
+<                                 (freq,dx_call,mode,cleanup(dxcc),obj.snr)
+<                             self.P.bm_q.put( [idx2[0], entry, obj.color] )
+---
+>                         #print('Insert4')
+>                         lb.insert(idx2[0], "%-6.1f  %-10.19s  %+6.6s %-15.16s %+4.4s" % \
+>                                   (freq,dx_call,mode,cleanup(dxcc),obj.snr))
+>                     #lb.itemconfigure(idx2[0], background=bgc)
+>                     lb.itemconfigure(idx2[0], background=obj.color)
+>                     #scrolling(self,'DIGEST SPOT C')
+559,560c409,410
+<                     P.SpotList.append( obj )
+<                     #                P.SpotList.sort(key=lambda x: x.frequency, reverse=False)
+---
+>                 self.SpotList.append( obj )
+>                 #                self.SpotList.sort(key=lambda x: x.frequency, reverse=False)
+564c414
+<                         BAND = int( self.P.GUI_BAND.replace('m','') )
+---
+>                     BAND = int( self.band.get().replace('m','') )
+567,568c417
+<                         print('band=',self.P.GUI_BAND)
+<                         self.lock.release()
+---
+>                     print('band=',self.band)
+570d418
+<                     
+577d424
+<                             self.lock.release()
+584d430
+<                             self.lock.release()
+590d435
+<                             self.lock.release()
+601d445
+<                             self.lock.release()
+607d450
+<                                 self.lock.release()
+611,613c454,456
+<                         #P.current.append( obj )
+<                         #P.current.sort(key=lambda x: x.frequency, reverse=False)
+<                         idx2 = [i for i,x in enumerate(P.current) if x.frequency > freq]
+---
+>                     #self.current.append( obj )
+>                     #self.current.sort(key=lambda x: x.frequency, reverse=False)
+>                     idx2 = [i for i,x in enumerate(self.current) if x.frequency > freq]
+615c458
+<                             idx2=[len(P.current)];
+---
+>                         idx2=[len(self.current)];
+617c460
+<                             print('INSERT: len(current)=',len(P.current))
+---
+>                         print('INSERT: len(current)=',len(self.current))
+620c463
+<                             for cc in P.current:
+---
+>                         for cc in self.current:
+622c465
+<                         P.current.insert(idx2[0], obj )
+---
+>                     self.current.insert(idx2[0], obj )
+626,627c469,470
+<                             entry="%4d  %-10.10s  %+6.6s %-17.17s %+4.4s" % \
+<                                 (df,dx_call,mode,cleanup(dxcc),obj.snr)
+---
+>                         lb.insert(idx2[0], "%4d  %-10.10s  %+6.6s %-17.17s %+4.4s" % \
+>                                   (df,dx_call,mode,cleanup(dxcc),obj.snr))
+629,640c472,473
+<                             entry="%-6.1f  %-10.10s  %+6.6s %-15.15s %+4.4s" % \
+<                                 (freq,dx_call,mode,cleanup(dxcc),obj.snr)
+<                         self.P.bm_q.put( [idx2[0], entry, obj.color] )
+< 
+<                 # Release lock
+<                 self.lock.release()
+<                 
+<         if VERBOSITY>=1:
+<             print('DIGEST SPOT: nspots=',P.nspots,len(P.SpotList),len(P.current))
+<         return True
+< 
+<             
+---
+>                         lb.insert(idx2[0], "%-6.1f  %-10.10s  %+6.6s %-15.15s %+4.4s" % \
+>                                   (freq,dx_call,mode,cleanup(dxcc),obj.snr))
+642,659c475
+<     # Function to check if we've already worked a spotted station
+<     def B4(self,x,b):
+<             
+<         VERBOSITY = self.P.DEBUG
+<         now = datetime.utcnow().replace(tzinfo=UTC)
+<         dx_call=x.dx_call.upper()
+<         nqsos=len(self.P.qsos)
+<         if VERBOSITY>0:
+<             print('B4: ... call=',dx_call,'\tband=',b,'nqsos=',nqsos)
+<         
+<         match=False
+<         if nqsos>0:
+<             for qso in self.P.qsos:
+<                 #print('QSO=',qso)
+<                 if self.P.CW_SS:
+<                     # Can only work each station once regardless of band in this contest
+<                     match = dx_call==qso['call']
+<                 else:
+---
+>                     # Change background colors on each list entry
+661c477,479
+<                         match = (dx_call==qso['call']) and (b==qso['band'])
+---
+>                         # This triggered an error sometime
+>                         lb.itemconfigure(idx2[0], background=obj.color)
+>                         #scrolling(self,'DIGEST SPOT D')
+663,678c481,484
+<                         error_trap('GUI->MATCH QSOS: ?????')
+<                         match=False
+<                         print('dx_call=',dx_call)
+<                         print('qso=',qso)
+< 
+<                 if match:
+<                     t1 = datetime.strptime(now.strftime("%Y%m%d %H%M%S"), "%Y%m%d %H%M%S") 
+<                     t2 = datetime.strptime( qso['qso_date_off']+" "+qso["time_off"] , "%Y%m%d %H%M%S")
+<                     delta=(t1-t2).total_seconds() / 3600
+<                     match = delta < self.P.MAX_HOURS_DUPE
+<                     if VERBOSITY>=2:
+<                         print('--- Possible dupe ',tag,' for',dx_call,'\tt12=',t1,t2,'\tdelta=',
+<                               delta,match)
+<                     if match:
+<                         print('*** Dupe ***',qso['call'],qso['band'])
+<                         break
+---
+>                         error_trap('DIGET SPOT: Error in configuring item bg color ????')
+>                         print('idx=',idx)
+>                         print('OBJ:')
+>                         pprint(vars(obj))
+680c486,491
+<         return match
+---
+>     # Check if we need to cull old spots
+>     self.LBsanity()
+>     dt = (datetime.now() - self.last_check).total_seconds()/60      # In minutes
+>     # print "dt=",dt
+>     if dt>1:
+>         cull_old_spots(self)
+681a493,495
+>     if VERBOSITY>=1:
+>         print('DIGEST SPOT: nspots=',self.nspots,len(self.SpotList),len(self.current))
+>     return True
+683,684c497
+<     def match_qsos(self,qso,x,b,now):
+<         VERBOSITY = self.P.DEBUG
+---
+> #########################################################################################
+686,688c499,522
+<         if self.P.CW_SS:
+<             # Can only work each station once regardless of band in this contest
+<             match = x.dx_call==qso['call']
+---
+> # Debug routine for scrolling issues
+> def scrolling(self,txt,verbosity=0):
+>     #print('SCROLLING:',txt,verbosity)
+> 
+>     sb=self.scrollbar.get()
+>     sz=self.lb.size()
+>     yview=self.lb.yview()
+>     y=yview[0]
+>     
+>     idx=int( y*sz +0.5 )
+>     val=self.lb.get(min(max(idx,0),sz-1))
+>     if verbosity>0:
+>         print('SCROLLING:',txt+': sz=',sz,'\tyview=',yview,
+>               '\n\ty=',y,'\tidx=',idx,'\tval=',val)
+> 
+>     return y
+> 
+>     
+> # Function to cull aged spots
+> def cull_old_spots(self):
+>     #logging.info("Calling Get_Freq ...")
+>     now = datetime.utcnow().replace(tzinfo=UTC)
+>     if self.sock:
+>         frq = self.sock.get_freq(VFO=self.VFO)
+689a524,539
+>         frq=0
+>     #print('SpotList=',self.SpotList)
+>     #print("CULL OLD SPOTS - Rig freq=",frq,'\tnspots=',self.nspots,len(self.SpotList),len(self.current),
+>     #      '\nmax age=',self.P.MAX_AGE,'\tnow=',now)
+>     print("CULL OLD SPOTS - Rig freq=",frq,
+>           '\tnspots=',self.nspots,
+>           '\tlen SpotList=',len(self.SpotList),
+>           '\tlen Current=',len(self.current),
+>           '\n\tmax age=',self.P.MAX_AGE,
+>           '\tnow=',now)
+> 
+>     scrolling(self,'CULL OLD SPOTS A')
+> 
+>     NewList=[];
+>     BAND = int( self.band.get().replace('m','') )
+>     for x in self.SpotList:
+691,751d540
+<                 match = (x.dx_call==qso['call']) and (b==qso['band'])
+<             except:
+<                 error_trap('GUI->MATCH QSOS: ?????')
+<                 match=False
+<                 print('dx_call=',x.dx_call)
+<                 print('qso=',qso)
+<                 
+<         #print('\n------MATCH_QSOS: qso=',qso,x.dx_call,match)
+<         if match:
+<             t1 = datetime.strptime(now.strftime("%Y%m%d %H%M%S"), "%Y%m%d %H%M%S") 
+<             t2 = datetime.strptime( qso['qso_date_off']+" "+qso["time_off"] , "%Y%m%d %H%M%S")
+<             delta=(t1-t2).total_seconds() / 3600
+<             match = delta< self.P.MAX_HOURS_DUPE
+<             if VERBOSITY>=2:
+<                 print('--- MATCH_QSOS: Possible dupe for',x.dx_call,'\tt12',t1,t2,'\tdelta=',delta,match)
+< 
+<         return match
+< 
+< 
+<     def lb_update(self):
+<         P=self.P
+<         b = P.GUI_BAND
+<         print('LB_UPDATE: band =',b)
+< 
+<         # Acquire lock
+<         acq=self.lock.acquire(timeout=self.lock_to)
+<         if not acq:
+<             print('LB UPDATE: Unable to acquire lock - giving up!')
+<             return
+<         
+<         if len(P.current)==0:
+<             print('LB_UPDATE - Nothing to do.',P.current)
+<             return
+< 
+<         idx=-1
+<         now = datetime.utcnow().replace(tzinfo=UTC)
+<         for x in P.current:
+<             idx+=1
+<             for qso in self.P.qsos:
+<                 match = self.match_qsos(qso,x,b,now)
+<                 call=qso['call']
+<                 #print('LB_UPDATE:',call,x.dx_call,match)
+<                 #match |= call==self.P.MY_CALL
+<                 if match:
+<                     break
+<                 
+<         if idx>=0:
+<             c,c2,age=self.spot_color(match,x)
+<             #self.lb.itemconfigure(idx, background=c)
+<             self.P.bm_q.put( [idx,None, c] )
+<             #print('LB_UPDATE:',dx_call,c)
+<                 
+<         # Release lock
+<         self.lock.release()
+<                 
+< 
+<     # Function to determine spot color
+<     def spot_color(self,match,x):
+<         P=self.P
+< 
+<         now = datetime.utcnow().replace(tzinfo=UTC)
+753,826c542,573
+<         dx_call=x.dx_call.upper()
+<         dx_station = Station(dx_call)
+<         if dx_station.country=='United States' and len(dx_station.appendix)>=2:
+<             dx_call=dx_station.homecall            # Strip out bogus appendices from state QPs
+<         cwops_status=self.cwops_worked_status(dx_call)
+< 
+<         # Set color depending criteria
+<         # c2 is the abbreviated version used to shorten the inter-process messages 
+<         # These need to be matched in pySDR/gui.py
+<         if match:
+<             c="red"
+<             c2='r'
+<         elif x.needed:
+<             c="magenta"
+<             c2='m'
+<         elif x.need_this_year:
+<             c="violet"
+<             c2='v'
+<         elif x.need_mode:
+<             c="pink"
+<             c2='p'
+<         elif dx_call in P.friends:
+<             c="lightskyblue" 
+<             c2='lb'
+<         elif dx_call in P.most_wanted:
+<             c="turquoise"
+<             c2='t'
+<         elif dx_call==self.P.MY_CALL:
+<             c="deepskyblue" 
+<             c2='b'
+<         elif self.P.CWOPS and cwops_status>0:
+<             if cwops_status==2:
+<                 c="gold"
+<                 c2='d'
+<             else:
+<                 c='orange'
+<                 c2='o'
+<         elif dx_call in THIRTEEN_COLONIES:
+<             c="lightskyblue" 
+<             c2='lb'
+<         else:
+<             if age<2:
+<                 c="yellow"
+<                 c2='y'
+<             else:
+<                 c="lightgreen"
+<                 c2='g'
+< 
+<         return c,c2,age
+<     
+<     
+<     
+<     # Function to return worked status of cwops stations
+<     #   0 = call is not a cwops member
+<     #   1 = call is a cwops member but hasn't been worked yet this year
+<     #   2 = call is a cwops member and been worked yet this year
+<     def cwops_worked_status(self,dx_call):
+<         if '/' in dx_call:
+<             dx_station = Station(dx_call)
+<             home_call = dx_station.homecall
+<         else:
+<             home_call = dx_call
+< 
+<         if (dx_call in self.P.members) or (home_call in self.P.members):
+<             if (dx_call in self.P.data.cwops_worked) or (home_call in self.P.data.cwops_worked):
+<                 status=2
+<             else:
+<                 status=1
+<         else:
+<             status=0
+< 
+<         #print('CWops WORKED STATUS: call=',dx_call,'\thome call=',home_call,'\tworked=',status)
+<         return status
+< 
+---
+>         except:
+>             error_trap('CULL_OLD_SPOTS: ????')
+>             age=0
+>             print('x=',x)
+>             #pprint(vars(x))
+>             print('now=',now)
+>             #print('x.time=',x.time)
+>             continue
+>             
+> #        print x.time,now,age
+>         if age<self.P.MAX_AGE and x!=None:
+>             NewList.append(x)
+>         else:
+>             print("CULL OLD SPOTS - Removed spot ",x.dx_call,'\t',x.time,x.frequency,x.band," age=",age)
+>             if (not OLD_WAY) and x.band==BAND:
+>                 idx2 = [i for i,y in enumerate(self.current) 
+>                         if y.frequency == x.frequency and y.dx_call == x.dx_call]
+>                 #print("Delete",idx2,idx2[0])
+>                 del self.current[idx2[0]]
+>                 self.lb.delete(idx2[0])
+> 
+>     # Update gui display
+>     scrolling(self,'CULL OLD SPOTS B')
+>     self.SpotList=NewList
+>     if OLD_WAY:
+>         self.SelectBands()
+>     scrolling(self,'CULL OLD SPOTS C')
+>     print("CULL OLD SPOTS - New nspots=",self.nspots,
+>           '\tlen SpotList=',len(self.SpotList),
+>           '\tlen Current=',len(self.current))
+>     self.last_check=datetime.now()
+> #    print self.last_check
+ 

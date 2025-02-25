@@ -841,3 +841,18 @@ class ClusterFeed:
         return status
 
     
+
+
+    """
+    # Function to check for new multipliers
+    def new_multiplier(self,call):
+
+        new_mult=False
+        if self.P.CONTEST_MODE:
+            if self.P.CONTEST_NAME in ['CWT','MST']:
+                new_mult = call not in self.P.worked
+
+        return new_mult
+    """
+
+    
