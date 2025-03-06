@@ -85,6 +85,7 @@ W5LVC,Colin,Dallas Club
 K4HTA,Sean,VA Club
 K7RST,Lloyd,Tucson AZ Club
 W9OG,Dennis,IN Club
+#PJ2T,Steve,AK6R dx
 
 # Other
 N7AAE,Marty Mueller, Jim's brother
