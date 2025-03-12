@@ -47,7 +47,7 @@ from get_node_list import *
 from tcp_server import *
 from bm_udp import *
 from load_history import load_history
-from utilities import get_Host_Name_IP,ping_test,Memory_Monitor
+from utilities import check_internet,Memory_Monitor
 from watchdog import *
 from scoring import Select_Scoring
 
@@ -93,25 +93,9 @@ if __name__ == "__main__":
         print('*** No connection to rig ***')
         #sys,exit(0)
 
-    # Test internet connection - to be continued ...
-    if P.SERVER!='NONE' and P.SERVER!="WSJT":
-        print('Checking internet connection ...')
-        P.host_name,P.host_ip=get_Host_Name_IP()
-        print("\nHostname :  ", P.host_name)
-        print("IP : ", P.host_ip,'\n')
-        if P.host_ip=='127.0.0.1':
-            P.INTERNET=False
-            print('No internet connection :-(')
-            #sys.exit(0)
-        else:
-            print('Local Internet connection appears to be alive ...')
-            # Next try pinging something outside LAN
-            P.INTERNET=ping_test('8.8.8.8')
-            if P.INTERNET:
-                print('\n... Outside Internet Connection appears to be alive also.')
-            else:
-                print('\n... No internet connection :-(')
-                #sys.exit(0)
+    # Test internet connection
+    if P.SERVER!='NONE' and P.SERVER!="WSJT": 
+        P.INTERNET,P.host_name,P.host_ip = check_internet()
 
     # Read various auxilary data files
     P.bm_gui.read_aux_data()
@@ -131,13 +115,6 @@ if __name__ == "__main__":
     # Start thread to manage feed from dx cluster
     P.bm_gui.status_bar.setText('Starting Cluster Feed Monitor ...')
     P.ClusterFeed = ClusterFeed(P,200)
-    """
-    worker = Thread(target=P.ClusterFeed.Monitor, args=(),
-                    name='Cluster Feed Monitor' )
-    worker.daemon=True
-    worker.start()
-    P.threads.append(worker)
-    """
         
     # WatchDog - runs in its own thread
     P.WATCHDOG = True

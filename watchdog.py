@@ -2,7 +2,7 @@
 ################################################################################
 #
 # WatchDog.py - Rev 1.0
-# Copyright (C) 2024 by Joseph B. Attili, aa2il AT arrl DOT net
+# Copyright (C) 2021-5 by Joseph B. Attili, joe DOT aa2il AT gmail DOT com
 #
 # Watchdog timer for bandmap.
 #
@@ -48,7 +48,7 @@ class WatchDog:
         
     def Monitor(self):
         P=self.P
-        #print('Watch Dog ....')
+        print('WATCHDOG - Tic Tok ...')
     
         # Check if another thread shut down - this isn't complete yet
         if P.SHUTDOWN:
@@ -62,6 +62,10 @@ class WatchDog:
         # Monitor memory usage
         if P.MEM:
             P.MEM.take_snapshot()
+
+        # Check on telnet cluster connection
+        if not P.ClusterFeed.tn:
+            print('\tWhooops - no cluster feed!!!!!!!!!!!!!!!!!!')
             
         # Reset timer
         if VERBOSITY>0:

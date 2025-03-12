@@ -55,7 +55,7 @@ def cleanup(dxcc):
         dxcc2=dxcc
     return dxcc2
 
-# The GUI
+# Object to manage telnet feed from dx cluster
 class ClusterFeed:
     def __init__(self,P,msec):
 
@@ -67,6 +67,7 @@ class ClusterFeed:
         self.lock = threading.Lock()             # Avoid collisions between various threads
         self.lock_to=2.0                         # Time out to acquire lock
         self.Reset_Flag = threading.Event()
+        self.tn = None
         
         # Open spot server
         self.open_spot_server()
@@ -315,16 +316,12 @@ class ClusterFeed:
         
     # Callback to reset telnet connection
     def Reset(self):
-        print("\n------------- Reset -------------",self.P.CLUSTER,'\n')
+        print("\nCLUSTER FEED-> Reset --- Cluster=",self.P.CLUSTER,'\n')
         self.P.bm_gui.status_bar.setText("RESET - "+self.P.CLUSTER)
         self.nerrors=0
         self.P.bm_gui.Clear_Spot_List()
-        """
-        if self.P.BM_UDP_CLIENT and self.P.bm_udp_client and False:
-            self.P.bm_udp_client.StartServer()
-        if self.P.BM_UDP_CLIENT and self.P.bm_udp_server and False:
-            self.P.bm_udp_server.StartServer()
-        """
+
+        # Close down existing connection
         if self.tn:
             self.tn.close()
             time.sleep(.1)
@@ -332,15 +329,16 @@ class ClusterFeed:
         try:
             self.tn = connection(self.P.TEST_MODE,self.P.CLUSTER, \
                                  self.P.MY_CALL,self.P.WSJT_FNAME)
-            print("--- Reset --- Connected to",self.P.CLUSTER)
+            print("CLUSTER FEED->Reset --- Connected to",self.P.CLUSTER,'\ttn=',self.tn)
             OK=self.test_telnet_connection()
         except:
-            error_trap('GUI->RESET: Problem connecting to node'+self.P.CLUSTER)
+            error_trap('CLUSTER FEED->Reset --- Problem connecting to node'+self.P.CLUSTER)
             OK=False
             
         if not OK:
-            print('--- Reset --- Now what Sherlock?!')
+            print("CLUSTER FEED->Reset --- Now what Sherlock?! - Looks like we've lost the telnet connect ***\n")
             self.P.bm_gui.status_bar.setText('Lost telnet connection?!')
+            self.tn = None
 
 
 
