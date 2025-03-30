@@ -25,10 +25,13 @@ from utilities import error_trap
 import os
 import psutil
 import time
+from datetime import datetime
+import pytz
 
 ################################################################################
 
 VERBOSITY=0
+UTC = pytz.utc
 
 ################################################################################
 
@@ -48,7 +51,9 @@ class WatchDog:
         
     def Monitor(self):
         P=self.P
-        print('WATCHDOG - Tic Tok ...')
+        now = datetime.utcnow().replace(tzinfo=UTC)
+        t1 = datetime.strptime(now.strftime("%Y%m%d %H%M%S"), "%Y%m%d %H%M%S") 
+        print('WATCHDOG - t=',t1,flush=True)
     
         # Check if another thread shut down - this isn't complete yet
         if P.SHUTDOWN:
@@ -65,7 +70,9 @@ class WatchDog:
 
         # Check on telnet cluster connection
         if not P.ClusterFeed.tn:
-            print('\tWhooops - no cluster feed!!!!!!!!!!!!!!!!!!')
+            print('\tWATCHDOG: Whooops - no cluster feed!!!!!!!!!!!!!!!!!!')
+            INTERNET,host_name,host_ip = check_internet()
+            print('\tWATCHDOG: Checking internet:',INTERNET,host_name,host_ip)
             
         # Reset timer
         if VERBOSITY>0:

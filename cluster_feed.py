@@ -265,14 +265,19 @@ class ClusterFeed:
             if self.tn:
                 try:
                     line = self.tn.read_until(b"\n",self.P.TIME_OUT).decode("utf-8")
+                except ConnectionResetError:
+                    err = error_trap('CLUSTER_FEED: Whooops! Lost connection to cluster server ???')
+                    print('err=',err)
+                    self.tn=None
                 except Exception as e:
                     err = error_trap('CLUSTER_FEED: Problem reading line from cluster server ...')
+                    print('err=',err)
                     line = ''
                     self.nerrors+=1
                     self.last_error=str(e)
 
-                    if "telnet connection closed" in err[1]:
-                        print("\tLooks like we've lost the connection to the server :-(")
+                    #if "telnet connection closed" in err[1]:
+                    #    print("\tLooks like we've lost the connection to the server :-(")
                 
                 if VERBOSITY>=2:
                     print('Line:',line)
@@ -377,11 +382,14 @@ class ClusterFeed:
             dx_call=obj.dx_call
 
             # Fix common mistakes
+            keep=True
             if dx_call==None:
-                print('DIGEST SPOT: *** CORRECTION - blank call?????',dx_call)
+                #print('DIGEST SPOT: *** CORRECTION - blank call?????',dx_call)
                 #pprint(vars(obj))
+                keep=False
             elif len(dx_call)<3:
                 print('DIGEST SPOT: *** CORRECTION but dont know what to do - call=',dx_call)            
+                keep=False
             elif dx_call in P.corrections:
                 print('DIGEST SPOT: *** NEED A CORRECTION ***',dx_call)
                 dx_call = P.corrections[dx_call]
@@ -394,7 +402,6 @@ class ClusterFeed:
                 obj.dx_call = dx_call
 
             # Reject FT8/4 spots if we're in a contest
-            keep=True
             m = self.P.GUI_MODE
             if self.P.CONTEST_MODE:
                 if m=='CW' and obj.mode in ['FT4','FT8','DIGITAL']:
@@ -510,6 +517,7 @@ class ClusterFeed:
                 if len(idx1)>0:
 
                     # Call already in list - Update spot info
+                    obj.cnt=+1
                     if VERBOSITY>=1:
                         print("DIGEST SPOT: Dupe call =",dx_call,'\tfreq=',freq,
                               '\tmode=',mode,'\tband=',band,'\tidx1=',idx1)
@@ -532,7 +540,6 @@ class ClusterFeed:
                     # Update list box entry
                     idx2 = [i for i,x in enumerate(P.current) if x.dx_call == dx_call and x.band==b]
                     if len(idx2)>0:
-                        #lb.delete(idx2[0])
                         self.P.bm_q.put( [idx2[0]] )
                         if self.P.CLUSTER=='WSJT':
                             df = obj.df
@@ -560,6 +567,7 @@ class ClusterFeed:
                     # New call - maintain a list of all spots sorted by freq 
                     print("DIGEST SPOT: New call  =",dx_call,'\tfreq=',freq,
                           '\tmode=',mode,'\tband=',band)
+                    obj.cnt=1
                     P.SpotList.append( obj )
                     #                P.SpotList.sort(key=lambda x: x.frequency, reverse=False)
 
@@ -612,8 +620,6 @@ class ClusterFeed:
                                 return True
                     
                         # Find insertion point - This might be where the sorting problem is - if two stations have same freq?
-                        #P.current.append( obj )
-                        #P.current.sort(key=lambda x: x.frequency, reverse=False)
                         idx2 = [i for i,x in enumerate(P.current) if x.frequency > freq]
                         if len(idx2)==0:
                             idx2=[len(P.current)];
@@ -757,8 +763,11 @@ class ClusterFeed:
         age = (now - x.time).total_seconds()/60      # In minutes
         dx_call=x.dx_call.upper()
         dx_station = Station(dx_call)
+        
+        # Try to strip out bogus appendices from state QPs - not very effective!
+        homecall   = dx_station.homecall
         if dx_station.country=='United States' and len(dx_station.appendix)>=2:
-            dx_call=dx_station.homecall            # Strip out bogus appendices from state QPs
+            dx_call=homecall
         cwops_status=self.cwops_worked_status(dx_call)
 
         # Set color depending criteria
@@ -776,7 +785,7 @@ class ClusterFeed:
         elif x.need_mode:
             c="pink"
             c2='p'
-        elif dx_call in P.friends:
+        elif dx_call in P.friends or homecall in P.friends:
             c="lightskyblue" 
             c2='lb'
         elif dx_call in P.most_wanted:

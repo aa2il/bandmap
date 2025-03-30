@@ -1469,8 +1469,9 @@ class BandMapGUI:
                 #print('x.time=',x.time)
                 continue
             
-            #        print x.time,now,age
-            if age<self.P.MAX_AGE and x!=None:
+            keep = x!=None and ((x.cnt>=2 and age<self.P.MAX_AGE) or (x.cnt<2 and age<3))
+            #if age<self.P.MAX_AGE and x!=None:
+            if keep:
                 NewList.append(x)
             else:
                 print("CULL OLD SPOTS - Removed spot ",x.dx_call,'\t',x.time,x.frequency,x.band," age=",age)
