@@ -2,7 +2,7 @@
 ################################################################################
 #
 # get_node_list.py - Rev 1.0
-# Copyright (C) 2022 by Joseph B. Attili, aa2il AT arrl DOT net
+# Copyright (C) 2021-5 by Joseph B. Attili, joe DOT aa2il AT gmail DOT com
 #
 # Function to genearate a list of known cluster nodes
 #

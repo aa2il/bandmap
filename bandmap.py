@@ -66,10 +66,10 @@ if __name__ == "__main__":
 
     # Process command line params
     P=PARAMS()
-    if True:
-        print("P=")
-        pprint(vars(P))
-        #sys.exit(0)
+    print("P=")
+    pprint(vars(P))
+    print('\n\tPython version=',sys.version_info[0],'.',
+          sys.version_info[1],'.',sys.version_info[2],'\n')
 
     # Memory monitor
     if True:
