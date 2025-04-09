@@ -25,6 +25,7 @@ import argparse
 from collections import OrderedDict 
 from rig_io  import CONNECTIONS,RIGS
 from settings import *
+from dx import load_cty_info
 
 ################################################################################
 
@@ -265,22 +266,24 @@ class PARAMS:
         self.threads      = []
         print('LOG_NAME=',self.LOG_NAME,'\tSTAND_ALONE=',self.STAND_ALONE)
 
+        # Take care of non-standard location of support files
+        load_cty_info(DIR=self.SETTINGS['MY_DATA_DIR'])
+        
         if self.SERVER=="WSJT" or args.buttons:
             self.ALLOW_CHANGES=True
         else:
             self.ALLOW_CHANGES=False
         
         # The spreadsheets with the DXCC already worked data & node info
-        #MY_CALL3 = self.MY_CALL.split('/')[0]
         MY_CALL3 = self.OPERATOR.split('/')[0]
-        self.DATA_DIR        = os.path.expanduser('~/'+MY_CALL3+'/')
-        self.CHALLENGE_FNAME = self.DATA_DIR+'/states.xls'
+        DATA_DIR = os.path.expanduser('~/'+MY_CALL3+'/')
+        self.CHALLENGE_FNAME = DATA_DIR+'/states.xls'
         if not os.path.isfile(self.CHALLENGE_FNAME):
             self.CHALLENGE_FNAME = 'states.xls'
         if not os.path.isfile(self.CHALLENGE_FNAME):
             self.CHALLENGE_FNAME = None
         
-        self.NODES_FNAME     = self.DATA_DIR+'/states.xls'
+        self.NODES_FNAME = DATA_DIR+'/states.xls'
         if not os.path.isfile(self.NODES_FNAME):
             self.NODES_FNAME = 'nodes.xls'
 
