@@ -135,6 +135,8 @@ class PARAMS:
                               type=int,default=None)
         arg_proc.add_argument('-desktop',type=int,default=None,
                               help='Desk Top Work Space No.')
+        arg_proc.add_argument('-settings',action='store_true',
+                              help='Open setting window')
         arg_proc.add_argument("-debug", help="Debug Level",
                               type=int,default=0)
         args = arg_proc.parse_args()
@@ -252,6 +254,13 @@ class PARAMS:
 
         # Read config file
         self.SETTINGS,self.RCFILE = read_settings('.keyerrc')
+        if args.settings:
+            SettingsWin = SETTINGS_GUI(None,self,BLOCK=True)
+            
+        self.DATA_DIR=self.SETTINGS['MY_DATA_DIR']
+        if self.DATA_DIR=='':
+            self.DATA_DIR='~/Python/data'
+        print('DATA_DIR=',self.DATA_DIR)
 
         self.MY_CALL      = self.SETTINGS['MY_CALL']
         self.OPERATOR     = self.SETTINGS['MY_OPERATOR']

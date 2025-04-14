@@ -44,7 +44,7 @@ from rig_io import bands
 from cluster_feed import *
 from settings import *
 import logging               
-from utilities import freq2band, error_trap
+from utilities import freq2band,error_trap
 from widgets_tk import StatusBar
 from tcp_server import open_udp_client,KEYER_UDP_PORT
 from bm_udp import *
@@ -459,7 +459,8 @@ class BandMapGUI:
         # Translate mode request into something that FLDIGI understands
         #print('SelectMode-c:',m)
         if m in ['SSB','LSB','USB']:
-            #        buf=get_response(s,'w BY;EX1030\n');            # Audio from MIC (front)
+            #        buf=get_response(s,'w BY;EX1030\n');          # Audio from MIC (front) - Old style by 4.6.2
+            #        buf=get_response(s,'W EX1030; 0');            # Audio from MIC (front)
             if VERBOSITY>0:
                 logging.info("Calling Get Freq ...")
             self.rig_freq = sock.get_freq(VFO=self.P.RIG_VFO) / 1000.
@@ -1357,8 +1358,7 @@ class BandMapGUI:
         if P.CONTEST_NAME!=None or True:
             print('READ AUX DATA: Reading master history file ...')
             self.status_bar.setText('Reading master history file ...')
-            P.HIST_DIR=os.path.expanduser('~/Python/data/')
-            P.MASTER,fname9 = load_history(P.HIST_DIR+'master.csv')
+            P.MASTER,fname9 = load_history(P.DATA_DIR+'/master.csv')
             P.calls = list(P.MASTER.keys())
             P.Ncalls = len(P.calls)
             print('... Loaded history for',P.Ncalls,'calls')
