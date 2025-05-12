@@ -14,3 +14,9 @@ pyhamtools
 numpy
 pandas
 
+psutil
+scipy
+pyaudio
+chardet
+Levenshtein
+openpyxl

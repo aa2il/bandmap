@@ -7,6 +7,49 @@ Entries are color coded to help identify "targets of most interest."
 
 ![Bandmap Screen Shot]( Docs/bandmap.png)
 
+# Installation under Linux using uv:
+
+0) This seems to be the easiest/best solution.  You will need to install uv on your system (once):
+
+      curl -LsSf https://astral.sh/uv/install.sh | sh      
+      rehash     
+
+1) Clone gitub bandmap, libs and data repositories
+      
+      cd
+      mkdir Python
+      cd Python
+      git clone https://github.com/aa2il/bandmap
+      git clone https://github.com/aa2il/libs
+      git clone https://github.com/aa2il/data
+
+2) One of the features of uv is that the virtual environment is included in the github repository.  You should NOT have to do anything since uv will install the environment and required packages the first time you run wclock.:
+
+For the record, here is how I set up the environment:
+
+     cd ~/Python/bandmap
+     uv init --python 3.12
+     rm main.py
+     uv add -r requirements.txt
+     
+   *** There is a problem with python 3.13 & tk under uv - use 3.12 until we figure this out ***
+
+3) Make sure its executable and set PYTHON PATH so os can find libraries:
+
+     cd ~/Python/bandmap
+     chmod +x bandmap.py
+
+   - Under tcsh:      setenv PYTHONPATH $HOME/Python/libs
+   - Under bash:      export PYTHONPATH="$HOME/Python/libs"
+   
+4) Bombs away:
+
+     uv run bandmap.py
+
+   or, 
+
+     ./bandmap.py
+
 # Installation under Linux:
 
 1) Uses python3 and tkinter

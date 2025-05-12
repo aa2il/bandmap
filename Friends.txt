@@ -64,7 +64,7 @@ VA4ADM,Pavel,Student
 # CWA 6
 AK4R,Steve,Student
 K7NX,Lloyd,Student
-KF0PQR,Jeff,Student
+AG6M,Jeff,Student KF0PQR
 KS4BG,Ed,Student
 KZ5H,Seth,Student
 WA2USA,Dennis,Student
@@ -86,6 +86,25 @@ K4HTA,Sean,VA Club
 K7RST,Lloyd,Tucson AZ Club
 W9OG,Dennis,IN Club
 #PJ2T,Steve,AK6R dx
+
+# LICW
+n4jeh,Jenna
+wa8hoi,Dale
+wb2kwc,
+k6nf,
+ad2er,
+ai5be,
+ve3spy,
+ka0rtm,Mike
+n3adp,
+ac3wm,
+xe1zy,
+aj6ql,George
+wa7bfn,Duff,
+wa6rsv,Pablo
+ae6vl,Roland
+
+
 
 # Other
 N7AAE,Marty Mueller, Jim's brother
