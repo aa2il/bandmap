@@ -78,6 +78,7 @@ wa7bnm,Bruce
 n6ki,Dennis
 N6GP,Tim,VHFer
 w6sx,Hank
+k6zh,Jim
 
 # Clubs
 n6ror,ROARS
@@ -103,8 +104,7 @@ aj6ql,George
 wa7bfn,Duff,
 wa6rsv,Pablo
 ae6vl,Roland
-
-
+aa0yy,
 
 # Other
 N7AAE,Marty Mueller, Jim's brother
