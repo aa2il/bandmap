@@ -7,11 +7,10 @@ requires-python = ">=3.12"
 dependencies = [
     "chardet>=5.2.0",
     "levenshtein>=0.27.1",
-    "numpy>=2.2.5",
+    "numpy>=2.2.6",
     "openpyxl>=3.1.5",
     "pandas>=2.2.3",
     "psutil>=7.0.0",
-    "pyaudio>=0.2.14",
     "pyhamtools>=0.11.0",
     "pyserial>=3.5",
     "scipy>=1.15.3",
