@@ -32,7 +32,8 @@ For the record, here is how I set up the environment:
      rm main.py
      uv add -r requirements.txt
      
-   *** There is a problem with python 3.13 & tk under uv - use 3.12 until we figure this out ***
+     *** There is a problem with python 3.13 & tk under uv - use 3.12 until we figure this out ***
+     *** On the Raspberry Pi, this problem also exists under 3.12 - Use 3.11 until we figure this out ***
 
 3) Make sure its executable and set PYTHON PATH so os can find libraries:
 
