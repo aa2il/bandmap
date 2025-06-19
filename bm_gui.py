@@ -40,7 +40,7 @@ else:
     from Tkinter import *
     import tkFont
 
-from rig_io import bands
+from rig_io import bands,HF_BANDS
 from cluster_feed import *
 from settings import *
 import logging               
@@ -80,7 +80,7 @@ class BandMapGUI:
         P.qsos=[]
         P.last_check=datetime.now()
 
-        if self.P.FT4:
+        if P.FT4:
             self.FT_MODE='FT4'
         else:
             self.FT_MODE='FT8'
@@ -94,21 +94,21 @@ class BandMapGUI:
 
         # Read "regular" logbook - need to update this
         # Might need to bring this out to bandmap.py
-        if self.P.CWOPS and False:
+        if P.CWOPS and False:
             if True:
-                print('\nCWops members worked:\n',self.P.data.cwops_worked)
+                print('\nCWops members worked:\n',P.data.cwops_worked)
                 self.calls1 = []
                 #sys.exit(0)
-            elif '_6' in self.P.LOG_NAME:
+            elif '_6' in P.LOG_NAME:
                 # For CQP
-                fname99=self.P.LOG_NAME.replace('_6','')
+                fname99=P.LOG_NAME.replace('_6','')
                 print('GUI: Reading regular log file',fname99)
                 logbook = parse_adif(fname99)
                 self.calls1 = [ qso['call'] for qso in logbook ]
                 self.calls1 =list( set( self.calls1) )
             elif True:
                 # After the CQP
-                fname99=self.P.LOG_NAME.replace('.','_6.')
+                fname99=P.LOG_NAME.replace('.','_6.')
                 print('GUI: Reading regular log file',fname99)
                 logbook = parse_adif(fname99)
                 self.calls1 = [ qso['call'] for qso in logbook ]
@@ -158,21 +158,27 @@ class BandMapGUI:
         BUTframe = Frame(self.root)
         BUTframe.pack()
 
-        # Buttons to select HF bands
+        # Buttons to select bands
         self.Band_Buttons=[]
-        for bb in bands.keys():
-            if bb=='2m':
-                break
-            b = int( bb.split("m")[0] )
+        if P.sock.rig_type2=='FTdx3000':
+            self.RIG_BANDS = HF_BANDS + ['6m']
+        elif P.sock.rig_type2=='FT991a':
+            self.RIG_BANDS = HF_BANDS + ['6m','2m','70cm']
+        elif P.sock.rig_type2=='IC9700':
+            self.RIG_BANDS = ['2m','70cm','23cm']
+        else:
+            self.RIG_BANDS = HF_BANDS + ['6m']
+        for bb in self.RIG_BANDS:
+            b = int( bb.replace('c','').replace('m','') )
             but=Radiobutton(BUTframe, 
                             text=bb,
                             indicatoron = 0,
                             variable=self.band, 
-                            command=lambda: self.SelectBands(self.P.ALLOW_CHANGES),
+                            command=lambda: self.SelectBands(P.ALLOW_CHANGES),
                             value=bb)
             self.Band_Buttons.append( but )
-                
-            if not P.CONTEST_MODE or bands[bb]["CONTEST"]:
+
+            if bb in P.BANDS and (not P.CONTEST_MODE or bb in P.CONTEST_BANDS):
                 but.pack(side=LEFT,anchor=W)
 
         # Another row of buttons to select mode & antenna
@@ -1143,10 +1149,9 @@ class BandMapGUI:
         else:
             self.status_bar.setText("Contest Mode OFF")
 
-        for but,bb in zip( self.Band_Buttons , bands.keys()):
-            #print('bb=',bb)
+        for but,bb in zip( self.Band_Buttons , self.RIG_BANDS):
             but.pack_forget()
-            if not self.P.CONTEST_MODE or bands[bb]["CONTEST"]:
+            if bb in self.P.BANDS and (not P.CONTEST_MODE or bb in self.P.CONTEST_BANDS):
                 but.pack(side=LEFT,anchor=W)
             
 

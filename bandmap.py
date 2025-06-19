@@ -1,7 +1,5 @@
 #!/usr/bin/env -S uv run --script
 #
-#! /home/joea/miniconda3/envs/aa2il/bin/python -u
-#
 # NEW: /home/joea/miniconda3/envs/aa2il/bin/python -u
 # OLD: /usr/bin/python3 -u 
 #########################################################################################
@@ -80,6 +78,12 @@ if __name__ == "__main__":
         else:
             P.MEM = Memory_Monitor('/tmp/BANDMAP_MEMORY.TXT')
     
+    # Open connection to rig
+    P.sock = open_rig_connection(P.CONNECTION,0,P.PORT,0,'BANDMAP',rig=P.RIG)
+    if not P.sock.active:
+        print('*** No connection to rig ***')
+        #sys,exit(0)
+
     # Create GUI 
     bm_gui = BandMapGUI(None,P)
     P.bm_gui=bm_gui
@@ -88,12 +92,6 @@ if __name__ == "__main__":
     if False:
         get_node_list(P)
         sys.exit(0)
-
-    # Open connection to rig
-    P.sock = open_rig_connection(P.CONNECTION,0,P.PORT,0,'BANDMAP',rig=P.RIG)
-    if not P.sock.active:
-        print('*** No connection to rig ***')
-        #sys,exit(0)
 
     # Test internet connection
     if P.SERVER!='NONE' and P.SERVER!="WSJT": 

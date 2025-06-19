@@ -26,6 +26,7 @@ from collections import OrderedDict
 from rig_io  import CONNECTIONS,RIGS
 from settings import *
 from dx import load_cty_info
+from rig_io import HF_BANDS,VHF_BANDS,CONTEST_BANDS
 
 ################################################################################
 
@@ -116,6 +117,8 @@ class PARAMS:
                               help='Show mode needs')
         arg_proc.add_argument('-show_year', action='store_true',
                               help='Show dxcc needs for this year')
+        arg_proc.add_argument('-vhf', action='store_true',
+                              help='Show Only VHF Buttons')
         arg_proc.add_argument('-ft4', action='store_true',
                               help='Use FT4 freqs instead of FT8')
         arg_proc.add_argument('-small', action='store_true',
@@ -164,6 +167,13 @@ class PARAMS:
         self.DESKTOP        = args.desktop
         self.SMALL_FONT     = args.small or self.CONTEST_MODE
         self.STAND_ALONE    = True
+        
+        if args.vhf:
+            self.BANDS = VHF_BANDS
+            self.CONTEST_BANDS = VHF_BANDS
+        else:
+            self.BANDS = HF_BANDS+VHF_BANDS
+            self.CONTEST_BANDS = CONTEST_BANDS
         
         self.BM_GEO         = args.bm_geo
         self.TEST_MODE      = args.test
