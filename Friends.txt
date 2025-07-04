@@ -2,7 +2,7 @@
 yl3jd,Hanz,Advisor
 kb1fgc,Rich,Classmate
 wz4m,Tommy,Classmate
-k5vba,Stan,Classmate
+kn4a,Stan,Classmate k5vba
 k0pir,Rich,Classmate
 k3es,Brian,Classmate
 n0zt,Dan,Hanz Former Student
@@ -108,5 +108,6 @@ aa0yy,
 
 # Other
 N7AAE,Marty Mueller, Jim's brother
+N7DZ,Bill,Lloyd's friend
 
 # DX - should be in Most Wanted list, not here!

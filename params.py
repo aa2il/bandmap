@@ -168,7 +168,8 @@ class PARAMS:
         self.SMALL_FONT     = args.small or self.CONTEST_MODE
         self.STAND_ALONE    = True
         
-        if args.vhf:
+        self.VHF_ONLY       = args.vhf
+        if self.VHF_ONLY:
             self.BANDS = VHF_BANDS
             self.CONTEST_BANDS = VHF_BANDS
         else:

@@ -40,7 +40,7 @@ else:
     from Tkinter import *
     import tkFont
 
-from rig_io import bands,HF_BANDS
+from rig_io import bands,HF_BANDS,VHF_BANDS,CONTEST_BANDS
 from cluster_feed import *
 from settings import *
 import logging               
@@ -805,8 +805,9 @@ class BandMapGUI:
                 try:
                     self.lb.itemconfigure(entry[0], background=entry[2])
                 except:
-                    error_trap('WATCH DOG: Error in configuring item bg color ????')
-                    print('entry=',entry)
+                    error_trap('BM GUI->WATCH DOG: Error in configuring item bg color ????')
+                    print('entry=',entry,'\n')
+                        
             self.P.bm_q.task_done()
             nspots=self.P.bm_q.qsize()
 
@@ -1151,7 +1152,24 @@ class BandMapGUI:
 
         for but,bb in zip( self.Band_Buttons , self.RIG_BANDS):
             but.pack_forget()
-            if bb in self.P.BANDS and (not P.CONTEST_MODE or bb in self.P.CONTEST_BANDS):
+            if bb in self.P.BANDS and (not self.P.CONTEST_MODE or bb in self.P.CONTEST_BANDS):
+                but.pack(side=LEFT,anchor=W)
+            
+    # Toggle VHF bands Only
+    def toggle_vhf(self):
+        self.P.VHF_ONLY=self.vhf_only.get()
+        if self.P.VHF_ONLY:
+            self.P.BANDS = VHF_BANDS
+            self.P.CONTEST_BANDS = VHF_BANDS
+            #self.status_bar.setText("VHF/UHF Only ON")
+        else:
+            self.P.BANDS = HF_BANDS+VHF_BANDS
+            self.P.CONTEST_BANDS = CONTEST_BANDS
+            #self.status_bar.setText("VHF/UHF Only OFF")
+
+        for but,bb in zip( self.Band_Buttons , self.RIG_BANDS):
+            but.pack_forget()
+            if bb in self.P.BANDS and (not self.P.CONTEST_MODE or bb in self.P.CONTEST_BANDS):
                 but.pack(side=LEFT,anchor=W)
             
 
@@ -1171,18 +1189,12 @@ class BandMapGUI:
     # Function to create menu bar
     def create_menu_bar(self):
         print('Creating Menubar ...')
-        OLD_WAY=True
-        OLD_WAY=False
 
         self.toolbar = Frame(self.root, bd=1, relief=RAISED)
         self.toolbar.pack(side=TOP, fill=X)
-        if OLD_WAY:
-            menubar  = Menu(self.root)
-            menubar2 = menubar
-        else:
-            menubar  = Menubutton(self.toolbar,text='Options',relief='flat')
-            menubar.pack(side=LEFT, padx=2, pady=2)
-            menubar2 = menubar
+        menubar  = Menubutton(self.toolbar,text='Options',relief='flat')
+        menubar.pack(side=LEFT, padx=2, pady=2)
+        menubar2 = menubar
 
         Menu1 = Menu(menubar, tearoff=0)
         Menu1.add_command(label="Clear", command=self.Clear_Spot_List)
@@ -1230,6 +1242,14 @@ class BandMapGUI:
             underline=0,
             variable=self.contest_mode,
             command=self.toggle_contest_mode
+        )
+        
+        self.vhf_only = BooleanVar(value=self.P.VHF_ONLY)
+        Menu1.add_checkbutton(
+            label="VHF/UHF ONLY",
+            underline=0,
+            variable=self.vhf_only,
+            command=self.toggle_vhf
         )
         
         Menu1.add_separator()
@@ -1479,19 +1499,25 @@ class BandMapGUI:
             if keep:
                 NewList.append(x)
             else:
-                print("CULL OLD SPOTS - Removed spot ",x.dx_call,'\t',x.time,x.frequency,x.band," age=",age)
-                if (not OLD_WAY) and x.band==BAND:
+                print("CULL OLD SPOTS - Removed spot ",x.dx_call,'\t',x.time,'\t',x.frequency,'\t',x.band,"\tage=",age)
+
+                # Check if this spot is currently being displayed
+                if x.band==BAND:
                     idx2 = [i for i,y in enumerate(P.current) 
                             if y.frequency == x.frequency and y.dx_call == x.dx_call]
                     #print("Delete",idx2,idx2[0])
-                    del P.current[idx2[0]]
-                    self.lb.delete(idx2[0])
+                    if len(idx2)>0:
+                        try:
+                            del P.current[idx2[0]]
+                            self.lb.delete(idx2[0])
+                        except:
+                            error_trap('GUI->CULL OLD SPOTTS: Problem deleting spot???!!!')
+                            print('\tcall=',x.dx_call,'\tfreq=',x.frequency,'\tband=',x.band)
+                            print('\tidx2=',idx2)
 
         # Update gui display
         self.scrolling('CULL OLD SPOTS B')
         P.SpotList=NewList
-        if OLD_WAY:
-            self.SelectBands()
         self.scrolling('CULL OLD SPOTS C')
         print("CULL OLD SPOTS - New nspots=",P.nspots,
               '\tlen SpotList=',len(P.SpotList),
