@@ -780,6 +780,7 @@ class ClusterFeed:
             c="magenta"
             c2='m'
         elif x.need_this_year:
+            print('SPOT COLOR: call=',dx_call,'\tdxcc=',dx_station.country)
             c="violet"
             c2='v'
         elif x.need_mode:

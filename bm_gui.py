@@ -1495,7 +1495,8 @@ class BandMapGUI:
                 continue
             
             keep = x!=None and ((x.cnt>=2 and age<self.P.MAX_AGE) or (x.cnt<2 and age<3))
-            #if age<self.P.MAX_AGE and x!=None:
+            if keep and not self.P.SHOW_DUPES:
+                keep = x.color != 'red'
             if keep:
                 NewList.append(x)
             else:
