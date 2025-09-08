@@ -19,6 +19,7 @@
 #
 #########################################################################################
 
+import os
 import sys
 import re
 import time
@@ -74,7 +75,9 @@ class ClusterFeed:
 
         # Open a file to save all of the spots
         if P.SAVE_SPOTS:
-            self.fp = open("all_spots.dat","w")
+            pid = os.getpid()
+            fname ="/tmp/ALL_SPOTS_"+str(pid)+".DAT"
+            self.fp = open(fname,"w")
         else:
             self.fp=-1
 

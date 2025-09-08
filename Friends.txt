@@ -69,6 +69,14 @@ KS4BG,Ed,Student
 KZ5H,Seth,Student
 WA2USA,Dennis,Student
 
+# CWA 7
+WT5O,Jim,Student
+K9ZI,Ken,Student
+WE5J,Scott,Student
+#AD6TW,Thomas,Student
+AK6DL,Cosmo,Student
+WS2N,Paul,Student
+
 # Locals
 k6pa,Troy, Bought Army Tower from him
 n6utc,Efram,VHFer
@@ -90,24 +98,35 @@ W9OG,Dennis,IN Club
 
 # LICW
 n4jeh,Jenna
-wa8hoi,Dale
-wb2kwc,
-k6nf,
-ad2er,
-ai5be,
-ve3spy,
-ka0rtm,Mike
-n3adp,
-ac3wm,
-xe1zy,
-aj6ql,George
-wa7bfn,Duff,
-wa6rsv,Pablo
-ae6vl,Roland
-aa0yy,
+#wa8hoi,Dale
+#wb2kwc,
+#k6nf,
+#ad2er,
+#ai5be,
+#ve3spy,
+#ka0rtm,Mike
+#n3adp,
+#ac3wm,
+#xe1zy,
+#aj6ql,George
+#wa7bfn,Duff,
+#wa6rsv,Pablo
+#ae6vl,Roland
+#aa0yy,
 
 # Other
 N7AAE,Marty Mueller, Jim's brother
 N7DZ,Bill,Lloyd's friend
 
 # DX - should be in Most Wanted list, not here!
+
+
+# SCCC Teams
+NE6I
+#N6AA,
+#N5ZO,
+#N6TR,
+#N7VM,
+#N6WT,
+##N6MJ,
+#WQ6X,
