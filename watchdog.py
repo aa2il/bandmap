@@ -21,7 +21,7 @@
 ################################################################################
 
 import threading
-from utilities import error_trap
+from utilities import error_trap, check_internet
 import os
 import psutil
 import time

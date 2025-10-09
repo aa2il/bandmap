@@ -1134,6 +1134,11 @@ class BandMapGUI:
         self.P.SHOW_DUPES=self.show_dupes.get()
         self.SelectBands()
 
+    # Toggle showing multipliers
+    def toggle_mults(self):
+        self.P.SHOW_MULTS=self.show_mults.get()
+        self.SelectBands()
+
     # Toggle logging of raw spots
     def toggle_echo(self):
         self.P.ECHO_ON=self.echo_raw_spots.get()
@@ -1290,20 +1295,28 @@ class BandMapGUI:
         )
         
         Menu1.add_separator()
-        self.echo_raw_spots = BooleanVar(value=self.P.ECHO_ON)
-        Menu1.add_checkbutton(
-            label="Echo Raw Spots",
-            underline=0,
-            variable=self.echo_raw_spots,
-            command=self.toggle_echo
-        )
-        
         self.show_dupes = BooleanVar(value=self.P.SHOW_DUPES)
         Menu1.add_checkbutton(
             label="Show Dupes",
             underline=0,
             variable=self.show_dupes,
             command=self.toggle_dupes
+        )
+        
+        self.show_mults = BooleanVar(value=self.P.SHOW_MULTS)
+        Menu1.add_checkbutton(
+            label="Show Multipliers",
+            underline=0,
+            variable=self.show_mults,
+            command=self.toggle_mults
+        )
+        
+        self.echo_raw_spots = BooleanVar(value=self.P.ECHO_ON)
+        Menu1.add_checkbutton(
+            label="Echo Raw Spots",
+            underline=0,
+            variable=self.echo_raw_spots,
+            command=self.toggle_echo
         )
         
         Menu1.add_separator()

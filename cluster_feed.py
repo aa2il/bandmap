@@ -801,7 +801,7 @@ class ClusterFeed:
         elif self.P.CWOPS and cwops_status>0:
             if cwops_status==2:
                 # Worked
-                if x.new_mult and self.P.CONTEST_MODE:
+                if x.new_mult and self.P.SHOW_MULTS:
                     c='coral'
                     c2='c'
                 else:
@@ -811,10 +811,10 @@ class ClusterFeed:
                 # Not worked
                 c='orange'
                 c2='o'
-        elif x.new_mult and self.P.CONTEST_MODE:
+        elif x.new_mult and self.P.SHOW_MULTS:
             c='coral'
             c2='c'
-        elif dx_call in THIRTEEN_COLONIES:
+        elif dx_call in THIRTEEN_COLONIES and False:
             c="lightskyblue" 
             c2='lb'
         else:
