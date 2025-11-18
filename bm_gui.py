@@ -87,6 +87,7 @@ class BandMapGUI:
         self.Ready=False
         self.calls1 = []
         self.old_mode = None
+        self.rig_band=None
 
         # UDP stuff
         P.bm_udp_client=None
@@ -492,7 +493,9 @@ class BandMapGUI:
         print('COLLECT_SPOTS: nspots=',len(P.SpotList),'\tband=',band,
               '\nReverse=',REVERSE,'\tOVERRIDE=',OVERRIDE,'\tCONTEST_MODE=', self.P.CONTEST_MODE)
 
-        if 'cm' in band:
+        if band=='MW':
+            iband=160
+        elif 'cm' in band:
             iband=int( band.replace('cm','') )
         else:
             iband=int( band.replace('m','') )
