@@ -177,7 +177,7 @@ class PARAMS:
         self.WSJT_PORT = 2237
         WSJT2=args.wsjt
         if WSJT2!=None:
-            print("\nWSJT2=",WSJT2,len(WSJT2))
+            print("\nWSJT2=",WSJT2,'\tlen=',len(WSJT2))
             self.WSJT_FNAME=os.path.expanduser("~/.local/share/WSJT-X")
             self.WSJT_FNAME+=" - "+WSJT2[0]
             self.WSJT_FNAME+="/ALL.TXT"

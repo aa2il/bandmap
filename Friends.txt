@@ -31,6 +31,7 @@ NQ2W,Will,NY
 K4PQC,PHIL,GA
 k9uiy,Vic,IL
 W5LXS,Roger,TX
+AF7RF,Heather,HI
 
 # CWA 2
 KE7MPO,Skip,WA,Former Student
@@ -78,6 +79,7 @@ AK6DL,Cosmo,Student
 WS2N,Paul,Student
 
 # Locals
+aa6pc,JR,
 k6pa,Troy, Bought Army Tower from him
 n6utc,Efram,VHFer
 n6mi,Scott,VHF guru

@@ -61,7 +61,7 @@ VERSION='1.0'
 if __name__ == "__main__":
 
     print("\n\n***********************************************************************************")
-    print("\nStarting Bandmap v'+VERSION+' ...")
+    print("\nStarting Bandmap v"+VERSION+" ...")
     print('\nUse -echo flag to echo lines from zerver')
 
     # Process command line params
