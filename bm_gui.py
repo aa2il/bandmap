@@ -671,7 +671,6 @@ class BandMapGUI:
                 if x.mode=='CW':
                     val=x.wpm
                 else:
-                    #val=x.snr
                     val=''
                 self.lb.insert(END, "%-6.1f  %-10.19s  %+6.6s %-15.15s %+4.4s" % \
                                (x.frequency,x.dx_call,x.mode,cleanup(dxcc),val))
@@ -1208,16 +1207,16 @@ class BandMapGUI:
         Menu1.add_command(label="Clear", command=self.Clear_Spot_List)
         Menu1.add_command(label="Reset", command=self.Reset)
 
-        # Sub-menu to pick server
-        Menu2 = Menu(menubar2, tearoff=0)
+        # Sub-menu to pick server - disabled for WSJT 
         self.node = StringVar(self.root)
-        #self.node.set(self.P.SERVER)
-        for node in list(self.P.NODES.keys()):
-            Menu2.add_radiobutton(label=node,
-                                     value=node,
-                                     variable=self.node,
-                                     command=self.SelectNode )
-        Menu1.add_cascade(label="Cluster", menu=Menu2)
+        if self.P.SERVER!="WSJT":
+            Menu2 = Menu(menubar2, tearoff=0)
+            for node in list(self.P.NODES.keys()):
+                Menu2.add_radiobutton(label=node,
+                                      value=node,
+                                      variable=self.node,
+                                      command=self.SelectNode )
+            Menu1.add_cascade(label="Cluster", menu=Menu2)
         Menu1.add_separator()
         
         self.dx_only = BooleanVar(value=self.P.DX_ONLY)

@@ -17,3 +17,8 @@ dependencies = [
     "unidecode>=1.4.0",
     "xlrd>=2.0.1",
 ]
+
+[tool.uv.workspace]
+members = [
+    "work",
+]

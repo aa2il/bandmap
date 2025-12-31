@@ -93,7 +93,9 @@ class PARAMS:
         #arg_proc.add_argument('-noft8', action='store_true',help='Filter out FT8 spots')
         arg_proc.add_argument('-bm_geo',type=str,default=None,
                               help='Geometry')
-        arg_proc.add_argument('-test', action='store_true',help='Test Mode')
+        #arg_proc.add_argument('-test', action='store_true',help='Test Mode')
+        arg_proc.add_argument('-test', help='Test Mode',
+                              type=str,default=None,nargs='*')
         arg_proc.add_argument("-hours", help="Max no. hours for a dupe",
                               type=float,default=2*24)
         arg_proc.add_argument("-age", help="Max no. minutes to keep a spot around",
@@ -139,7 +141,17 @@ class PARAMS:
             self.CONTEST_BANDS = CONTEST_BANDS
         
         self.BM_GEO         = args.bm_geo
-        self.TEST_MODE      = args.test
+        #self.TEST_MODE      = args.test
+        if args.test==None:
+            self.TEST_MODE  = False
+            self.TEST_FNAME = None
+        else:
+            self.TEST_MODE  = True
+            if len(args.test)>0:
+                self.TEST_FNAME = args.test[0]
+            else:
+                self.TEST_FNAME = '/tmp/ALL_SPOTS.DAT'
+            
         self.CW_SS          = args.ss
         self.CWOPS          = args.cwops
         self.DX_ONLY        = args.dx_only
@@ -171,7 +183,10 @@ class PARAMS:
 
         # See     http://www.ng3k.com/misc/cluster.html       for a list 
         self.SERVER=args.cluster.upper()
-        self.WSJT_FNAME=None
+        if self.TEST_MODE:
+            self.WSJT_FNAME=self.TEST_FNAME
+        else:
+            self.WSJT_FNAME=None
 
         self.WSJT_IP_ADDRESS = '127.0.0.1'
         self.WSJT_PORT = 2237

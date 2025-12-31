@@ -40,6 +40,7 @@ from rig_io.ft_tables import THIRTEEN_COLONIES
 
 UTC = pytz.utc
 OLD_WAY=True
+DEFAULT_BAND = '20m'
 
 #########################################################################################
 
@@ -76,6 +77,7 @@ class ClusterFeed:
         # Open a file to save all of the spots
         if P.SAVE_SPOTS:
             pid = os.getpid()
+            #fname ="/tmp/ALL_SPOTS.DAT"
             fname ="/tmp/ALL_SPOTS_"+str(pid)+".DAT"
             self.fp = open(fname,"w")
         else:
@@ -185,7 +187,10 @@ class ClusterFeed:
         
         n = self.cluster_feed()
         if n==0:
-            if "telent connection closed" in self.last_error:
+            if self.P.TEST_MODE:
+                print('\n--- MONITOR: EOF! ---')
+                return
+            elif "telent connection closed" in self.last_error:
                 self.enable_scheduler=False
                 print('SCHEDULER - Attempting to reopen node ...')
                 self.SelectNode()
@@ -193,7 +198,11 @@ class ClusterFeed:
                 #print('SCHEDULER - Nothing returned')
                 dt=200          # Wait a bit before querying cluster again
         else:
-            dt=5      # We got a spot - see if there are more
+            # We got a spot - see if there are more
+            if self.P.TEST_MODE:
+                dt=5
+            else:
+                dt=5
 
         #print('Restarting Cluster Monitor - n=',n,'\tdt=',dt)
         self.Timer = threading.Timer(.001*dt, self.Monitor)
@@ -223,13 +232,16 @@ class ClusterFeed:
                 if a=='':
                     print('---- EOF ----')
                     self.tn.close()
-                    return False
+                    return 0
                 else:
                     #                line=a[2:]
                     line=a
             else:
+                return 0
                 line=''
 
+            #print('CLUSTER_FEED: line=',line)
+                
         elif self.P.CLUSTER=='WSJT':
 
             spot = self.tn.get_spot2(None,0)
@@ -370,6 +382,9 @@ class ClusterFeed:
         if self.P.CLUSTER=='WSJT':
             print('SPOT:',line,len(line))
         obj = Spot(line)
+        if obj.spotter_call!=P.MY_CALL:
+            obj.snr=''
+
         if self.P.ECHO_ON:
             print('OBJ:')
             pprint(vars(obj))
@@ -532,6 +547,7 @@ class ClusterFeed:
                         P.SpotList[i].time=obj.time
                         P.SpotList[i].frequency=obj.frequency
                         P.SpotList[i].snr=obj.snr
+                        P.SpotList[i].wpm=obj.wpm
                         P.SpotList[i].color=obj.color
                         if self.P.CLUSTER=='WSJT':
                             P.SpotList[i].df=obj.df
@@ -561,8 +577,12 @@ class ClusterFeed:
                             except:
                                 error_trap('DIGEST SPOT: ?????')
                         else:
+                            if mode in ['CW']:
+                                val = obj.wpm
+                            else:
+                                val = obj.snr
                             entry="%-6.1f  %-10.19s  %+6.6s %-15.16s %+4.4s" % \
-                                (freq,dx_call,mode,cleanup(dxcc),obj.snr)
+                                (freq,dx_call,mode,cleanup(dxcc),val)
                             self.P.bm_q.put( [idx2[0], entry, obj.color] )
                     
                 else:
@@ -576,7 +596,10 @@ class ClusterFeed:
 
                     # Show only those spots on the list that are from the desired band
                     try:
-                        BAND = int( self.P.GUI_BAND.replace('m','') )
+                        if self.P.GUI_BAND=='MW':
+                            BAND=DEFAULT_BAND = '20m'
+                        else:
+                            BAND = int( self.P.GUI_BAND.replace('m','') )
                     except:
                         error_trap('DIGEST SPOT: ?????')
                         print('band=',self.P.GUI_BAND)
@@ -639,8 +662,12 @@ class ClusterFeed:
                             entry="%4d  %-10.10s  %+6.6s %-17.17s %+4.4s" % \
                                 (df,dx_call,mode,cleanup(dxcc),obj.snr)
                         else:
+                            if mode in ['CW']:
+                                val = obj.wpm
+                            else:
+                                val = obj.snr
                             entry="%-6.1f  %-10.10s  %+6.6s %-15.15s %+4.4s" % \
-                                (freq,dx_call,mode,cleanup(dxcc),obj.snr)
+                                (freq,dx_call,mode,cleanup(dxcc),val)
                         self.P.bm_q.put( [idx2[0], entry, obj.color] )
 
                 # Release lock
