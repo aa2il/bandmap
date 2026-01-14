@@ -653,6 +653,7 @@ class BandMapGUI:
             self.calls=list( set( self.calls) )
             print('No. unique CWOps calls worked:',len(self.calls))
             #print(self.calls)
+            #sys.exit(0)
             
         # Re-populate list box with spots from this band
         # This seems to be the slow part
@@ -1392,7 +1393,7 @@ class BandMapGUI:
         # Read challenge data
         print('\nREAD AUX DATA: Reading DX Challenge data ...')
         self.status_bar.setText('Reading DX Challenge data ...')
-        P.data = ChallengeData(P.CHALLENGE_FNAME)
+        P.data = ChallengeData(P.CHALLENGE_FNAME,P.DATA_DIR)
 
         # Load master call list
         if P.CONTEST_NAME!=None or True:
@@ -1414,6 +1415,7 @@ class BandMapGUI:
             P.members=list( set( HIST.keys() ) )
             print('No. CW Ops Members:',len(P.members))
             #print(P.members)
+            #sys.exit(0)
 
             P.cwop_nums=set([])
             for m in P.members:

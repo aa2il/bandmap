@@ -806,6 +806,9 @@ class ClusterFeed:
         if match:
             c="red"
             c2='r'
+        elif x.new_mult and self.P.SHOW_MULTS:
+            c='coral'
+            c2='c'
         elif x.needed:
             c="magenta"
             c2='m'
@@ -838,9 +841,6 @@ class ClusterFeed:
                 # Not worked
                 c='orange'
                 c2='o'
-        elif x.new_mult and self.P.SHOW_MULTS:
-            c='coral'
-            c2='c'
         elif dx_call in THIRTEEN_COLONIES and False:
             c="lightskyblue" 
             c2='lb'
