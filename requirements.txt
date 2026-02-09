@@ -13,11 +13,10 @@ unidecode
 pyhamtools
 numpy
 pandas
-
+pytz
 psutil
 scipy
 chardet
 Levenshtein
 openpyxl
-
 

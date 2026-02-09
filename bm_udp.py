@@ -120,7 +120,8 @@ def bm_udp_msg_handler(self,sock,msg):
             qso['time_off']     = mm[6]
             qso['qth']          = mm[7]
             self.P.qsos.append(qso)
-            print('\tqso=',qso)
+            print('\tUDP LOG: qso=',qso)
+            self.P.SCORING.otf_scoring(qso)
             self.P.ClusterFeed.lb_update()
 
             if True:

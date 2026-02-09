@@ -803,7 +803,10 @@ class ClusterFeed:
         # Set color depending criteria
         # c2 is the abbreviated version used to shorten the inter-process messages 
         # These need to be matched in pySDR/gui.py
-        if match:
+        if dx_call==self.P.MY_CALL:
+            c="deepskyblue" 
+            c2='b'
+        elif match:
             c="red"
             c2='r'
         elif x.new_mult and self.P.SHOW_MULTS:
@@ -825,9 +828,6 @@ class ClusterFeed:
         elif dx_call in P.most_wanted:
             c="turquoise"
             c2='t'
-        elif dx_call==self.P.MY_CALL:
-            c="deepskyblue" 
-            c2='b'
         elif self.P.CWOPS and cwops_status>0:
             if cwops_status==2:
                 # Worked

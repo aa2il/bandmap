@@ -41,7 +41,6 @@ from settings import *
 from params import *
 from dx.cluster_connections import connection,get_logger
 from cluster_feed import ClusterFeed
-#from dx.spot_processing import ChallengeData
 from pprint import pprint
 from get_node_list import *
 from tcp_server import *

@@ -6,19 +6,15 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "chardet>=5.2.0",
-    "levenshtein>=0.27.1",
-    "numpy>=2.2.6",
+    "levenshtein>=0.27.3",
+    "numpy>=2.4.2",
     "openpyxl>=3.1.5",
-    "pandas>=2.2.3",
-    "psutil>=7.0.0",
-    "pyhamtools>=0.11.0",
+    "pandas>=3.0.0",
+    "psutil>=7.2.2",
+    "pyhamtools>=0.12.0",
     "pyserial>=3.5",
-    "scipy>=1.15.3",
+    "pytz>=2025.2",
+    "scipy>=1.17.0",
     "unidecode>=1.4.0",
-    "xlrd>=2.0.1",
-]
-
-[tool.uv.workspace]
-members = [
-    "work",
+    "xlrd>=2.0.2",
 ]

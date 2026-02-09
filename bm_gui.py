@@ -28,10 +28,8 @@ import platform
 
 from datetime import datetime
 from dx.spot_processing import ChallengeData
-
 from dx.cluster_connections import *
 from fileio import parse_adif, read_text_file
-import webbrowser
 
 if sys.version_info[0]==3:
     from tkinter import *
@@ -945,9 +943,7 @@ class BandMapGUI:
             # This used to trigger a qrz call lookup
             b=value.strip().split()
             print("Looking up call: ",b[1])
-        
-            link = 'https://www.qrz.com/db/' + b[1]
-            webbrowser.open_new_tab(link)
+            open_web_page('https://www.qrz.com/db/' + b[1])
 
         else:
 
