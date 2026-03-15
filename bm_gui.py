@@ -346,7 +346,7 @@ class BandMapGUI:
         b = self.band.get()
         if VERBOSITY>0:
             logging.info("Calling Get Mode ...")
-        m = sock.get_mode(VFO=self.P.RIG_VFO)
+        m,bw = sock.get_mode(VFO=self.P.RIG_VFO)
         if m=='AM':
             m='SSB'
         if iopt==1:
@@ -449,7 +449,7 @@ class BandMapGUI:
         if m=='':
             if VERBOSITY>0:
                 logging.info("Calling Get Mode ...")
-            m = sock.get_mode(VFO=self.P.RIG_VFO)
+            m,bw = sock.get_mode(VFO=self.P.RIG_VFO)
             #print('SelectMode:',m)
             if m==None:
                 return
@@ -1415,7 +1415,12 @@ class BandMapGUI:
 
             P.cwop_nums=set([])
             for m in P.members:
-                P.cwop_nums.add( int( HIST[m]['cwops'] ) )
+                try:
+                    P.cwop_nums.add( int( HIST[m]['cwops'] ) )
+                except:
+                    print('BM GUI - CW Ooooops! call=',m)
+                    print('\tHIST=',HIST[m])
+                    #sys.exit(0)
             P.cwop_nums = list( P.cwop_nums )
             #print(P.cwop_nums)
             #sys.exit(0)
