@@ -1,7 +1,7 @@
 #########################################################################################
 #
 # cluster_feed.py - Rev. 2.0
-# Copyright (C) 2021-5 by Joseph B. Attili, joe DOT aa2il AT gmail DOT com
+# Copyright (C) 2021-6 by Joseph B. Attili, joe DOT aa2il AT gmail DOT com
 #
 # Routines to grab spots from the dx cluster.
 #
@@ -100,7 +100,7 @@ class ClusterFeed:
         P=self.P
 
         # Open telnet connection to spot server
-        print('SERVER=',P.SERVER,'\tMY_CALL=',P.MY_CALL)
+        print('SERVER=',P.SERVER,'\tOPERATOR=',P.OPERATOR)
         #sys,exit(0)
         if P.SERVER=='NONE': # or (P.SERVER!="WSJT" and not P.INTERNET):
 
@@ -119,7 +119,7 @@ class ClusterFeed:
             while not self.tn and inode<len(KEYS):
                 key = KEYS[inode]
                 self.P.bm_gui.status_bar.setText("Attempting to open node "+P.NODES[key]+' ...')
-                self.tn = connection(P.TEST_MODE,P.NODES[key],P.MY_CALL,P.WSJT_FNAME, \
+                self.tn = connection(P.TEST_MODE,P.NODES[key],P.OPERATOR,P.WSJT_FNAME, \
                                   ip_addr=P.WSJT_IP_ADDRESS,port=P.WSJT_PORT)
                 inode += 1
             if self.tn:
@@ -133,7 +133,7 @@ class ClusterFeed:
 
             # Connect to specified node 
             self.P.bm_gui.status_bar.setText("Attempting to open "+P.CLUSTER+' ...')
-            self.tn = connection(P.TEST_MODE,P.CLUSTER,P.MY_CALL,P.WSJT_FNAME, \
+            self.tn = connection(P.TEST_MODE,P.CLUSTER,P.OPERATOR,P.WSJT_FNAME, \
                               ip_addr=P.WSJT_IP_ADDRESS,port=P.WSJT_PORT)
 
         if not P.TEST_MODE:
@@ -348,7 +348,7 @@ class ClusterFeed:
             
         try:
             self.tn = connection(self.P.TEST_MODE,self.P.CLUSTER, \
-                                 self.P.MY_CALL,self.P.WSJT_FNAME)
+                                 self.P.OPERATOR,self.P.WSJT_FNAME)
             print("CLUSTER FEED->Reset --- Connected to",self.P.CLUSTER,'\ttn=',self.tn)
             OK=self.test_telnet_connection()
         except:
@@ -382,7 +382,7 @@ class ClusterFeed:
         if self.P.CLUSTER=='WSJT':
             print('SPOT:',line,len(line))
         obj = Spot(line)
-        if obj.spotter_call!=P.MY_CALL:
+        if obj.spotter_call not in [P.MY_CALL,P.OPERATOR]:
             obj.snr=''
 
         if self.P.ECHO_ON:
@@ -444,7 +444,8 @@ class ClusterFeed:
                 print('keep=',keep,'\tb=',b)
         
             if keep:
-                if dx_call==self.P.MY_CALL or (self.P.ECHO_ON and False):
+                if dx_call in [self.P.MY_CALL,self.P.OPERATOR] or \
+                   (self.P.ECHO_ON and False):
                     print('keep:',line.strip())
 
                 acq=self.lock.acquire(timeout=self.lock_to)
@@ -803,7 +804,7 @@ class ClusterFeed:
         # Set color depending criteria
         # c2 is the abbreviated version used to shorten the inter-process messages 
         # These need to be matched in pySDR/gui.py
-        if dx_call==self.P.MY_CALL:
+        if dx_call in [self.P.MY_CALL,self.P.OPERATOR]:
             c="deepskyblue" 
             c2='b'
         elif match:

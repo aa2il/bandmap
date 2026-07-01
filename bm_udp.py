@@ -1,7 +1,7 @@
 #########################################################################################
 #
 # udp.py - Rev. 1.0
-# Copyright (C) 2021-5 by Joseph B. Attili, joe DOT aa2il AT gmail DOT com
+# Copyright (C) 2021-6 by Joseph B. Attili, joe DOT aa2il AT gmail DOT com
 #
 # UDP messaging for bandmap.
 #
@@ -90,21 +90,25 @@ def bm_udp_msg_handler(self,sock,msg):
             print('BM UDP MSG HANDLER: RunFreq - Unable to suggest a freq')
             return
                 
-        elif mm[0]=='SPOT':
+        elif mm[0] in ['SPOT','POST']:
 
-            # SPOT:CALL:FREQ
+            # SPOT:CALL:FREQ:MODE
             print('\nBM UDP MSG HANDLER: Received SPOT:',mm)
             call=mm[1]
-            freq=float(mm[2])
+            freq=round( float(mm[2]) , 1)
             mode=mm[3]
             print('\t',call,freq,mode)
-            UTC = pytz.utc
-            now = datetime.utcnow().replace(tzinfo=UTC)
-            line = 'DX de %-9s %8.1f  %-12s %-30s %4sZ' % \
-                ('AA2IL'+'-#:',freq,call,mode+' 0 dB',
-                 now.strftime("%H%M") )
-            print(line)
-            self.P.ClusterFeed.digest_spot(line)
+            if mm[0]=='SPOT':
+                UTC = pytz.utc
+                now = datetime.utcnow().replace(tzinfo=UTC)
+                line = 'DX de %-9s %8.1f  %-12s %-30s %4sZ' % \
+                    ('AA2IL'+'-#:',freq,call,mode+' 0 dB',
+                     now.strftime("%H%M") )
+                print(line)
+                self.P.ClusterFeed.digest_spot(line)
+            else:
+                self.P.bm_gui.SpotWin.FillBoxes(call,freq,'')
+                
             return
      
         elif mm[0]=='LOG':

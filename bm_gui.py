@@ -1,7 +1,7 @@
 #########################################################################################
 #
 # gui.py - Rev. 2.0
-# Copyright (C) 2021-5 by Joseph B. Attili, joe DOT aa2il AT gmail DOT com
+# Copyright (C) 2021-6 by Joseph B. Attili, joe DOT aa2il AT gmail DOT com
 #
 # Gui for dx cluster bandmap.
 #
@@ -44,7 +44,7 @@ from settings import *
 import logging               
 from utilities import freq2band,error_trap
 from widgets_tk import StatusBar
-from tcp_server import open_udp_client,KEYER_UDP_PORT
+from tcp_server import open_udp_client,KEYER_UDP_PORT,UDP_Broadcast_Server,BROADCAST_UDP_PORT
 from bm_udp import *
 from load_history import load_history
 
@@ -60,6 +60,101 @@ logging.basicConfig(
     format="%(asctime)-15s [%(levelname)s] %(funcName)s:\t(message)s",
     level=logging.INFO)
 
+#########################################################################################
+
+class SPOT_WINDOW():
+    def __init__(self,root,P):
+
+        # Init
+        self.root=root
+        self.P = P
+        
+        if root:
+            self.win=Toplevel(root)
+            self.hide()
+            #print('Top-level')
+        else:
+            self.win = Tk()
+            #print('Root')
+        self.win.title("Send Spot")
+        #self.win.geometry("400x800")
+        self.win.withdraw()
+
+        row=-1
+        self.boxes=[]
+        self.ATTRS=['DX_Call','Freq_KHz','Comments']
+        for attr in self.ATTRS:
+            row+=1
+            
+            txt=attr
+            Label(self.win, text=txt+':').grid(row=row, column=0,columnspan=1)
+            #Grid.columnconfigure(self.Frame.frame,0, weight=0)        # Dont change size of Labels
+            
+            box = Entry(self.win)
+            box.grid(row=row,column=1,columnspan=2,sticky=E+W)
+            self.boxes.append(box)
+            box.delete(0,END)
+            #Grid.columnconfigure(self.Frame.frame,1, weight=1)        # Strech enrty boxes to fill entire width
+
+            # Read rig freq
+            #print('---------------------sock=',self.P.sock)
+            if self.P.sock.connection!='NONE' and attr=='Freq_KHz':
+                val = 0.1*int( .01*self.P.sock.get_freq(VFO=self.P.RIG_VFO) )
+                box.insert(0,str(val))        
+        
+        # Buttons to get out of dialog winow
+        row+=1
+        button = Button(self.win, text="OK",command=self.Send)
+        button.grid(row=row,column=0,sticky=E+W)
+        button = Button(self.win, text="Self",command=self.SelfSpot)
+        button.grid(row=row,column=1,sticky=E+W)
+        button = Button(self.win, text="Cancel",command=self.hide)
+        button.grid(row=row,column=2,sticky=E+W)
+
+    def FillBoxes(self,call,freq,comment):
+        print('Fill Boxes:')
+
+        for val,box in zip([call,freq,comment],self.boxes):
+            if val!=None:
+                box.delete(0,END)
+                box.insert(0,str(val))
+
+        self.show()
+
+    def SelfSpot(self):
+        print('Self Spot:')
+        call=self.P.MY_CALL        
+        if call=='N6W':
+            comment='WWA Sprint CW'
+        self.FillBoxes(call,None,comment)
+
+    def Send(self):
+        print('Send Spot:')
+
+        msg='DX'
+        for attr,box in zip(self.ATTRS,self.boxes):
+            val = box.get()
+            msg+=' '+val
+        msg+='\n'
+
+        print('msg=',msg,type(msg))
+        self.P.ClusterFeed.tn.write(msg.encode())              # send the spot
+        self.win.withdraw()
+
+    def show(self):
+        print('Show Spot Window ...')
+        self.win.update()
+        self.win.deiconify()
+        
+    def hide(self):
+        print('Hide Spot Window ...',self.root)
+        if self.root:
+            self.win.withdraw()
+        else:
+            print('Bye Bye')
+            self.win.destroy()
+            self.win=None        
+        
 #########################################################################################
 
 # The GUI
@@ -851,7 +946,7 @@ class BandMapGUI:
         except:
             error_trap('WATCHDOG: Problem reading rig antenna/mode',True)
 
-       # Try to connect to the keyer
+        # Try to connect to the keyer
         if self.P.BM_UDP_CLIENT:
             if not self.P.bm_udp_client:
                 self.P.bm_udp_ntries+=1
@@ -990,6 +1085,12 @@ class BandMapGUI:
     # Open dialog window for basic settings
     def Settings(self):
         self.SettingsWin = SETTINGS_GUI(self.root,self.P)
+        return
+
+    # Open dialog window for sending a spot
+    def SendSpot(self):
+        #self.SpotWin = SPOT_WINDOW(self.root,self.P)
+        self.SpotWin.show()
         return
 
     # Print out log
@@ -1214,6 +1315,10 @@ class BandMapGUI:
                                       variable=self.node,
                                       command=self.SelectNode )
             Menu1.add_cascade(label="Cluster", menu=Menu2)
+
+        # Diaglog window to send a spot
+        self.SpotWin = SPOT_WINDOW(self.root,self.P)
+        Menu1.add_command(label="Send Spot ...", command=self.SendSpot)
         Menu1.add_separator()
         
         self.dx_only = BooleanVar(value=self.P.DX_ONLY)

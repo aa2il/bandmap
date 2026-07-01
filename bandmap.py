@@ -5,7 +5,7 @@
 #########################################################################################
 #
 # bandmap.py - Rev. 1.0
-# Copyright (C) 2021-5 by Joseph B. Attili, joe DOT aa2il AT gmail DOT com
+# Copyright (C) 2021-6 by Joseph B. Attili, joe DOT aa2il AT gmail DOT com
 #
 # Simple gui to sort & display dx cluster spots.  Indications as to the age of a spot and
 # the "need" status of a spot's DXCC are also given.  The rig can be tuned to a spot by
@@ -111,6 +111,11 @@ if __name__ == "__main__":
         worker.start()
         P.threads.append(worker)
 
+        # Enable this do intercept broadcast packets
+        #P.udp_bcast_client = UDP_Broadcast_Server(P,None,BROADCAST_UDP_PORT,
+        #                                          Server=False)  #,
+        #                                              #Handler=UDP_msg_handler)
+        
     # Start thread to manage feed from dx cluster
     P.bm_gui.status_bar.setText('Starting Cluster Feed Monitor ...')
     P.ClusterFeed = ClusterFeed(P,200)

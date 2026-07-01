@@ -1,7 +1,7 @@
 ################################################################################
 #
 # Params.py - Rev 1.0
-# Copyright (C) 2021-5 by Joseph B. Attili, joe DOT aa2il AT gmail DOT com
+# Copyright (C) 2021-6 by Joseph B. Attili, joe DOT aa2il AT gmail DOT com
 #
 # Command line param parser for bandmap
 #
@@ -157,7 +157,7 @@ class PARAMS:
         self.DX_ONLY        = args.dx_only
         self.NA_ONLY        = args.na_only
         self.NEW_CWOPS_ONLY = False
-        self.BM_UDP_CLIENT     = args.bm_udp
+        self.BM_UDP_CLIENT  = args.bm_udp
         self.SAVE_SPOTS     = args.save
         self.RIG_VFO        = args.vfo
         self.FT4            = args.ft4
