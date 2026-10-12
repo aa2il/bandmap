@@ -70,6 +70,7 @@ class ClusterFeed:
         self.lock_to=2.0                         # Time out to acquire lock
         self.Reset_Flag = threading.Event()
         self.tn = None
+        self.cluster_type = 'Unknown'
         
         # Open spot server
         self.open_spot_server()
@@ -139,7 +140,10 @@ class ClusterFeed:
         if not P.TEST_MODE:
             if self.tn:
                 OK=self.test_telnet_connection()
-                if not OK:
+                if OK:
+                    # Set favorite options
+                    self.set_cluster_options()
+                else:
                     print('OPEN_SPOT_SERVER: Whooops!  SERVER=',P.SERVER,'\tOK=',OK)
                     sys.exit(0)
             else:
@@ -147,10 +151,43 @@ class ClusterFeed:
                     print('OPEN_SPOT_SERVER: Giving up!  SERVER=',P.SERVER,'\tOK=',OK)
                     sys.exit(0)
 
+    # Function to set cluser options
+    def set_cluster_options(self):
+
+        tn=self.tn
+        if self.cluster_type=='AR-Cluster':
+            #print("Default Settings:\n")
+            tn.write( bytes("Show DX Options\n",'utf-8'))   
+            time.sleep(.1)
+            tn.write(bytes("Set DX Filter Skimmer AND SpotterCont = NA\n",'utf-8'))            # Enable CW Skimmer & only spots from north america
+            time.sleep(.1)
+            tn.write( bytes("Set DX Mode Open\n",'utf-8'))   
+            time.sleep(.1)
+            #print("Current Settings:\n")
+            tn.write( bytes("Show DX Options\n",'utf-8'))   
+            #time.sleep(.1)
+            
+            if False:
+                tn.write(b"SET/DX/FILTER/SKIMMER\n")            # Enable CW Skimmer
+                time.sleep(.1)
+                tn.write(b"SET/FT8\n")            # Enable ft8 spots - there are a bunch of other things we can do also
+                time.sleep(.1)
+                tn.write(b"SET/FT4\n")            # Enable ft4 spots also
+                time.sleep(.1)
+                tn.write(b"SHOW/DX\n")            # Get last N spots to start populating the map
+
+        elif self.cluster_type=='DXSpider':
+            # For other filtering commands, see:  https://wiki.dxcluster.org/wiki/DXSpider_Filtering_Manual
+            # The Users Manual is available at:   https://wiki.dxcluster.org/wiki/DXSpider_User_Manual
+            tn.write(b"CLEAR/SPOTTS ALL\n")         
+            time.sleep(.1)
+            tn.write(b"ACCEPT/SPOTS BY_ZONE 1,2,3,4,5,6,7,8\n")            # Only spots from NA
+            time.sleep(.1)
+            tn.write(b"SET/SKIMMER\n")            # Enable CW RTTY and FTx Skimmers - should narrow this down based on current selections but go with this for now
+            time.sleep(.1)
+                
     # Function to test a telnet connection
     def test_telnet_connection(self):
-        #tn=self.tn
-        #print('tn=',tn,type(tn),isinstance(tn,SimpleServer))
         
         if not self.tn:
             print('TEST_TELNET_CONNECTION: *** ERROR *** Unexpected null connection')
@@ -170,6 +207,15 @@ class ClusterFeed:
             if len(line)==0:
                 print('TEST TELNET CONNECTION - No response - giving up')
                 return False
+
+            if 'Hello ' in line:
+                print('TEST TELNET CONNECTION - Got Hello!')
+
+            for clus in ['AR-Cluster','DXSpider']:
+                if clus in line:
+                    self.cluster_type=clus
+            print('TEST TELNET CONNECTION - Cluster Type=',self.cluster_type)
+                
         except EOFError:
             print("TEST TELNET CONNECTION - EOFerror: telnet connection is closed")
             return False

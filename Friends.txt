@@ -122,6 +122,25 @@ N7DZ,Bill,Lloyd's friend
 
 # DX - should be in Most Wanted list, not here!
 
+# 13 Colonies
+K2A,NY
+K2B,
+K2C,
+K2D,
+K2E,
+K2F,
+K2G,
+K2H,
+K2I,
+K2J,
+K2K,
+K2L,
+K2M,
+WM3PEN,
+gb13COL,
+TM13COL,
+W3BRF,
+
 
 # SCCC Teams
 NE6I
