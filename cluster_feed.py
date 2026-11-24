@@ -1,6 +1,6 @@
 #########################################################################################
 #
-# cluster_feed.py - Rev. 2.0
+# cluster_feed.py - Rev. 3.0
 # Copyright (C) 2021-6 by Joseph B. Attili, joe DOT aa2il AT gmail DOT com
 #
 # Routines to grab spots from the dx cluster.
@@ -83,9 +83,6 @@ class ClusterFeed:
             self.fp = open(fname,"w")
         else:
             self.fp=-1
-
-        # Create a buffer to communicate spots to gui thread
-        P.bm_q = queue.Queue(maxsize=0)
 
         # Kick off cluster spot monitor
         dt=.001*msec
@@ -407,6 +404,18 @@ class ClusterFeed:
             self.tn = None
 
 
+    # Function to acquire lock
+    def acquire_lock(self,txt,line=None):                
+        acq=self.lock.acquire(timeout=self.lock_to)
+                
+        if not acq:
+            print(txt,': Unable to acquire lock - giving up!')
+            if line!=None:
+                print('line=',line.strip())
+            return False
+        else:
+            return True
+                    
 
     # Function to read spots from the telnet connection
     def digest_spot(self,line):
@@ -416,6 +425,9 @@ class ClusterFeed:
         #if P.GUI_BAND==None:
         #    P.GUI_BAND = self.P.bm_gui.band.get()
             
+        if not self.acquire_lock('DIGEST_SPOT 1',line):
+            return
+
         # Check for logged contact
         if "<adif_ver" in line:
             print('\nDIGEST SPOT: LOGGED Contact Detected ...')
@@ -494,12 +506,6 @@ class ClusterFeed:
                    (self.P.ECHO_ON and False):
                     print('keep:',line.strip())
 
-                acq=self.lock.acquire(timeout=self.lock_to)
-                if not acq:
-                    print('DIGEST_SPOT: Unable to acquire lock - giving up!')
-                    print('line=',line.strip())
-                    return
-                    
                 # Highlighting in WSJT-X window
                 if self.P.CLUSTER=='WSJT':
                     for qso in self.P.qsos:
@@ -603,24 +609,22 @@ class ClusterFeed:
                                   '\ttime=',P.SpotList[i].time,obj.time,
                                   '\tfreq=',P.SpotList[i].frequency,obj.frequency)
 
-                    # Update list box entry
+                    # Update list box entry also if it is currently being displayed
                     idx2 = [i for i,x in enumerate(P.current) if x.dx_call == dx_call and x.band==b]
                     if len(idx2)>0:
-                        self.P.bm_q.put( [idx2[0]] )
+                        i=idx2[0]
+                        P.current[i].time=obj.time
+                        P.current[i].frequency=obj.frequency
+                        P.current[i].snr=obj.snr
+                        P.current[i].wpm=obj.wpm
+                        P.current[i].color=obj.color
+                        
                         if self.P.CLUSTER=='WSJT':
-                            df = obj.df
+                            df = int( obj.df )
+                            P.current[i].df=obj.df
                             try:
-                                df=int(df)
-                                entry="%4d  %-10.10s  %+6.6s %-17.17s %+4.4s" % \
+                                P.entry="%4d  %-10.10s  %+6.6s %-17.17s %+4.4s" % \
                                     (df,dx_call,mode,cleanup(dxcc),obj.snr)
-                                self.P.bm_q.put( [idx2[0], entry, obj.color] )
-                            
-                                i=idx[0]
-                                P.current[i].time=obj.time
-                                P.current[i].frequency=obj.frequency
-                                P.current[i].snr=obj.snr
-                                P.current[i].df=obj.df
-                                P.current[i].color=obj.color
                             except:
                                 error_trap('DIGEST SPOT: ?????')
                         else:
@@ -628,10 +632,15 @@ class ClusterFeed:
                                 val = obj.wpm
                             else:
                                 val = obj.snr
-                            entry="%-6.1f  %-10.19s  %+6.6s %-15.16s %+4.4s" % \
+                            P.entry="%-6.1f  %-10.19s  %+6.6s %-15.16s %+4.4s" % \
                                 (freq,dx_call,mode,cleanup(dxcc),val)
-                            self.P.bm_q.put( [idx2[0], entry, obj.color] )
-                    
+                            
+                        P.idx=idx2[0]
+                        P.color=obj.color
+                        P.bm_gui.root.event_generate("<<updateEntry>>",
+                                                     when="tail",
+                                                     state=5)
+                        
                 else:
                     
                     # New call - maintain a list of all spots sorted by freq 
@@ -675,6 +684,11 @@ class ClusterFeed:
                             self.lock.release()
                             return True                    
 
+                        # Cull out stations that are not new multipliers
+                        if self.P.NEW_MULTS_ONLY and obj.new_mult:
+                            self.lock.release()
+                            return True                    
+
                         # Cull out modes we are not interested in
                         xm = obj.mode
                         if xm in ['FT8','FT4','DIGITAL','JT65']:
@@ -706,25 +720,143 @@ class ClusterFeed:
 
                         if self.P.CLUSTER=='WSJT':
                             df = int( obj.df )
-                            entry="%4d  %-10.10s  %+6.6s %-17.17s %+4.4s" % \
+                            P.entry="%4d  %-10.10s  %+6.6s %-17.17s %+4.4s" % \
                                 (df,dx_call,mode,cleanup(dxcc),obj.snr)
                         else:
                             if mode in ['CW']:
                                 val = obj.wpm
                             else:
                                 val = obj.snr
-                            entry="%-6.1f  %-10.10s  %+6.6s %-15.15s %+4.4s" % \
+                            P.entry="%-6.1f  %-10.10s  %+6.6s %-15.15s %+4.4s" % \
                                 (freq,dx_call,mode,cleanup(dxcc),val)
-                        self.P.bm_q.put( [idx2[0], entry, obj.color] )
+                            
+                        P.idx=idx2[0]
+                        P.color=obj.color
+                        P.bm_gui.root.event_generate("<<insertEntry>>",
+                                                     when="tail",
+                                                     state=1)
 
-                # Release lock
-                self.lock.release()
+        # Check if we need to cull old spots
+        try:
+            # Not sure why this can generate a "not in main loop" error at startup?
+            if P.bm_gui.READY:
+                P.bm_gui.root.event_generate("<<MaintainSanity>>",
+                                             when="tail",
+                                             state=4)
+            else:
+                print('DIGET SPOT: This is insane!')
                 
+        except:
+            error_trap('DIGET SPOT: Problem generating event to MaintainSanity???')
+            print('\tline=',line)
+            print('\tGUI Ready=',P.bm_gui.READY)
+        
+        dt = (datetime.now() - self.P.last_check).total_seconds()/60      # In minutes
+        if dt>1:
+            self.cull_old_spots()
+
+        # Release lock
+        self.lock.release()
+
         if VERBOSITY>=1:
             print('DIGEST SPOT: nspots=',P.nspots,len(P.SpotList),len(P.current))
         return True
 
+
+
+    # Function to cull aged spots
+    def cull_old_spots(self):
+        P=self.P
+        #logging.info("Calling Get_Freq ...")
+        now  = datetime.utcnow().replace(tzinfo=UTC)
+        sock = P.sock
+        if sock:
+            frq = sock.get_freq(VFO=self.P.RIG_VFO)
+        else:
+            frq=0
+        #print('SpotList=',P.SpotList)
+        #print("CULL OLD SPOTS - Rig freq=",frq,'\tnspots=',P.nspots,len(P.SpotList),len(P.current),
+        #      '\nmax age=',self.P.MAX_AGE,'\tnow=',now)
+        print("CULL OLD SPOTS - Rig freq=",frq,
+              '\tnspots=',P.nspots,
+              '\tlen SpotList=',len(P.SpotList),
+              '\tlen Current=',len(P.current),
+              '\n\tmax age=',self.P.MAX_AGE,
+              '\tnow=',now)
+
+        #self.scrolling('CULL OLD SPOTS A')
+
+        NewList=[];
+        BAND = self.P.bm_gui.band.get().replace('m','')
+        if BAND=='MW':
+            BAND=160
+        else:
+            BAND = int( BAND )
+        for x in P.SpotList:
+            try:
+                age = (now - x.time).total_seconds()/60      # In minutes
+            except:
+                error_trap('CULL_OLD_SPOTS: ????')
+                age=0
+                print('x=',x)
+                #pprint(vars(x))
+                print('now=',now)
+                #print('x.time=',x.time)
+                continue
             
+            keep = x!=None and ((x.cnt>=2 and age<self.P.MAX_AGE) or (x.cnt<2 and age<3))
+            if keep and not self.P.SHOW_DUPES:
+                keep = x.color != 'red'
+            if keep:
+                NewList.append(x)
+            else:
+                print("CULL OLD SPOTS - Removed spot ",x.dx_call,'\t',
+                      x.time,'\t',x.frequency,'\t',x.band,"\tage=",age)
+
+            # Check if this spot is currently being displayed
+            if x.band==BAND:
+                idx2 = [i for i,y in enumerate(P.current) 
+                        if y.frequency == x.frequency and y.dx_call == x.dx_call]
+                #print("Delete",idx2,idx2[0])
+                if len(idx2)>0:
+                    try:
+                        if keep:
+                            if x.color != 'red':
+                                c,c2,age=self.spot_color(False,x)
+                                if c!=x.color:
+                                    #print("CULL OLD SPOTS - Color change for spot",x.dx_call,'\t',
+                                    #      x.time,'\t',x.frequency,'\t',x.band,"\tage=",age)
+                                    x.color=c
+                                    P.current[idx2[0]].color=c
+                                    P.idx=idx2[0]
+                                    P.color=c
+                                    P.bm_gui.root.event_generate("<<configEntry>>",
+                                                                 when="tail",
+                                                                 state=3)
+                                    
+                        else:
+                            #print("CULL OLD SPOTS - Delete spot from current list",x.dx_call,'\t',
+                            #      x.time,'\t',x.frequency,'\t',x.band,"\tage=",age)
+                            del P.current[idx2[0]]
+                            P.idx=idx2[0]
+                            P.bm_gui.root.event_generate("<<deleteEntry>>",
+                                                         when="tail",
+                                                         state=2)
+                    except:
+                        error_trap('GUI->CULL OLD SPOTTS: Problem deleting spot???!!!')
+                        print('\tcall=',x.dx_call,'\tfreq=',x.frequency,'\tband=',x.band)
+                        print('\tidx2=',idx2)
+
+        # Update gui display
+        #self.scrolling('CULL OLD SPOTS B')
+        P.SpotList=NewList
+        #self.scrolling('CULL OLD SPOTS C')
+        print("CULL OLD SPOTS - New nspots=",P.nspots,
+              '\tlen SpotList=',len(P.SpotList),
+              '\tlen Current=',len(P.current))
+        self.P.last_check=datetime.now()
+
+    
 
     # Function to check if we've already worked a spotted station
     def B4(self,x,b):
@@ -823,9 +955,12 @@ class ClusterFeed:
                     break
                 
         if idx>=0:
-            c,c2,age=self.spot_color(match,x)
-            #self.lb.itemconfigure(idx, background=c)
-            self.P.bm_q.put( [idx,None, c] )
+            P.idx=idx
+            P.color,c2,age=self.spot_color(match,x)
+            P.bm_gui.root.event_generate("<<configEntry>>",
+                                         when="tail",
+                                         state=3)
+            #self.P.bm_q.put( [idx,None, c] )
             #print('LB_UPDATE:',dx_call,c)
                 
         # Release lock

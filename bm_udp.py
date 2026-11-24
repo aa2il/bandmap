@@ -33,10 +33,11 @@ import pytz
 def bm_udp_msg_handler(self,sock,msg):
     id=sock.getpeername()
     print('BM UDP MSG HANDLER: id=',id,'\tmsg=',msg.rstrip())
+    P=self.P
 
     if False:
         print("P=")
-        pprint(vars(self.P))
+        pprint(vars(P))
         print(' ')
     
     msgs=msg.split('\n')
@@ -65,7 +66,7 @@ def bm_udp_msg_handler(self,sock,msg):
             frq=float(mm[2])
             band = freq2band(1e-3*frq)
             print('BM UDP MSG HANDLER: RunFreq - frq=',frq,'\tband=',band)
-            spots = self.P.bm_gui.collect_spots(band,not mm[1]=='UP',OVERRIDE=True)
+            spots = P.bm_gui.collect_spots(band,not mm[1]=='UP',OVERRIDE=True)
             print('\tspots=',spots)
 
             flast=None
@@ -83,7 +84,7 @@ def bm_udp_msg_handler(self,sock,msg):
                         msg='RunFreq:TRY:'+str(frq2)
                         print('BM UDP MSG HANDLER: RunFreq - Suggested freq=',frq2,
                               '\nSending msg=',msg)
-                        #self.P.udp_server.Broadcast(msg)
+                        #P.udp_server.Broadcast(msg)
                         sock.send(msg.encode())
                         return
                 flast = f
@@ -105,9 +106,9 @@ def bm_udp_msg_handler(self,sock,msg):
                     ('AA2IL'+'-#:',freq,call,mode+' 0 dB',
                      now.strftime("%H%M") )
                 print(line)
-                self.P.ClusterFeed.digest_spot(line)
+                P.ClusterFeed.digest_spot(line)
             else:
-                self.P.bm_gui.SpotWin.FillBoxes(call,freq,'')
+                P.bm_gui.SpotWin.FillBoxes(call,freq,'')
                 
             return
      
@@ -123,22 +124,40 @@ def bm_udp_msg_handler(self,sock,msg):
             qso['qso_date_off'] = mm[5]
             qso['time_off']     = mm[6]
             qso['qth']          = mm[7]
-            self.P.qsos.append(qso)
+            P.qsos.append(qso)
             print('\tUDP LOG: qso=',qso)
-            self.P.SCORING.otf_scoring(qso)
-            self.P.ClusterFeed.lb_update()
+            P.SCORING.otf_scoring(qso)
+            P.ClusterFeed.lb_update()
 
-            if True:
-                b = int( qso['band'].split("m")[0] )
-                idx = [i for i,x in enumerate(self.P.current) if x.dx_call == qso['call'] and x.band==b]
-                print('\tb=',b,'\tidx=',idx)
-                if len(idx)>0:
-                    print('\tentry=',[idx[0],None, 'red'] )
-                    self.P.bm_q.put( [idx[0],None, 'red'] )
-                else:
-                    #print('\tP.current=',self.P.current)
-                    for x in self.P.current:
-                        print(x,x.dx_call,x.band)
+            # Grab lock
+            lock=P.ClusterFeed.lock
+            lock_to=P.ClusterFeed.lock_to
+            acq=lock.acquire(timeout=lock_to)
+            if not acq:
+                print('BM UDP MSG HANDLER: Unable to acquire lock - giving up!')
+                return
+ 
+            # Check if this entry is currently being displayed
+            b = int( qso['band'].split("m")[0] )
+            idx = [i for i,x in enumerate(P.current) if x.dx_call == qso['call'] and x.band==b]
+            print('\tb=',b,'\tidx=',idx)
+            if len(idx)>0:
+                P.idx=idx[0]
+                P.color='red'
+                print('BM UDP MSG HANDLER: Generating CONFIG event ...')
+                P.bm_gui.root.event_generate("<<configEntry>>",
+                                             when="tail",
+                                             state=3)
+                print('BM UDP MSG HANDLER: Done with CONFIG event')
+                
+            """                
+            else:
+                #print('\tP.current=',P.current)
+                for x in P.current:
+                    print(x,x.dx_call,x.band)
+            """
+                
+            lock.release()
             
             return
             
@@ -148,12 +167,12 @@ def bm_udp_msg_handler(self,sock,msg):
                 print('BM UDP MSG HANDLER: Received SpotList Refresh')
                 return
             elif mm[1]=='?':
-                band=self.P.GUI_BAND
+                band=P.GUI_BAND
             else:
                 band=mm[1]
             
             if mm[1]=='?' or mm[2]=='?':
-                spot_list_query(self.P,sock,band)
+                spot_list_query(P,sock,band)
                 
             return
                     

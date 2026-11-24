@@ -20,3 +20,5 @@ chardet
 Levenshtein
 openpyxl
 
+# For memory debugging only
+matplotlib

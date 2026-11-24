@@ -4,7 +4,7 @@
 # OLD: /usr/bin/python3 -u 
 #########################################################################################
 #
-# bandmap.py - Rev. 1.0
+# bandmap.py - Rev. 2.0
 # Copyright (C) 2021-6 by Joseph B. Attili, joe DOT aa2il AT gmail DOT com
 #
 # Simple gui to sort & display dx cluster spots.  Indications as to the age of a spot and
@@ -52,7 +52,7 @@ from scoring import Select_Scoring
 
 #########################################################################################
 
-VERSION='1.0'
+VERSION='2.0'
 
 #########################################################################################
 

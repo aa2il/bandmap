@@ -157,6 +157,7 @@ class PARAMS:
         self.DX_ONLY        = args.dx_only
         self.NA_ONLY        = args.na_only
         self.NEW_CWOPS_ONLY = False
+        self.NEW_MULTS_ONLY = False
         self.BM_UDP_CLIENT  = args.bm_udp
         self.SAVE_SPOTS     = args.save
         self.RIG_VFO        = args.vfo

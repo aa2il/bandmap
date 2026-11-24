@@ -172,6 +172,7 @@ class BandMapGUI:
         P.members=[]
         P.qsos=[]
         P.last_check=datetime.now()
+        self.READY=False
 
         if P.FT4:
             self.FT_MODE='FT4'
@@ -375,7 +376,44 @@ class BandMapGUI:
         self.root.update_idletasks()
         self.root.update()
 
+        # Bind event handler for gui updates from other threads
+        self.root.bind("<<insertEntry>>", self.InsertHandler) 
+        self.root.bind("<<deleteEntry>>", self.DeleteHandler) 
+        self.root.bind("<<updateEntry>>", self.UpdateHandler) 
+        self.root.bind("<<configEntry>>", self.ConfigHandler) 
+        self.root.bind("<<MaintainSanity>>", self.SanityHandler) 
+            
+    # Functions to handle gui updates from non-main threads
+    def InsertHandler(self,evt):
+        P=self.P
+        #print('&&&&&&&&&&&&&&&&&&&&&&&&&&&&& INSERT state=',evt.state)
+        self.lb.insert(P.idx,P.entry)
+        self.lb.itemconfigure(P.idx, background=P.color)
         
+    def DeleteHandler(self,evt):
+        P=self.P
+        #print('&&&&&&&&&&&&&&&&&&&&&&&&&&&&& DELETE state=',evt.state)
+        self.lb.delete(P.idx)
+
+    def UpdateHandler(self,evt):
+        P=self.P
+        #print('&&&&&&&&&&&&&&&&&&&&&&&&&&&&& UPDATE state=',evt.state)
+        # There is no way to change an individual item text in a tk listbox
+        # so we must delete the current entry and re-insert it - ugh!
+        self.lb.delete(P.idx)
+        self.lb.insert(P.idx,P.entry)
+        self.lb.itemconfigure(P.idx, background=P.color)
+
+    def ConfigHandler(self,evt):
+        P=self.P
+        #print('&&&&&&&&&&&&&&&&&&&&&&&&&&&&& CONFIG state=',evt.state)
+        self.lb.itemconfigure(P.idx, background=P.color)
+
+    def SanityHandler(self,evt):
+        P=self.P
+        #print('&&&&&&&&&&&&&&&&&&&&&&&&&&&&& SANITY state=',evt.state)
+        self.LBsanity()
+
     # Function to actually get things going        
     def run(self):
     
@@ -408,6 +446,7 @@ class BandMapGUI:
         self.node.set(self.P.SERVER)
         
         self.WatchDog()
+        self.READY=True
 
 
     # Callback to handle mouse wheel scrolling since Tk doesn't seem to do a very good job of it
@@ -606,6 +645,10 @@ class BandMapGUI:
 
             if self.P.NEW_CWOPS_ONLY:
                 # Retain only cwops stations not worked yet this year
+                keep = keep and self.P.ClusterFeed.cwops_worked_status(x.dx_call)==1
+
+            if self.P.NEW_MULTS_ONLY:
+                # Retain only new multipliers
                 keep = keep and self.P.ClusterFeed.cwops_worked_status(x.dx_call)==1
 
             # Retain only modes we are interested in
@@ -885,35 +928,10 @@ class BandMapGUI:
         if P.GUI_MODE==None:
             P.GUI_MODE = self.mode.get()
                 
-        # Check if we have any new spots
-        Update=False
-        nspots=self.P.bm_q.qsize()
-        #print('BM WATCH DOG - There are',nspots,'new spots in the queue ...')
-        while nspots>0:
-            Update=True
-            entry=self.P.bm_q.get()
-            #print('\tentry=',entry,len(entry))
-            if len(entry)==1:
-                self.lb.delete(entry[0])
-            else:
-                if entry[1]!=None:
-                    self.lb.insert(entry[0], entry[1])
-                try:
-                    self.lb.itemconfigure(entry[0], background=entry[2])
-                except:
-                    error_trap('BM GUI->WATCH DOG: Error in configuring item bg color ????')
-                    print('entry=',entry,'\n')
-                        
-            self.P.bm_q.task_done()
-            nspots=self.P.bm_q.qsize()
-
-        # Check if we need to cull old spots
-        if Update:
-            self.LBsanity()
-            dt = (datetime.now() - self.P.last_check).total_seconds()/60      # In minutes
-            if dt>1:
-                self.cull_old_spots()
-        
+        # Monitor memory usage
+        if P.MEM:
+            P.MEM.take_snapshot()
+            
         # Check for antenna or mode or band changes
         # Should combine these two
         if VERBOSITY>0:
@@ -1133,6 +1151,12 @@ class BandMapGUI:
         print('TOGGLE CWOPS: ',self.P.NEW_CWOPS_ONLY)
         self.SelectBands()
         
+    # Toggle NEW MULTS ONLY mode
+    def toggle_new_mults_only(self):
+        self.P.NEW_MULTS_ONLY=self.new_mults_only.get()
+        print('TOGGLE MULTS: ',self.P.NEW_MULTS_ONLY)
+        self.SelectBands()
+        
     # Toggle showing CW spots
     def toggle_cw(self):
         self.P.SHOW_CW=self.show_cw.get()
@@ -1343,6 +1367,14 @@ class BandMapGUI:
             underline=0,
             variable=self.new_cwops_only,
             command=self.toggle_new_cwops_only
+        )
+        
+        self.new_mults_only = BooleanVar(value=self.P.NEW_MULTS_ONLY)
+        Menu1.add_checkbutton(
+            label="New Mults Only",
+            underline=0,
+            variable=self.new_mults_only,
+            command=self.toggle_new_mults_only
         )
         
         self.contest_mode = BooleanVar(value=self.P.CONTEST_MODE)
@@ -1581,71 +1613,4 @@ class BandMapGUI:
         return y
 
     
-    # Function to cull aged spots
-    def cull_old_spots(self):
-        P=self.P
-        #logging.info("Calling Get_Freq ...")
-        now = datetime.utcnow().replace(tzinfo=UTC)
-        sock=self.P.sock
-        if sock:
-            frq = sock.get_freq(VFO=self.P.RIG_VFO)
-        else:
-            frq=0
-        #print('SpotList=',P.SpotList)
-        #print("CULL OLD SPOTS - Rig freq=",frq,'\tnspots=',P.nspots,len(P.SpotList),len(P.current),
-        #      '\nmax age=',self.P.MAX_AGE,'\tnow=',now)
-        print("CULL OLD SPOTS - Rig freq=",frq,
-              '\tnspots=',P.nspots,
-              '\tlen SpotList=',len(P.SpotList),
-              '\tlen Current=',len(P.current),
-              '\n\tmax age=',self.P.MAX_AGE,
-              '\tnow=',now)
-
-        self.scrolling('CULL OLD SPOTS A')
-
-        NewList=[];
-        BAND = int( self.band.get().replace('m','') )
-        for x in P.SpotList:
-            try:
-                age = (now - x.time).total_seconds()/60      # In minutes
-            except:
-                error_trap('CULL_OLD_SPOTS: ????')
-                age=0
-                print('x=',x)
-                #pprint(vars(x))
-                print('now=',now)
-                #print('x.time=',x.time)
-                continue
-            
-            keep = x!=None and ((x.cnt>=2 and age<self.P.MAX_AGE) or (x.cnt<2 and age<3))
-            if keep and not self.P.SHOW_DUPES:
-                keep = x.color != 'red'
-            if keep:
-                NewList.append(x)
-            else:
-                print("CULL OLD SPOTS - Removed spot ",x.dx_call,'\t',x.time,'\t',x.frequency,'\t',x.band,"\tage=",age)
-
-                # Check if this spot is currently being displayed
-                if x.band==BAND:
-                    idx2 = [i for i,y in enumerate(P.current) 
-                            if y.frequency == x.frequency and y.dx_call == x.dx_call]
-                    #print("Delete",idx2,idx2[0])
-                    if len(idx2)>0:
-                        try:
-                            del P.current[idx2[0]]
-                            self.lb.delete(idx2[0])
-                        except:
-                            error_trap('GUI->CULL OLD SPOTTS: Problem deleting spot???!!!')
-                            print('\tcall=',x.dx_call,'\tfreq=',x.frequency,'\tband=',x.band)
-                            print('\tidx2=',idx2)
-
-        # Update gui display
-        self.scrolling('CULL OLD SPOTS B')
-        P.SpotList=NewList
-        self.scrolling('CULL OLD SPOTS C')
-        print("CULL OLD SPOTS - New nspots=",P.nspots,
-              '\tlen SpotList=',len(P.SpotList),
-              '\tlen Current=',len(P.current))
-        self.P.last_check=datetime.now()
-
         

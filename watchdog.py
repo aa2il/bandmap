@@ -43,7 +43,7 @@ class WatchDog:
         self.dt =.001*msec
         P.SHUTDOWN = False
 
-        # Kick off watchdog monito
+        # Kick off watchdog monitor
         P.Timer = threading.Timer(self.dt, self.Monitor)
         P.Timer.daemon=True                       # This prevents timer thread from blocking shutdown
         P.Timer.start()
